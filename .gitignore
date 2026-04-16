@@ -1,0 +1,4 @@
+extract/output/pdfs/
+parse/output/done_flags/
+parse/output/*.csv.zstd
+parse/output/results/
