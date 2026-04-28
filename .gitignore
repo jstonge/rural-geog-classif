@@ -3,3 +3,5 @@ parse/output/done_flags/
 parse/output/*.csv.zstd
 parse/output/results/
 summarize/output/all_summaries.json
+transform/output/runs/
+transform/output/latest

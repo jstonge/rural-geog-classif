@@ -6,6 +6,8 @@ import json
 import sys
 from pathlib import Path
 
+from run_utils import init_run, finish_run, add_run_args, params_from_args
+
 import numpy as np
 import torch
 from transformers import AutoTokenizer
@@ -62,7 +64,10 @@ def main():
     )
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--device", default="cpu", choices=["cpu", "cuda"])
+    add_run_args(parser)
     args = parser.parse_args()
+
+    run_dir = init_run("embed.py", params_from_args(args), run_id=args.run_id)
 
     with open(args.summaries) as f:
         summaries: dict[str, str] = json.load(f)
@@ -98,14 +103,11 @@ def main():
     embeddings = embed_texts(tokenizer, model, texts, args.batch_size, device)
     print(f"Embeddings shape: {embeddings.shape}")
 
-    args.output.mkdir(parents=True, exist_ok=True)
-
-    np.save(args.output / "embeddings.npy", embeddings)
-    with open(args.output / "dois.json", "w") as f:
+    np.save(run_dir / "embeddings.npy", embeddings)
+    with open(run_dir / "dois.json", "w") as f:
         json.dump(dois, f)
 
-    print(f"Saved embeddings to {args.output / 'embeddings.npy'}")
-    print(f"Saved DOI index to {args.output / 'dois.json'}")
+    finish_run(run_dir, outputs=["embeddings.npy", "dois.json"])
 
 
 if __name__ == "__main__":

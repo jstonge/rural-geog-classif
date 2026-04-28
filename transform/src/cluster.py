@@ -5,6 +5,8 @@ import csv
 import json
 from pathlib import Path
 
+from run_utils import init_run, finish_run, add_run_args, params_from_args
+
 import numpy as np
 import evoc
 from sklearn.decomposition import PCA
@@ -42,7 +44,10 @@ def main():
         default=Path(__file__).resolve().parent.parent / "output",
         help="Output directory (default: transform/output)",
     )
+    add_run_args(parser)
     args = parser.parse_args()
+
+    run_dir = init_run("cluster.py", params_from_args(args), run_id=args.run_id)
 
     embeddings = np.load(args.embeddings)
     with open(args.dois) as f:
@@ -87,8 +92,6 @@ def main():
     else:
         coords_2d = node_emb[:, :2]
 
-    args.output.mkdir(parents=True, exist_ok=True)
-
     # Build frontend-ready JSON
     points = []
     for i, doi in enumerate(dois):
@@ -106,10 +109,10 @@ def main():
             "y": float(coords_2d[i, 1]),
         })
 
-    with open(args.output / "viz.json", "w") as f:
+    with open(run_dir / "viz.json", "w") as f:
         json.dump(points, f)
 
-    print(f"Saved {len(points)} points to {args.output / 'viz.json'}")
+    finish_run(run_dir, outputs=["viz.json"])
 
 
 if __name__ == "__main__":
