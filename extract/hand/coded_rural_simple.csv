@@ -135,7 +135,7 @@ doi,has_pdf,docling_parsed,olmo_parsed,pub year,article title,match_oa
 10.1080/24694452.2017.1403879,True,True,True,2012,Producing Contaminated Citizens: Toward a Nature-Society Geography of Health and Well-Being,True
 10.1080/24694452.2017.1417820,True,True,True,2012,Making a Living the Hmong Way: An Actor-Oriented Livelihoods Approach to Everyday Politics and Resistance in Upland Vietnam,True
 10.1080/00330124.2018.1443479,True,True,True,2012,Forever Hmong: Ethnic Minority Livelihoods and Agrarian Transition in Upland Northern Vietnam,True
-,False,False,False,2011,TRADITIONAL ECOLOGIES OF THE OPIUM POPPY AND ORAL HISTORY IN RURAL TURKEY*,False
+10.1111/j.0033-0124.1996.00070.x,False,False,False,2011,TRADITIONAL ECOLOGIES OF THE OPIUM POPPY AND ORAL HISTORY IN RURAL TURKEY*,False
 10.1080/24694452.2017.1374163,True,True,True,2011,"From Crops to Concrete: Urbanization, Deagriculturalization, and Construction Material Mining in Central Mexico",True
 10.1080/00330124.2017.1365309,True,True,True,2011,"Connecting and Disconnecting People and Places: Migrants, Migration, and the Household in Sri Lanka",True
 10.1111/gere.12226,True,True,True,2011,"China's Permanent and Temporary Migrants: Differentials and Changes, 1990-2000",True
@@ -158,10 +158,10 @@ doi,has_pdf,docling_parsed,olmo_parsed,pub year,article title,match_oa
 10.1080/24694452.2015.1124017,True,True,True,2008,A multilevel analysis of agricultural trade and socioeconomic inequality in rural Mozambique,False
 10.1080/24694452.2016.1194740,True,True,True,2008,"Different Places, Different Stories: Infant Mortality Decline in England and Wales, 1851-1911",True
 10.1080/00330124.2016.1198264,True,True,True,2008,Changing Rural Landscapes in Albania: Cropland Abandonment and Forest Clearing in the Postsocialist Transition,True
-,False,False,False,2008,Custom and Contradiction: Rural Water Governance and the Politics of Usos y Costumbres in Bolivia's Irrigators' Movement,False
+10.1080/00045600802013502,False,False,False,2008,Custom and Contradiction: Rural Water Governance and the Politics of Usos y Costumbres in Bolivia's Irrigators' Movement,False
 10.1080/24694452.2016.1213155,True,True,True,2007,Hybrid cultures of postdevelopment: The struggle for popular hegemony in rural Nicaragua,True
 10.1080/00045608.2015.1113110,True,True,True,2007,Simulating emergent urban form using agent-based modeling: Desakota in the suzhou-wuxian region in china,True
-,False,False,False,2006,Measuring potential access to primary healthcare services: The influence of alternative spatial representations of population,False
+10.1111/j.1467-9272.2006.00569.x,False,False,False,2006,Measuring potential access to primary healthcare services: The influence of alternative spatial representations of population,False
 10.1080/00045608.2015.1100056,True,False,False,2006,Placing KaNgwane in the new South Africa,True
 10.1080/00045608.2015.1086951,True,False,False,2005,Home-working in rural Bali: The organization of production and labor relations,True
 10.1080/00045608.2015.1113112,True,False,False,2005,Forest clearing among farm households in the Maya Biosphere Reserve,True
@@ -261,18 +261,18 @@ doi,has_pdf,docling_parsed,olmo_parsed,pub year,article title,match_oa
 10.1111/j.1467-9272.2006.00565.x,False,False,False,2022,Introduction to Focus Section: The Geographies of Crime and Policing in the Global Countryside,True
 10.1111/j.1931-0846.2006.tb00388.x,False,False,False,2022,Un/Making Assets: The Institutional Limits to Financialization,True
 10.1111/j.1467-8306.2005.00488.x,False,False,False,2022,"Heat Waves and Road Traffic Collisions in Alabama, United States",True
-,False,False,False,2022,Protecting a Broken Window: Vandalism and Security at Rural Rock Art Sites,False
+10.1080/00330124.2021.1957690,False,False,False,2022,Protecting a Broken Window: Vandalism and Security at Rural Rock Art Sites,False
 10.1111/j.1467-9272.2005.00498.x,False,False,False,2022,"With, Not for, Money: Ranch Management Trajectories of the Super-Rich in Greater Yellowstone",True
 10.1111/j.1467-9272.2005.00497.x,False,False,False,2022,SECOND HOME PROPERTY OWNERSHIP AND PUBLIC-SCHOOL FUNDING IN WISCONSIN'S NORTHWOODS,True
 10.1111/j.1467-8306.2005.00466.x,True,True,True,2021,Motivations and Methods for Replication in Geography: Working with Data Streams,True
 10.1111/j.0033-0124.2005.00469.x,False,False,False,2022,RURALITY AS A KEY FACTOR FOR PLACE ATTACHMENT IN THE GREAT PLAINS,True
 10.1111/j.1467-8306.2005.00450.x,True,True,True,2021,SPATIALIZING BLACK CULTURE THROUGH THE PLACEMAKING TRADITION OF THE RURAL LOUISIANA CREOLEBOUCHERIE,True
 10.1111/j.1467-8306.2005.00447.x,True,False,False,2020,The Bakken Blind Field: Investigating Planetary Urbanization and Opaqueness in the Oil and Gas Fields of Eastern Montana,True
-,False,False,False,2020,An Intensifying Urban-Rural Schism in US Women's Preference for Governmental Solutions to Social Problems,False
-,False,False,False,2020,The Environmental Justice Implications of Managing Hazardous Fuels on Federal Forest Lands,False
-,False,False,False,2020,Challenges and Opportunities for Coping with the Smart Divide in Rural America,False
-,False,False,False,2020,Examining Spatial Disparities of Obesity: Residential Segregation and the Urban-Rural Divide,False
-,False,False,False,2020,Unusually Devastating Tornadoes in the United States: 1995-2016,False
+10.1080/00330124.2020.1744168,False,False,False,2020,An Intensifying Urban-Rural Schism in US Women's Preference for Governmental Solutions to Social Problems,False
+10.1080/24694452.2020.1727307,False,False,False,2020,The Environmental Justice Implications of Managing Hazardous Fuels on Federal Forest Lands,False
+10.1080/24694452.2019.1694402,False,False,False,2020,Challenges and Opportunities for Coping with the Smart Divide in Rural America,False
+10.1080/00330124.2019.1676800,False,False,False,2020,Examining Spatial Disparities of Obesity: Residential Segregation and the Urban-Rural Divide,False
+10.1080/24694452.2019.1638753,False,False,False,2020,Unusually Devastating Tornadoes in the United States: 1995-2016,False
 10.1111/j.1931-0846.2004.tb00182.x,True,True,True,2019,Future Extreme Event Risk in the Rural Northeastern United States,True
 10.1111/j.1467-8306.2004.00418.x,True,True,True,2019,"Rural Ruins in America's Climate Change Story: Photojournalism, Perception, and Agency in Shishmaref, Alaska",True
 10.1111/j.1931-0846.2004.tb00178.x,True,True,True,2019,"Geomorphic Responses to Extreme Rainfall, Catastrophic Flooding, and Dam Failures across an Urban to Rural Landscape",True
@@ -281,7 +281,7 @@ doi,has_pdf,docling_parsed,olmo_parsed,pub year,article title,match_oa
 10.1111/j.1467-8306.2004.09401003.x,True,False,False,2019,Reparation Ecologies: Regimes of Repair in Populist Agroecology,True
 10.1111/j.1931-0846.2003.tb00036.x,True,True,True,2019,US Farm Policy as Fraught Populism: Tracing the Scalar Tensions of Nationalist Agricultural Governance,True
 10.1111/j.1931-0846.2003.tb00035.x,True,True,True,2019,Bringing Back the Mines and a Way of Life: Populism and the Politics of Extraction,True
-,False,False,False,2019,Everyday Encounters with Activist Scholarship,False
+10.1080/00330124.2018.1453184,False,False,False,2019,Everyday Encounters with Activist Scholarship,False
 10.1111/1467-8306.93110,True,True,True,2019,The Three American Wests,True
 10.1111/1467-8306.93112,True,False,False,2018,The Multifunctionality of Country Stores: Insights on Resilience from Rural Vermont,True
 10.1111/1467-8306.93108,True,False,False,2018,AQUACULTURE AND THE POSTPRODUCTIVE TRANSITION ON THE MAINE COAST,True
@@ -292,7 +292,7 @@ doi,has_pdf,docling_parsed,olmo_parsed,pub year,article title,match_oa
 10.2307/4140919,True,True,True,2018,Inverted Two-Step Floating Catchment Area Method for Measuring Facility Crowdedness,True
 10.1111/1467-8306.00288,True,True,True,2017,"Crip Theory and Country Boys: Masculinity, Dis/Ability, and Place in Rural Southeast Kansas",True
 10.1111/0033-0124.00323,True,True,True,2017,Rural Rentierism and the Financial Enclosure of Maine's Open Lands Tradition,True
-,False,False,False,2016,"Borderland Lifeways in the American Exclave of Point Roberts, Washington",False
+10.1111/j.1931-0846.2016.12200.x,False,False,False,2016,"Borderland Lifeways in the American Exclave of Point Roberts, Washington",False
 10.1111/0033-0124.00304,True,True,True,2016,"Race, Space, and Electric Power: Jim Crow and the 1934 North Carolina Rural Electrification Survey",True
 10.1111/0033-0124.00299,True,True,True,2016,The Economic Contributions of Agricultural Tourism in Michigan,True
 10.1111/0004-5608.00254,True,True,True,2016,Household Water Insecurity in the Global North: A Study of Rural and Periurban Settlements on the Texas-Mexico Border,True
@@ -315,7 +315,7 @@ doi,has_pdf,docling_parsed,olmo_parsed,pub year,article title,match_oa
 10.1111/0033-0124.00208,True,True,True,2013,Ethnic Restructuring in Rural America: Migration and the Changing Faces of Rural Communities in the Great Plains,True
 10.2307/216175,True,False,False,2013,RURAL REGIONAL GOVERNANCE IN THE UNITED STATES: THE CASE OF THE RESOURCE CONSERVATION AND DEVELOPMENT PROGRAM,True
 10.2307/216155,True,True,True,2012,"Claiming Space, Claiming Water: Contested Legal Geographies of Water in South Texas",True
-,False,False,False,2012,Developing the Commons: The Contradictions of Growth in Exurban Montana,False
+10.1080/00330124.2011.601193,False,False,False,2012,Developing the Commons: The Contradictions of Growth in Exurban Montana,False
 10.1111/0033-0124.00131,True,True,True,2012,"With Numbers in Place: Security, Territory, and the Production of Calculable Space",True
 10.2307/216014,True,True,True,2011,AD HOC REGIONALISM IN RURAL DEVELOPMENT,True
 10.1111/1467-8306.00092,True,False,False,2011,Because You Got to Have Heat: The Networked Assemblage of Energy Poverty in Eastern North Carolina,True
@@ -357,7 +357,7 @@ doi,has_pdf,docling_parsed,olmo_parsed,pub year,article title,match_oa
 10.2307/215199,True,True,True,1996,Use of space-filling curves in generating a national rural sampling frame for HIV AIDS research,True
 10.2307/215196,True,True,True,1996,Countryside recreational access in the United States: A statistical comparison of rural districts,True
 10.1111/j.1467-8306.1992.tb01974.x,True,True,True,1996,Tolerance and rejection: The vote on Colorado's Amendment Two,True
-,False,False,False,1996,"Patterns of avian population density, habitat use, and flocking behavior in urban and rural habitats during winter",False
+10.1111/j.0033-0124.1996.00070.x,False,False,False,1996,"Patterns of avian population density, habitat use, and flocking behavior in urban and rural habitats during winter",False
 10.1111/j.1467-8306.1992.tb01969.x,True,True,True,1995,"IMMIGRANT TRAJECTORIES THROUGH THE RURAL-INDUSTRIAL TRANSITION IN WALES AND THE UNITED-STATES, 1795-1850",True
 10.1111/j.1467-8306.1992.tb01967.x,True,True,True,1995,FOREST-LANDSCAPE STRUCTURE ALONG AN URBAN-TO-RURAL GRADIENT,True
 10.2307/215401,True,False,False,1995,Native American population patterns,True

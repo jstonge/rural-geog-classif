@@ -1,13 +1,15 @@
 # Rural Geography Classification Pipeline
 # =========================================
 # Usage:
-#   make embed          # SPECTER2 embeddings (GPU recommended)
-#   make cluster        # EVoC clustering + viz.json
-#   make sync-data      # copy latest viz.json into frontend
-#   make frontend       # build static site
-#   make all            # cluster → sync → build
+#   make parse           # parse PDFs → markdown (docling)
+#   make embed           # SPECTER2 embeddings (GPU recommended)
+#   make cluster         # EVoC clustering + viz.json
+#   make sync-data       # copy latest viz.json into frontend
+#   make frontend        # build static site
+#   make all             # cluster → sync → build
 #
-#   make embed cluster  # full transform pipeline
+#   make parse FORMAT=json            # parse PDFs → json
+#   make embed cluster                # full transform pipeline
 #
 # Run tracking:
 #   Each embed/cluster invocation creates a timestamped run in
@@ -24,28 +26,33 @@ LATEST     := transform/output/latest
 # Optional: pass RUN_ID=<id> to reuse a run directory
 RUN_ARGS   := $(if $(RUN_ID),--run-id $(RUN_ID),)
 
-.PHONY: all embed cluster sync-data frontend deploy clean help
+# Parse options
+PARSER     := docling
+FORMAT     := markdown
+
+.PHONY: all parse embed cluster sync-data frontend deploy clean help
 
 all: frontend
 
 # --- Extract ---
 extract/output/openalex_works.json: $(WOS_CSV)
-	python extract/src/fetch_openalex.py
+	uv run python extract/src/fetch_openalex.py
 
 # --- Parse ---
-parse/output/markdown: extract/output/pdfs
-	python parse/src/parse_pdfs.py extract/output/pdfs -o parse/output/markdown
+parse: extract/output/pdfs
+	uv run python parse/src/parse_pdfs.py extract/output/pdfs \
+	  -o parse/output/$(PARSER) --format $(FORMAT)
 
 # --- Transform ---
 embed: $(SUMMARIES)
-	cd transform/src && python embed.py \
+	cd transform/src && uv run python embed.py \
 	  ../../$(SUMMARIES) \
 	  "../../$(WOS_CSV)" \
 	  --device cuda \
 	  $(RUN_ARGS)
 
 cluster: $(LATEST)/embeddings.npy $(SUMMARIES)
-	cd transform/src && python cluster.py \
+	cd transform/src && uv run python cluster.py \
 	  ../../$(LATEST)/embeddings.npy \
 	  ../../$(LATEST)/dois.json \
 	  "../../$(WOS_CSV)" \
@@ -67,6 +74,7 @@ deploy: frontend
 # --- Utilities ---
 help:
 	@echo "Targets:"
+	@echo "  parse       - Parse PDFs (PARSER=docling FORMAT=markdown)"
 	@echo "  embed       - Run SPECTER2 embeddings (needs GPU)"
 	@echo "  cluster     - Run EVoC clustering"
 	@echo "  sync-data   - Copy latest viz.json into frontend"
@@ -75,11 +83,14 @@ help:
 	@echo "  clean       - Remove all runs"
 	@echo ""
 	@echo "Options:"
-	@echo "  RUN_ID=<id> - Reuse a specific run directory"
+	@echo "  PARSER=<name>    - Parser to use (default: docling)"
+	@echo "  FORMAT=<fmt>     - Export format: markdown, text, json (default: markdown)"
+	@echo "  RUN_ID=<id>      - Reuse a specific run directory"
 	@echo ""
 	@echo "Examples:"
-	@echo "  make embed cluster    # full transform pipeline"
-	@echo "  make sync-data        # update frontend data"
+	@echo "  make parse                          # docling → markdown"
+	@echo "  make parse FORMAT=json              # docling → json"
+	@echo "  make embed cluster                  # full transform pipeline"
 	@echo "  make embed RUN_ID=20240424-172522"
 
 clean:

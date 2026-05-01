@@ -5,3 +5,8 @@ parse/output/results/
 summarize/output/all_summaries.json
 transform/output/runs/
 transform/output/latest
+extract/input/OneDrive_1_2026-05-01/
+extract/input/OneDrive_1_2026-05-01.zip
+
+extract/src/__pycache__/
+tests/__pycache__/
