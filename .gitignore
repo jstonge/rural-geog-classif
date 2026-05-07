@@ -10,3 +10,4 @@ extract/input/OneDrive_1_2026-05-01.zip
 
 extract/src/__pycache__/
 tests/__pycache__/
+.env

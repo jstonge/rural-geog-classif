@@ -3,20 +3,14 @@ name = "rural-geog-classif"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
-    "docling>=2.89.0",
-    "adapters",
-    "transformers",
-    "torch",
-    "numpy",
-    "evoc",
+    "fastparquet>=2026.3.0",
+    "ipykernel>=7.2.0",
+    "jupyter>=1.1.1",
+    "label-studio-sdk>=2.0.19",
+    "matplotlib>=3.10.9",
+    "pandas>=3.0.2",
+    "torch>=2.11.0",
+    "transformers>=5.8.0",
 ]
-
-[dependency-groups]
-dev = [
-    "pytest>=9.0.3",
-]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
