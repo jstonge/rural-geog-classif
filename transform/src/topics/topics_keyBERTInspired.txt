@@ -1,0 +1,39 @@
+Topic -1  (n=123)
+  words: rural, agricultural, farmers, land, communities, regions, regional, areas, migrants, households
+  rep:   Over the past two decades, many of Mexico's rural communities have been faced with significant challenges arising from two interrelated processes: the neoliberal restructuring of rural policy and citizenship, and the dramatic increase in transnational migration. The ways in which local communities e…
+
+Topic 0  (n=75)
+  words: agriculture, agricultural, livelihood, livelihoods, rural, farmers, poverty, households, conservation, land
+  rep:   This article examines the formation of social capital-defined as the norms of trust and reciprocity integral to social relations-and the ways in which it may help rural people's organizations gain access to rights and resources. The formation of social capital must be viewed within the context of th…
+
+Topic 1  (n=41)
+  words: rurality, geographical, geography, gentrification, rural, geographies, ruralurban, political, communities, narratives
+  rep:   Rural geography has gone through profound changes over the decades. Dissatisfaction with traditional emphases on population distribution, landscape features, labor markets, and economic restructuring has led to a recent focus on the construction of meanings associated with rural landscapes and socia…
+
+Topic 2  (n=21)
+  words: rural, villages, crops, land, environmental, environment, reforms, development, ciudades, economic
+  rep:   This paper analyzes environmental degradation in rural China as structurally embedded in China's rapid economic growth in the post-Mao era. The theoretical discussion focuses on changes in the organization of production, resource use, and regional development. A critical assessment of the Chinese hy…
+
+Topic 3  (n=21)
+  words: rural, housing, migrants, areas, spatial, families, counties, research, urban, employment
+  rep:   One of the most recognizable and important changes occurring in the West is rapid population growth. This article intends to address questions associated with whether patterns of population growth and income migration are associated with new and old West economies. Rural restructuring in the U.S. ha…
+
+Topic 4  (n=21)
+  words: rural, lands, conservation, land, forests, landscape, ranches, regimes, ranch, forest
+  rep:   Contrary to recent literature that portrays the High Plains as an over-exploited region of economic and demographic decline and as place that should be deprivatized, abandoned, and restored to a buffalo commons, this study suggests that the irrigated Ogallala region is not dying. It is experiencing,…
+
+Topic 5  (n=18)
+  words: rural, nonprofit, poverty, geographically, areas, resilience, residents, socioeconomic, spatial, social
+  rep:   A composite of cloud-free radiance-calibrated Defense Meteorological Satellite Program (DMSP)-Operational Linescan System (OLS) nighttime images of China acquired between March 1996 and January-February 1997 in 30-arc-second grids in byte format is evaluated for its usefulness in extracting urban in…
+
+Topic 6  (n=15)
+  words: urbanization, rural, farmland, gentrification, landscapes, geographic, landscape, land, agricultural, farms
+  rep:   Changes in the nature of capitalist production over the past thirty years have allowed regions to assert a greater political and economic presence in the new global marketplace. Galicia, a Spanish region located in the northwestern corner of the Iberian Peninsula, was once Spain's lowest economic pe…
+
+Topic 7  (n=14)
+  words: rural, environmental, migrants, village, climate, marginalized, practices, south, climateinduced, social
+  rep:   Scholars are increasingly rethinking the urban, the rural, and the urban-rural binary. This article advances understanding of rural and urban imaginaries through examining how young people in a village in north India develop practices that they regard as urban to protect rural futures. Young adults …
+
+Topic 8  (n=11)
+  words: rural, geographic, botswana, spatial, sanitation, locationallocation, social, wellbeing, por, accessibility
+  rep:   This study presents a case study of how social network and spatial analytical methods can be used simultaneously for disease transmission modeling. The article first reviews strategies employed in previous studies and then offers the example of transmission of two bacterial diarrheal diseases in rur…
