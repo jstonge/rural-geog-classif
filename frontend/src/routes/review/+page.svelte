@@ -158,7 +158,7 @@
   <p class="count">{filtered.length} of {records.length} records</p>
 
   <section class="cm-section">
-    <h2 class="cm-title">Confusion matrix (sections pred vs annotator)</h2>
+    <h2 class="cm-title">Confusion matrix (sections pred vs annotator; click to see papers)</h2>
     {#if cmLabels.length === 0}
       <p class="muted">No ground-truth records with predictions to display.</p>
     {:else}
