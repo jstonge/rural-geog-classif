@@ -1,0 +1,10 @@
+{
+  "n_test": 87,
+  "n_unparsed": 17,
+  "n_scored": 70,
+  "mean_jaccard": 0.495,
+  "exact_match": 0.1143,
+  "macro_f1": 0.595,
+  "mean_gt_size": 2.96,
+  "mean_pred_size": 3.3
+}

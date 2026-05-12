@@ -1,0 +1,35 @@
+,support,predicted,hit,recall,precision,f1
+agriculture,19,25,14,0.74,0.56,0.64
+animals or plants,3,3,3,1.0,1.0,1.0
+class,10,8,6,0.6,0.75,0.67
+climate change,7,6,5,0.71,0.83,0.77
+development,13,16,8,0.62,0.5,0.55
+digital technology,4,6,3,0.75,0.5,0.6
+emotion,2,5,2,1.0,0.4,0.57
+energy,4,5,4,1.0,0.8,0.89
+forests,2,5,2,1.0,0.4,0.57
+gender,11,10,10,0.91,1.0,0.95
+idenity,1,0,0,0.0,0.0,0.0
+identity,11,8,5,0.45,0.62,0.53
+indigenous populations,4,5,3,0.75,0.6,0.67
+inequality,18,20,13,0.72,0.65,0.68
+infrastructure,5,5,2,0.4,0.4,0.4
+justice,5,5,4,0.8,0.8,0.8
+landscape,18,12,8,0.44,0.67,0.53
+livelihood,15,17,11,0.73,0.65,0.69
+migration,16,18,13,0.81,0.72,0.76
+mobility,4,12,1,0.25,0.08,0.12
+natural resources,14,9,8,0.57,0.89,0.7
+not rural?,2,2,1,0.5,0.5,0.5
+planning,6,8,3,0.5,0.38,0.43
+policy,12,7,4,0.33,0.57,0.42
+political systems,10,11,6,0.6,0.55,0.57
+poverty,4,4,1,0.25,0.25,0.25
+power,11,12,4,0.36,0.33,0.35
+property,4,9,4,1.0,0.44,0.62
+race,8,9,7,0.88,0.78,0.82
+recreation/second homes,2,2,1,0.5,0.5,0.5
+resilience,2,3,1,0.5,0.33,0.4
+urbanization,6,12,4,0.67,0.33,0.44
+water,9,9,8,0.89,0.89,0.89
+weather or hazards,3,4,3,1.0,0.75,0.86
