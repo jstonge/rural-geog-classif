@@ -26,6 +26,8 @@
     abstract: string;
     reasoning_abstract: string;
     reasoning_sections: string;
+    ls_task_id: number | null;
+    ls_url: string | null;
   };
 
   const records: FlippedRecord[] = data as FlippedRecord[];
@@ -151,10 +153,18 @@
       })
       .join('\n\n');
   }
+
+  function wordCount(s: string): number {
+    return s.trim() ? s.trim().split(/\s+/).length : 0;
+  }
 </script>
 
 <div class="page">
   <h1>Methods classifier &mdash; review</h1>
+  <p class="about-link">
+    <a href="/about">About the methodology &rarr;</a>
+    <a href="/runs">Run audit &rarr;</a>
+  </p>
   <p class="count">{filtered.length} of {records.length} records</p>
 
   <section class="cm-section">
@@ -252,8 +262,15 @@
         <a class="title" href={`https://doi.org/${r.doi}`} target="_blank" rel="noreferrer noopener">
           {r.title || r.doi}
         </a>
-        <span class="badge" style="background: {directionColor(r.direction)};">
-          {directionLabel(r.direction)}
+        <span class="header-right">
+          <span class="badge" style="background: {directionColor(r.direction)};">
+            {directionLabel(r.direction)}
+          </span>
+          {#if r.ls_url}
+            <a class="ls-link" href={r.ls_url} target="_blank" rel="noreferrer noopener">
+              ↗ Label Studio
+            </a>
+          {/if}
         </span>
       </header>
 
@@ -294,14 +311,24 @@
       </section>
 
       <details>
-        <summary>Reasoning (abstract-only run)</summary>
+        <summary>
+          Reasoning (abstract-only run)
+          {#if wordCount(r.reasoning_abstract) > 0}
+            <span class="word-count">{wordCount(r.reasoning_abstract)} words</span>
+          {/if}
+        </summary>
         <div class="markdown">
           <Markdown md={r.reasoning_abstract} />
         </div>
       </details>
 
       <details>
-        <summary>Reasoning (section-picking run)</summary>
+        <summary>
+          Reasoning (section-picking run)
+          {#if wordCount(r.reasoning_sections) > 0}
+            <span class="word-count">{wordCount(r.reasoning_sections)} words</span>
+          {/if}
+        </summary>
         <div class="markdown">
           <Markdown md={r.reasoning_sections} />
         </div>
@@ -328,6 +355,25 @@
     color: #777;
     font-size: 13px;
     margin: 0 0 16px;
+  }
+
+  .about-link {
+    margin: 0 0 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .about-link a {
+    color: #777;
+    text-decoration: none;
+  }
+
+  .about-link a:hover {
+    color: #1a4a8a;
+    text-decoration: underline;
   }
 
   .cm-section {
@@ -538,6 +584,30 @@
     flex-shrink: 0;
   }
 
+  .header-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .ls-link {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    color: #334;
+    background: #eef;
+    border: 1px solid #dde;
+    padding: 2px 8px;
+    border-radius: 999px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .ls-link:hover {
+    background: #dde;
+    text-decoration: underline;
+  }
+
   .labels {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -657,5 +727,13 @@
 
   summary:hover {
     color: #222;
+  }
+
+  .word-count {
+    display: inline;
+    margin-left: 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    color: #999;
   }
 </style>

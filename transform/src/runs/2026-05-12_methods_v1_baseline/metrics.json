@@ -1,0 +1,129 @@
+{
+  "abstract": {
+    "n_records": 83,
+    "n_with_gt": 83,
+    "exact_match": 0.6145,
+    "labels": [
+      "both",
+      "descriptive",
+      "qual",
+      "quant",
+      "spatial/mapping",
+      "unclear"
+    ],
+    "confusion_matrix": {
+      "both": {
+        "both": 4,
+        "descriptive": 0,
+        "qual": 1,
+        "quant": 1,
+        "spatial/mapping": 1,
+        "unclear": 1
+      },
+      "descriptive": {
+        "both": 0,
+        "descriptive": 4,
+        "qual": 3,
+        "quant": 0,
+        "spatial/mapping": 0,
+        "unclear": 3
+      },
+      "qual": {
+        "both": 1,
+        "descriptive": 0,
+        "qual": 21,
+        "quant": 0,
+        "spatial/mapping": 0,
+        "unclear": 2
+      },
+      "quant": {
+        "both": 0,
+        "descriptive": 1,
+        "qual": 1,
+        "quant": 16,
+        "spatial/mapping": 7,
+        "unclear": 0
+      },
+      "spatial/mapping": {
+        "both": 1,
+        "descriptive": 0,
+        "qual": 0,
+        "quant": 1,
+        "spatial/mapping": 3,
+        "unclear": 1
+      },
+      "unclear": {
+        "both": 0,
+        "descriptive": 2,
+        "qual": 3,
+        "quant": 2,
+        "spatial/mapping": 0,
+        "unclear": 3
+      }
+    }
+  },
+  "sections": {
+    "n_records": 84,
+    "n_with_gt": 84,
+    "exact_match": 0.6429,
+    "labels": [
+      "both",
+      "descriptive",
+      "qual",
+      "quant",
+      "spatial/mapping",
+      "unclear"
+    ],
+    "confusion_matrix": {
+      "both": {
+        "both": 4,
+        "descriptive": 1,
+        "qual": 1,
+        "quant": 1,
+        "spatial/mapping": 1,
+        "unclear": 0
+      },
+      "descriptive": {
+        "both": 0,
+        "descriptive": 6,
+        "qual": 4,
+        "quant": 0,
+        "spatial/mapping": 0,
+        "unclear": 1
+      },
+      "qual": {
+        "both": 0,
+        "descriptive": 0,
+        "qual": 23,
+        "quant": 0,
+        "spatial/mapping": 0,
+        "unclear": 1
+      },
+      "quant": {
+        "both": 2,
+        "descriptive": 2,
+        "qual": 1,
+        "quant": 14,
+        "spatial/mapping": 6,
+        "unclear": 0
+      },
+      "spatial/mapping": {
+        "both": 1,
+        "descriptive": 0,
+        "qual": 0,
+        "quant": 1,
+        "spatial/mapping": 4,
+        "unclear": 0
+      },
+      "unclear": {
+        "both": 0,
+        "descriptive": 3,
+        "qual": 3,
+        "quant": 1,
+        "spatial/mapping": 0,
+        "unclear": 3
+      }
+    }
+  },
+  "flipped_between_pipelines": 11
+}
