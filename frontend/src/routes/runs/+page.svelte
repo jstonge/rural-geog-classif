@@ -245,6 +245,7 @@
   <h1>Runs</h1>
   <p class="header-links">
     <a href="{base}/compare">Compare labellers &rarr;</a>
+    <a href="{base}/prompts">Prompts &rarr;</a>
   </p>
 
   <p class="count">

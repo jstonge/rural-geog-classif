@@ -1,0 +1,8 @@
+# V1 location classifier — abstract-only with thinking enabled so /compare can show reasoning.
+task: location
+schema: v1
+strategy: abstract
+name: v1_abstract
+all_papers: false           # restrict to papers with v1 Location GT (project 110)
+thinking: true
+max_tokens: 2048

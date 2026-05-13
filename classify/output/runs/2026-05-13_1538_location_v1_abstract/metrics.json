@@ -1,0 +1,18 @@
+{
+  "n_total": 88,
+  "n_correct": 84,
+  "exact_match": 0.9545,
+  "mean_jaccard": 0.9489,
+  "label_distribution": {
+    "Asia": 24,
+    "USA": 24,
+    "Africa": 9,
+    "Europe": 9,
+    "Other North America": 7,
+    "unclear or conceptual": 5,
+    "multiple regions": 5,
+    "South America": 4,
+    "Australia": 1
+  },
+  "confusion_matrix": {}
+}

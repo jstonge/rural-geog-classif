@@ -1,6 +1,0 @@
-# V3 methods, abstract-only, only 2 examples — testing the example ablation knob.
-task: methods
-schema: v3
-strategy: abstract
-examples: "sweden_missing_persons__quant,centaur_vgi__theoretical_conceptual"
-name: v3_abstract_2ex

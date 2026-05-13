@@ -1,12 +1,19 @@
-"""Export compare.json for the /compare frontend — multi-schema labeller comparison.
+"""Export compare.json for the /compare frontend — multi-(task,schema) comparison.
 
 Usage:
     python classify/src/export_compare.py <snap1> <snap2> [<snap3> ...]
 
-Snapshots are auto-grouped by their `config.schema` field. Each group emits its
-own (annotator GT + run predictions) bundle plus LS task deep links so cards on
-the /compare page can jump to the matching annotation task. The page renders one
-schema at a time via a switcher.
+Snapshots are auto-grouped by their (task, schema) — the page renders one
+(task, schema) bundle at a time via two switchers (task + schema).
+
+Output shape:
+    {
+      "methods": {"v1": {records: [...]}, "v3": {records: [...]}, ...},
+      "location": {"v1": {records: [...]}, ...},
+      ...
+    }
+
+Each bundle carries its own annotator GT + run predictions + LS deep links.
 """
 from __future__ import annotations
 
@@ -124,27 +131,31 @@ def main():
 
     snaps = [load_snapshot(s) for s in args.snapshots]
 
-    # Group by schema field in each snapshot's config
-    by_schema: dict[str, list[dict]] = defaultdict(list)
+    # Group by (task, schema)
+    by_ts: dict[tuple[str, str], list[dict]] = defaultdict(list)
     for s in snaps:
-        schema = s["config"].get("schema") or "unknown"
-        by_schema[schema].append(s)
+        cfg = s["config"]
+        task = cfg.get("task") or cfg.get("control") or "unknown"
+        schema = cfg.get("schema") or "unknown"
+        by_ts[(task, schema)].append(s)
 
     papers = load_wos()
     title_map = dict(zip(papers["doi"], papers["title"]))
     abstract_map = dict(zip(papers["doi"], papers["abstract"]))
 
-    out_payload = {
-        schema: _build_schema_bundle(schema, group, title_map, abstract_map)
-        for schema, group in by_schema.items()
-    }
+    # Two-level dict: {task: {schema: bundle}}
+    out_payload: dict[str, dict[str, dict]] = defaultdict(dict)
+    for (task, schema), group in by_ts.items():
+        out_payload[task][schema] = _build_schema_bundle(schema, group, title_map, abstract_map)
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(out_payload, indent=2, ensure_ascii=False))
 
-    for schema, bundle in out_payload.items():
-        run_ids = [s["path"].name for s in by_schema[schema]]
-        print(f"  {schema}: {len(bundle['records'])} records, runs = {run_ids}")
+    for task in sorted(out_payload):
+        for schema in sorted(out_payload[task]):
+            bundle = out_payload[task][schema]
+            run_ids = [s["path"].name for s in by_ts[(task, schema)]]
+            print(f"  {task} / {schema}: {len(bundle['records'])} records, runs = {run_ids}")
     print(f"\nWrote {args.out}")
 
 

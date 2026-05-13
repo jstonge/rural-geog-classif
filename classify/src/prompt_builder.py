@@ -3,13 +3,12 @@
 Templates live at `prompts/{schema}/core/{task}_{variant}.md` and use two
 placeholders (both optional):
   {CATEGORIES} — replaced by a bulleted list of (Value, Definition) from a schema CSV
-  {EXAMPLES}   — replaced by concatenated example bodies
+  {EXAMPLES}   — replaced verbatim by the content of an examples file
 
-The schema CSV (`prompts/{schema}/categories/{task}.csv`) has columns Value
-and Definition. Example bodies live in `prompts/{schema}/examples/{task}/`.
-
-The CSV is the single source of truth for the category set. The same CSV
-can be used by `build_xml.py` to derive the LS `<Choices>` block.
+Categories: `prompts/{schema}/categories/{task}_{variant}.csv` (Value, Definition).
+Examples:   `prompts/{schema}/examples/{task}_{variant}.md` — one file per revision,
+            containing the full example block (Input/Output pairs, blank-line
+            separated).
 """
 from __future__ import annotations
 
@@ -28,7 +27,7 @@ def load_categories(schema_path: Path) -> list[dict]:
 
 def render_categories(categories: list[dict]) -> str:
     """Format categories as a markdown bullet list for {CATEGORIES} injection.
-    Rows with empty Definition are rendered as `- value` (no trailing colon).
+    Rows with empty Definition render as `- value` (no trailing colon).
     """
     lines = []
     for c in categories:
@@ -37,28 +36,10 @@ def render_categories(categories: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def list_examples(examples_dir: Path) -> list[str]:
-    return sorted(p.stem for p in examples_dir.glob("*.md"))
-
-
-def load_examples(examples_dir: Path, names: list[str] | None = None) -> list[str]:
-    if names is None:
-        files = sorted(examples_dir.glob("*.md"))
-    else:
-        files = []
-        for name in names:
-            p = examples_dir / f"{name}.md"
-            if not p.exists():
-                raise FileNotFoundError(f"example not found: {p}")
-            files.append(p)
-    return [p.read_text().strip() for p in files]
-
-
 def build_prompt(template_path: Path,
                  schema_path: Path | None,
-                 examples_dir: Path | None,
-                 example_names: list[str] | None = None) -> str:
-    """Inject {CATEGORIES} (from schema CSV) and {EXAMPLES} (from example files)
+                 examples_path: Path | None) -> str:
+    """Inject {CATEGORIES} (from schema CSV) and {EXAMPLES} (from a single .md file)
     into the template. Both placeholders are optional — if a template doesn't
     contain one, the corresponding substitution is skipped.
     """
@@ -70,10 +51,10 @@ def build_prompt(template_path: Path,
         template = template.replace("{CATEGORIES}", render_categories(load_categories(schema_path)))
 
     if "{EXAMPLES}" in template:
-        if examples_dir is None or not Path(examples_dir).exists():
+        if examples_path is None or not Path(examples_path).exists():
             examples = ""
         else:
-            examples = "\n\n".join(load_examples(examples_dir, example_names))
+            examples = Path(examples_path).read_text().strip()
         template = template.replace("{EXAMPLES}", examples)
 
     return template

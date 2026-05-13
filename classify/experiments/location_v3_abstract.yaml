@@ -1,0 +1,9 @@
+# V3 location classifier — abstract-only with thinking enabled so /compare can show reasoning.
+# v3 categories merge Australia/NZ/Pacific into one label.
+task: location
+schema: v3
+strategy: abstract
+name: v3_abstract
+all_papers: false           # restrict to papers with v3 Location GT (project 113)
+thinking: true
+max_tokens: 2048

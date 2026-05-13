@@ -20,8 +20,12 @@ RUNS_DIR = Path("/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/output/run
 
 
 def make_run_id(control: str, name: str) -> str:
-    """Snapshot directory name: {YYYY-MM-DD}_{control}_{name}."""
-    return f"{datetime.now():%Y-%m-%d}_{control}_{name}"
+    """Snapshot directory name: {YYYY-MM-DD_HHMM}_{control}_{name}.
+
+    Minute-level timestamp so multiple runs the same day get distinct ids
+    (and still sort chronologically as strings).
+    """
+    return f"{datetime.now():%Y-%m-%d_%H%M}_{control}_{name}"
 
 
 def save_classify_snapshot(run_id: str, *,

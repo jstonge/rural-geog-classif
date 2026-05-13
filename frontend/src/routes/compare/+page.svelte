@@ -21,12 +21,16 @@
   };
 
   type CompareBundle = { records?: CompareRecord[] };
-  type CompareData = Record<string, CompareBundle>;
+  type CompareData = Record<string, Record<string, CompareBundle>>;
 
   const compareData = data as CompareData;
-  const schemaKeys: string[] = Object.keys(compareData).sort();
+  const taskKeys: string[] = Object.keys(compareData).sort();
 
   const ANNOTATOR = 'annotator' as const;
+
+  function schemasFor(task: string): string[] {
+    return Object.keys(compareData[task] ?? {}).sort();
+  }
 
   function computeLabellers(recs: CompareRecord[]): string[] {
     const seen: Record<string, true> = {};
@@ -37,8 +41,8 @@
     return [ANNOTATOR, ...runIds];
   }
 
-  function defaultSelections(schema: string): { a: string; b: string; c: string } {
-    const recs = compareData[schema]?.records ?? [];
+  function defaultSelections(task: string, schema: string): { a: string; b: string; c: string } {
+    const recs = compareData[task]?.[schema]?.records ?? [];
     const ls = computeLabellers(recs);
     const nonAnn = ls.filter((l) => l !== ANNOTATOR);
     return {
@@ -48,17 +52,26 @@
     };
   }
 
-  // Per-schema A/B/C selections, eagerly seeded with defaults for every known schema.
-  // Switching schemas re-seeds the new schema's entry via setSchema(), so selections
-  // always reset to the spec-defined defaults on switch.
-  function seedSelections(): Record<string, { a: string; b: string; c: string }> {
-    const out: Record<string, { a: string; b: string; c: string }> = {};
-    for (const k of schemaKeys) out[k] = defaultSelections(k);
+  // Per-(task,schema) A/B/C selections, eagerly seeded with defaults for every known
+  // task/schema combo. Switching tasks or schemas re-seeds the entry via setTask/setSchema,
+  // so selections always reset to the spec-defined defaults on switch.
+  function seedSelections(): Record<string, Record<string, { a: string; b: string; c: string }>> {
+    const out: Record<string, Record<string, { a: string; b: string; c: string }>> = {};
+    for (const t of taskKeys) {
+      out[t] = {};
+      for (const s of schemasFor(t)) {
+        out[t][s] = defaultSelections(t, s);
+      }
+    }
     return out;
   }
 
-  let activeSchema: string = $state(schemaKeys[0] ?? '');
-  let selectionsBySchema: Record<string, { a: string; b: string; c: string }> =
+  const initialTask: string = taskKeys[0] ?? '';
+  const initialSchema: string = schemasFor(initialTask)[0] ?? '';
+
+  let activeTask: string = $state(initialTask);
+  let activeSchema: string = $state(initialSchema);
+  let selectionsByTaskSchema: Record<string, Record<string, { a: string; b: string; c: string }>> =
     $state(seedSelections());
 
   type CmSelection = {
@@ -70,12 +83,18 @@
   };
   let cmSelected: CmSelection | null = $state(null);
 
+  const schemaKeys: string[] = $derived(schemasFor(activeTask));
+
   const currentSelections = $derived(
-    selectionsBySchema[activeSchema] ?? { a: ANNOTATOR, b: ANNOTATOR, c: ANNOTATOR }
+    selectionsByTaskSchema[activeTask]?.[activeSchema] ?? {
+      a: ANNOTATOR,
+      b: ANNOTATOR,
+      c: ANNOTATOR
+    }
   );
 
   const records: CompareRecord[] = $derived(
-    compareData[activeSchema]?.records ?? []
+    compareData[activeTask]?.[activeSchema]?.records ?? []
   );
 
   const labellers: string[] = $derived(computeLabellers(records));
@@ -87,8 +106,17 @@
   function setSchema(schema: string) {
     // Always reset selections for the schema on switch, per spec.
     cmSelected = null;
-    selectionsBySchema[schema] = defaultSelections(schema);
+    if (!selectionsByTaskSchema[activeTask]) selectionsByTaskSchema[activeTask] = {};
+    selectionsByTaskSchema[activeTask][schema] = defaultSelections(activeTask, schema);
     activeSchema = schema;
+  }
+
+  function setTask(newTask: string) {
+    // Switching tasks resets the schema to the first one under the new task,
+    // which in turn re-seeds A/B/C defaults and clears cmSelected via setSchema.
+    activeTask = newTask;
+    const firstSchema = schemasFor(newTask)[0] ?? '';
+    setSchema(firstSchema);
   }
 
   function toggleCell(
@@ -126,18 +154,31 @@
     return rec.preds?.[labeller] ?? null;
   }
 
-  // Short form for matrix headers — strips the leading "YYYY-MM-DD_{control}_" prefix
-  // from run_ids so e.g. "2026-05-12_methods_v1_abstract" displays as "v1_abstract".
+  // Short form for matrix headers — strips the leading date (and optional HHMM)
+  // plus the control name, so e.g. "2026-05-13_1508_methods_v1_abstract"
+  // (or the older "2026-05-12_methods_v1_abstract") displays as "v1_abstract".
   function displayName(labeller: string): string {
-    return labeller.replace(/^\d{4}-\d{2}-\d{2}_[^_]+_/, '');
+    return labeller.replace(/^\d{4}-\d{2}-\d{2}(_\d{4})?_[^_]+_/, '');
   }
 
-  // Three pairwise selections
-  const pairs = $derived([
-    { title: 'A x B', a: currentSelections.a, b: currentSelections.b },
-    { title: 'A x C', a: currentSelections.a, b: currentSelections.c },
-    { title: 'B x C', a: currentSelections.b, b: currentSelections.c }
-  ]);
+  // Pairwise matrices — drop pairs where both selectors point at the same
+  // labeller AND dedupe identical (a, b) pairs that arise when C falls back
+  // to B (e.g. one-model schemas where only annotator + one run exist).
+  const pairs = $derived.by(() => {
+    const all = [
+      { title: 'A x B', a: currentSelections.a, b: currentSelections.b },
+      { title: 'A x C', a: currentSelections.a, b: currentSelections.c },
+      { title: 'B x C', a: currentSelections.b, b: currentSelections.c }
+    ];
+    const seen = new Set<string>();
+    return all.filter((p) => {
+      if (p.a === p.b) return false;
+      const key = `${p.a}${p.b}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  });
 
   type AgreementFilter = 'all' | 'agree' | 'any-disagree' | 'triple-disagree';
 
@@ -295,17 +336,33 @@
   <h1>Compare labellers</h1>
   <p class="about-link">
     <a href="{base}/runs">/runs &rarr;</a>
+    <a href="{base}/prompts">/prompts &rarr;</a>
     <a href="{base}/about">/about &rarr;</a>
   </p>
 
-  {#if schemaKeys.length === 0}
+  {#if taskKeys.length === 0}
     <p class="muted empty-state">
       No compare data &mdash; run <code>export_compare.py</code> first.
     </p>
   {:else}
     <p class="count">
-      {records.length} records under schema {activeSchema} across {labellers.length} labellers
+      {records.length} records under {activeTask} / {activeSchema} across {labellers.length} labellers
     </p>
+
+    <div class="schema-row">
+      <span class="filter-label">Task:</span>
+      <div class="filters">
+        {#each taskKeys as t (t)}
+          <button
+            class="chip"
+            class:active={activeTask === t}
+            onclick={() => setTask(t)}
+          >
+            {t}
+          </button>
+        {/each}
+      </div>
+    </div>
 
     <div class="schema-row">
       <span class="filter-label">Schema:</span>

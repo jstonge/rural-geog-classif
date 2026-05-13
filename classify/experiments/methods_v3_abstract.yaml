@@ -3,7 +3,5 @@
 task: methods
 schema: v3
 strategy: abstract
-examples: null              # use all v3 examples
-examples_dir: null          # default: prompts/v3/examples/methods
 name: v3_abstract
 all_papers: false           # restrict to papers with v3 GT (project 113, 82 papers)
