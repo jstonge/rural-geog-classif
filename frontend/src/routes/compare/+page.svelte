@@ -1,5 +1,6 @@
 <script lang="ts">
   import Markdown from 'svelte-exmarkdown';
+  import { base } from '$app/paths';
   import data from '$lib/data/compare.json';
 
   type PredEntry = {
@@ -293,8 +294,8 @@
 <div class="page">
   <h1>Compare labellers</h1>
   <p class="about-link">
-    <a href="/runs">/runs &rarr;</a>
-    <a href="/about">/about &rarr;</a>
+    <a href="{base}/runs">/runs &rarr;</a>
+    <a href="{base}/about">/about &rarr;</a>
   </p>
 
   {#if schemaKeys.length === 0}

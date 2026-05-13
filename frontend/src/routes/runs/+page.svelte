@@ -1,5 +1,6 @@
 <script lang="ts">
   import { SvelteSet } from 'svelte/reactivity';
+  import { base } from '$app/paths';
   import data from '$lib/data/runs.json';
 
   type Metrics = {
@@ -243,7 +244,7 @@
 <div class="page">
   <h1>Runs</h1>
   <p class="header-links">
-    <a href="/compare">Compare labellers &rarr;</a>
+    <a href="{base}/compare">Compare labellers &rarr;</a>
   </p>
 
   <p class="count">
