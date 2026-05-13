@@ -1,0 +1,63 @@
+{
+  "n_total": 84,
+  "n_correct": 56,
+  "exact_match": 0.6667,
+  "label_distribution": {
+    "qual": 31,
+    "quant": 18,
+    "Descriptive": 12,
+    "spatial/mapping": 11,
+    "both": 6,
+    "unclear": 6
+  },
+  "confusion_matrix": {
+    "Descriptive": {
+      "Descriptive": 6,
+      "both": 1,
+      "qual": 0,
+      "quant": 2,
+      "spatial/mapping": 0,
+      "unclear": 3
+    },
+    "both": {
+      "Descriptive": 0,
+      "both": 4,
+      "qual": 0,
+      "quant": 1,
+      "spatial/mapping": 1,
+      "unclear": 0
+    },
+    "qual": {
+      "Descriptive": 4,
+      "both": 1,
+      "qual": 23,
+      "quant": 1,
+      "spatial/mapping": 0,
+      "unclear": 2
+    },
+    "quant": {
+      "Descriptive": 0,
+      "both": 1,
+      "qual": 0,
+      "quant": 15,
+      "spatial/mapping": 1,
+      "unclear": 1
+    },
+    "spatial/mapping": {
+      "Descriptive": 0,
+      "both": 1,
+      "qual": 0,
+      "quant": 6,
+      "spatial/mapping": 4,
+      "unclear": 0
+    },
+    "unclear": {
+      "Descriptive": 1,
+      "both": 0,
+      "qual": 1,
+      "quant": 0,
+      "spatial/mapping": 0,
+      "unclear": 4
+    }
+  }
+}

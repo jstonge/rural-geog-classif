@@ -1,0 +1,9 @@
+# V1 methods, abstract-only — restricted to v1-annotated papers (project 110).
+# Mirrors the "V1 Schema / Abstract-only" section from the old notebook.
+task: methods
+schema: v1
+strategy: abstract
+examples: null              # use all examples in examples_dir
+examples_dir: null          # default: prompts/v1/examples/methods
+name: v1_abstract
+all_papers: false           # restrict to papers with v1 GT

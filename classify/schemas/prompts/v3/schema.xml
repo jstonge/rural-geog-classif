@@ -1,0 +1,45 @@
+<View>
+  <Text name="text" value="$text"/>
+  <View style="box-shadow: 2px 2px 5px #999;                padding: 20px; margin-top: 2em;                border-radius: 5px;">
+    <Header value="Choose Methods"/>
+    <Choices name="methods" toName="text" choice="single" showInLine="true">
+      <Choice value="qual"/>
+      <Choice value="quant"/>
+      <Choice value="mixed"/>
+      <Choice value="descriptive-empirical"/>
+      <Choice value="theoretical-conceptual"/>
+      <Choice value="spatial"/>
+      <Choice value="unclear"/>
+    </Choices>
+    <Header value="Choose topic"/>
+    <Choices name="topic" toName="text" choice="multiple" showInLine="true">  
+      <Choice value="agriculture/food"/>
+      <Choice value="place"/>
+      <Choice value="natural environment"/>
+      <Choice value="weather"/>
+      <Choice value="climate and natural hazards"/>
+      <Choice value="human-environment"/>
+      <Choice value="built environment"/>
+      <Choice value="technology"/>
+      <Choice value="energy"/>
+      <Choice value="social power"/>
+      <Choice value="mobility"/>
+      <Choice value="identity"/>
+      <Choice value="governance"/>
+      <Choice value="methods"/>
+      <Choice value="emotion"/>
+      <Choice value="recreation"/></Choices>
+    <Header value="Choose Location"/>
+    <Choices name="Location" toName="text" choice="multiple" showInLine="true">
+      <Choice value="USA"/>
+      <Choice value="Other North America"/>
+      <Choice value="Europe"/>
+      <Choice value="Asia"/>
+      <Choice value="South America"/>
+      <Choice value="Africa"/>
+      <Choice value="Australia/New Zealand/Pacific"/>
+      <Choice value="multiple regions"/>
+      <Choice value="unclear or conceptual"/>
+    </Choices>
+  </View>
+</View>

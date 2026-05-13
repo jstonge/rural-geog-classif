@@ -1,0 +1,79 @@
+{
+  "n_total": 82,
+  "n_correct": 48,
+  "exact_match": 0.5854,
+  "label_distribution": {
+    "qual": 31,
+    "quant": 17,
+    "spatial": 11,
+    "descriptive-empirical": 11,
+    "theoretical-conceptual": 6,
+    "mixed": 4,
+    "unclear": 2
+  },
+  "confusion_matrix": {
+    "descriptive-empirical": {
+      "descriptive-empirical": 2,
+      "mixed": 1,
+      "qual": 1,
+      "quant": 3,
+      "spatial": 0,
+      "theoretical-conceptual": 0,
+      "unclear": 4
+    },
+    "mixed": {
+      "descriptive-empirical": 0,
+      "mixed": 3,
+      "qual": 0,
+      "quant": 0,
+      "spatial": 1,
+      "theoretical-conceptual": 0,
+      "unclear": 0
+    },
+    "qual": {
+      "descriptive-empirical": 0,
+      "mixed": 2,
+      "qual": 25,
+      "quant": 1,
+      "spatial": 0,
+      "theoretical-conceptual": 1,
+      "unclear": 2
+    },
+    "quant": {
+      "descriptive-empirical": 0,
+      "mixed": 2,
+      "qual": 0,
+      "quant": 13,
+      "spatial": 1,
+      "theoretical-conceptual": 0,
+      "unclear": 1
+    },
+    "spatial": {
+      "descriptive-empirical": 0,
+      "mixed": 1,
+      "qual": 0,
+      "quant": 6,
+      "spatial": 4,
+      "theoretical-conceptual": 0,
+      "unclear": 0
+    },
+    "theoretical-conceptual": {
+      "descriptive-empirical": 2,
+      "mixed": 0,
+      "qual": 1,
+      "quant": 1,
+      "spatial": 0,
+      "theoretical-conceptual": 0,
+      "unclear": 2
+    },
+    "unclear": {
+      "descriptive-empirical": 1,
+      "mixed": 0,
+      "qual": 0,
+      "quant": 0,
+      "spatial": 0,
+      "theoretical-conceptual": 0,
+      "unclear": 1
+    }
+  }
+}

@@ -1,0 +1,34 @@
+"""YAML config support for run_*.py / validate_*.py scripts.
+
+Convention: if `--config path.yaml` is given on the CLI, every key in the YAML
+that matches an argparse attribute overrides the CLI default. CLI flags set on
+the same invocation still take precedence over YAML — but the simplest pattern
+is to use one OR the other, not mix.
+
+Path-valued fields in YAML can be plain strings; this helper converts them back
+to Path objects if the existing argparse value was a Path.
+"""
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+import yaml
+
+
+def merge_yaml_into_args(args: argparse.Namespace,
+                          yaml_path: Path | str | None) -> argparse.Namespace:
+    if yaml_path is None:
+        return args
+    cfg = yaml.safe_load(Path(yaml_path).read_text())
+    if not isinstance(cfg, dict):
+        raise ValueError(f"expected a top-level dict in {yaml_path}; got {type(cfg).__name__}")
+    for k, v in cfg.items():
+        if not hasattr(args, k):
+            print(f"  config: ignoring unknown key {k!r}")
+            continue
+        current = getattr(args, k)
+        if isinstance(current, Path) and isinstance(v, str):
+            v = Path(v)
+        setattr(args, k, v)
+    return args

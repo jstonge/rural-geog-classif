@@ -1,0 +1,61 @@
+<View>
+  <Text name="text" value="$text"/>
+  <View style="box-shadow: 2px 2px 5px #999;                padding: 20px; margin-top: 2em;                border-radius: 5px;">
+    <Header value="Choose Methods"/>
+    <Choices name="methods" toName="text" choice="single" showInLine="true">
+      <Choice value="qual"/>
+      <Choice value="quant"/>
+      <Choice value="both"/>
+      <Choice value="Descriptive"/>
+      <Choice value="spatial/mapping"/>
+      <Choice value="unclear"/>
+    </Choices>
+    <Header value="Choose topic"/>
+    <Choices name="topic" toName="text" choice="multiple" showInLine="true">
+      <Choice value="landscape"/>
+      <Choice value="gender"/>
+      <Choice value="migration"/>
+      <Choice value="Agriculture"/>
+      <Choice value="Climate Change"/>
+      <Choice value="Indigenous Populations"/>
+      <Choice value="Livelihood"/>
+      <Choice value="Property"/>
+      <Choice value="mobility"/>
+      <Choice value="recreation/second homes"/>
+      <Choice value="inequality"/>
+      <Choice value="race"/>
+      <Choice value="political systems"/>
+      <Choice value="forests"/>
+      <Choice value="energy"/>
+      <Choice value="justice"/>
+      <Choice value="weather or hazards"/>
+      <Choice value="urbanization"/>
+      <Choice value="digital technology"/>
+      <Choice value="development"/>
+      <Choice value="resilience"/>
+      <Choice value="not rural?"/>
+      <Choice value="infrastructure"/>
+      <Choice value="policy"/>
+      <Choice value="water"/>
+      <Choice value="power"/>
+      <Choice value="class"/>
+      <Choice value="natural resources"/>
+      <Choice value="identity"/>
+      <Choice value="planning"/>
+      <Choice value="poverty"/>
+      <Choice value="animals or plants"/>
+      <Choice value="emotion"/></Choices>
+      <Header value="Choose Location"/>
+      <Choices name="Location" toName="text" choice="multiple" showInLine="true">
+      <Choice value="USA"/>
+      <Choice value="Other North America"/>
+      <Choice value="Europe"/>
+      <Choice value="Asia"/>
+      <Choice value="South America"/>
+      <Choice value="Africa"/>
+      <Choice value="multiple regions"/>
+      <Choice value="unclear or conceptual"/>
+      <Choice value="Australia"/>
+    </Choices>
+  </View>
+</View>

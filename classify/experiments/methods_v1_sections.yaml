@@ -1,0 +1,9 @@
+# V1 methods, section-picking (Phase A docling + Phase B picker + Phase C classify).
+# Mirrors the "V1 / multi-phase approach" section from the old notebook.
+task: methods
+schema: v1
+strategy: sections
+examples: null              # use all v1 examples
+examples_dir: null          # default: prompts/v1/examples/methods
+name: v1_sections
+all_papers: false           # restrict to v1-annotated papers (project 110)

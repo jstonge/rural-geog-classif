@@ -1,0 +1,9 @@
+# V3 methods, abstract-only — restricted to v3-annotated papers (project 113).
+# Mirrors methods_v1_abstract.yaml but under the v3 schema.
+task: methods
+schema: v3
+strategy: abstract
+examples: null              # use all v3 examples
+examples_dir: null          # default: prompts/v3/examples/methods
+name: v3_abstract
+all_papers: false           # restrict to papers with v3 GT (project 113, 82 papers)

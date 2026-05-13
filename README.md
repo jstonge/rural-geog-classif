@@ -25,6 +25,15 @@ LS + custom static frontend can give you UX that is better than each taken indep
 ## Methodology
 
 Knobs that we can tune.
+ - prompt engineering:
+  - clear and succinct instructions
+  - categories (harcoded)
+  - good counter examples
+  - input shown
+    - abstract-only
+    - full-text strategies
+      - first-N tokens
+      - infer method sections
 
 ### 1. Model Architecture and Size
 
@@ -64,7 +73,7 @@ The way we describe the categories to what model have an impact on the output. D
 
 We have a couple of knobs here, but we limited ourselves to:
   - Changing prompts (better framing, obvious pitfalls)
-  - Providing informative examples
+  - Providing informative examples or counter-examples
   - Longer prompt with more information and context (see Data)
 
 This step is more tricky than it appears. 

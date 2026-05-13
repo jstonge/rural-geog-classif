@@ -1,0 +1,7 @@
+# V3 methods with section-picking, using every example in the v3 examples dir.
+task: methods
+schema: v3
+strategy: sections
+examples: null                   # null = use every example file in examples_dir
+examples_dir: null               # null = default (prompts/v3/examples/methods)
+name: v3_sections_full

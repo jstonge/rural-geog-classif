@@ -1,0 +1,4 @@
+Input:
+There has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.
+Output:
+{"method": "unclear"}

@@ -3,11 +3,11 @@
 
   const md = `# Methodology
 
-This page explains how the predictions on the [Review page](./review) are generated and what each label means.
+This page explains how the predictions on the [Compare page](./compare) are generated and what each label means.
 
 ## Pipeline
 
-We classify ~360 rural geography papers with **Gemma 4 31B**, served locally via vLLM with thinking mode (\`--reasoning-parser gemma4\`). Each paper gets three Label Studio controls — \`Location\`, \`topic\`, \`methods\` — but the Review page focuses on \`methods\`.
+We classify ~360 rural geography papers with **Gemma 4 31B**, served locally via vLLM with thinking mode (\`--reasoning-parser gemma4\`). Each paper gets three Label Studio controls — \`Location\`, \`topic\`, \`methods\` — but the Compare page focuses on \`methods\`.
 
 Every paper is classified **twice**, producing two predictions per record:
 

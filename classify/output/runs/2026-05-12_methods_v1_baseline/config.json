@@ -1,0 +1,21 @@
+{
+  "run_id": "2026-05-12_methods_v1_baseline",
+  "label": "v1_baseline",
+  "notes": "section-picking with thinking; methods labels per LS config",
+  "saved_at": "2026-05-12T11:44:50",
+  "model": "google/gemma-4-31B-it",
+  "temperature": 0.0,
+  "thinking": true,
+  "methods_labels": [
+    "qual",
+    "quant",
+    "both",
+    "descriptive",
+    "spatial/mapping",
+    "unclear"
+  ],
+  "pipelines": [
+    "abstract",
+    "sections"
+  ]
+}
