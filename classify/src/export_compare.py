@@ -4,20 +4,29 @@ Usage:
     python classify/src/export_compare.py <snap1> <snap2> [<snap3> ...]
 
 Snapshots are auto-grouped by their `config.schema` field. Each group emits its
-own (annotator GT + run predictions) bundle. The page renders one schema at a
-time via a switcher.
+own (annotator GT + run predictions) bundle plus LS task deep links so cards on
+the /compare page can jump to the matching annotation task. The page renders one
+schema at a time via a switcher.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import os
 from collections import defaultdict
 from pathlib import Path
+
+import httpx
+from dotenv import load_dotenv
 
 from lib.snapshots import load_snapshot
 from lib.wos import load_wos
 
 COMPARE_JSON = Path("/gpfs1/home/j/s/jstonge1/rural-geog-classif/frontend/src/lib/data/compare.json")
+
+# Per-schema LS project routing. Add new schemas here as they're created.
+SCHEMA_LS_PROJECTS = {"v1": 110, "v3": 113}
+LS_TAB = 172  # data manager view id (same as old /review export)
 
 
 def _pred_entry(row):
@@ -37,7 +46,27 @@ def _pred_entry(row):
     return entry
 
 
-def _build_schema_bundle(snaps: list[dict], title_map: dict, abstract_map: dict) -> dict:
+def _ls_doi_to_task(project_id: int) -> dict[str, int]:
+    """Fetch DOI -> task_id from a Label Studio project (one network call per schema)."""
+    load_dotenv()
+    base_url = (os.getenv("LABEL_STUDIO_URL") or "").rstrip("/")
+    if not base_url:
+        return {}
+    try:
+        from label_studio_sdk import LabelStudio
+        client = LabelStudio(
+            base_url=base_url,
+            api_key=os.getenv("LABEL_STUDIO_API_KEY"),
+            httpx_client=httpx.Client(verify=False),
+        )
+        return {t.data.get("DOI"): t.id for t in client.tasks.list(project=project_id) if t.data.get("DOI")}
+    except Exception as e:
+        print(f"  (skipping LS lookup for project {project_id}: {e})")
+        return {}
+
+
+def _build_schema_bundle(schema: str, snaps: list[dict],
+                         title_map: dict, abstract_map: dict) -> dict:
     """Build {records: [...]} for one schema's worth of snapshots."""
     # Annotator GT — pick the first snapshot with gt.parquet (all should share schema)
     gt_df = None
@@ -53,6 +82,11 @@ def _build_schema_bundle(snaps: list[dict], title_map: dict, abstract_map: dict)
         for _, row in gt_df.iterrows()
     }
 
+    # LS deep links — fetch once per schema
+    ls_project = SCHEMA_LS_PROJECTS.get(schema)
+    doi_to_task = _ls_doi_to_task(ls_project) if ls_project else {}
+    base_url = (os.getenv("LABEL_STUDIO_URL") or "").rstrip("/")
+
     # Union of DOIs across these snapshots
     all_dois = sorted(set().union(*(set(s["predictions"]["doi"]) for s in snaps)))
 
@@ -65,12 +99,19 @@ def _build_schema_bundle(snaps: list[dict], title_map: dict, abstract_map: dict)
             if row.empty:
                 continue
             preds[run_id] = _pred_entry(row.iloc[0])
+
+        task_id = doi_to_task.get(doi)
+        ls_url = (f"{base_url}/projects/{ls_project}/data?task={task_id}&tab={LS_TAB}"
+                  if (base_url and ls_project and task_id is not None) else None)
+
         records.append({
-            "doi":       doi,
-            "title":     title_map.get(doi, ""),
-            "abstract":  abstract_map.get(doi, ""),
-            "annotator": gt_by_doi.get(doi, []),
-            "preds":     preds,
+            "doi":        doi,
+            "title":      title_map.get(doi, ""),
+            "abstract":   abstract_map.get(doi, ""),
+            "annotator":  gt_by_doi.get(doi, []),
+            "preds":      preds,
+            "ls_task_id": task_id,
+            "ls_url":     ls_url,
         })
     return {"records": records}
 
@@ -94,7 +135,7 @@ def main():
     abstract_map = dict(zip(papers["doi"], papers["abstract"]))
 
     out_payload = {
-        schema: _build_schema_bundle(group, title_map, abstract_map)
+        schema: _build_schema_bundle(schema, group, title_map, abstract_map)
         for schema, group in by_schema.items()
     }
 

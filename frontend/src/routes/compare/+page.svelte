@@ -15,6 +15,8 @@
     abstract: string;
     annotator: string[];
     preds: Record<string, PredEntry>;
+    ls_task_id: number | null;
+    ls_url:     string | null;
   };
 
   type CompareBundle = { records?: CompareRecord[] };
@@ -458,6 +460,9 @@
         <a class="title" href={`https://doi.org/${r.doi}`} target="_blank" rel="noreferrer noopener">
           {r.title || r.doi}
         </a>
+        {#if r.ls_url}
+          <a class="ls-link" href={r.ls_url} target="_blank" rel="noreferrer noopener">↗ Label Studio</a>
+        {/if}
       </header>
 
       <div class="labels">
@@ -855,6 +860,24 @@
   }
 
   .title:hover {
+    text-decoration: underline;
+  }
+
+  .ls-link {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    padding: 2px 8px;
+    border: 1px solid #ccd;
+    border-radius: 999px;
+    background: #eef;
+    color: #1a4a8a;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .ls-link:hover {
+    background: #dde;
     text-decoration: underline;
   }
 
