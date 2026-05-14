@@ -104,6 +104,13 @@ To assess performance and see the impact of our choice, we also need a versionin
 
 ## setup
 
+This project uses **two separate Python environments** because their dependency stacks don't coexist cleanly:
+
+- **`uv` venv** (this repo's `.venv`) — used for everything except OCR: `vllm` + Gemma inference, embeddings, clustering, docling parsing. Activated via `source .venv/bin/activate` or invoked via `uv run`.
+- **`olmoocr2` conda env** — used only for `make parse PARSER=olmocr`. Needs `pdftoppm` (poppler) and the `olmocr[gpu]` stack, which is why it lives in conda rather than uv. Setup details are in [parse/README.md](parse/README.md). Activate with `module load miniforge/25.11.0-py3.1 && conda activate olmoocr2` before running the olmocr parse target.
+
+### vllm / Gemma env (uv)
+
 This command to get a H200 node:
 ```sh
 srun --partition=nvgpu --gpus=1 --constraint=GPU_SKU:H200      --cpus-per-task=8 --mem=128G --time=3:00:00 --pty /bin/bash

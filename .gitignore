@@ -1,12 +1,18 @@
 extract/output/pdfs/
+parse/dots.ocr/
 parse/output/done_flags/
 parse/output/*.csv.zstd
 parse/output/results/
 summarize/output/all_summaries.json
 transform/output/runs/
 transform/output/latest
-extract/input/OneDrive_1_2026-05-01/
-extract/input/OneDrive_1_2026-05-01.zip
+extract/input/OneDrive_1_2026-05-14/
+extract/input/OneDrive_1_2026-05-14.zip
 
 .env
 **/__pycache__/
+# Ignore everything in parse output dirs except the flattened <doi>.md files.
+parse/output/dots/*
+!parse/output/dots/*.md
+parse/output/olmocr/*
+!parse/output/olmocr/*.md

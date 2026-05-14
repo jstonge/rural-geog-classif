@@ -43,6 +43,10 @@ def main():
         "--device", default="auto", choices=["auto", "cpu"],
         help="Accelerator device (default: auto, detects GPU)",
     )
+    parser.add_argument(
+        "--overwrite", action="store_true",
+        help="Re-parse PDFs even when an output file already exists",
+    )
     args = parser.parse_args()
 
     if args.output is None:
@@ -56,12 +60,21 @@ def main():
         return
 
     args.output.mkdir(parents=True, exist_ok=True)
-    print(f"Converting {len(pdfs)} PDFs to {args.format} (device={args.device})...")
+
+    # Skip PDFs whose output already exists (unless --overwrite).
+    todo = [p for p in pdfs
+            if args.overwrite or not (args.output / f"{p.stem}.{ext}").exists()]
+    skipped = len(pdfs) - len(todo)
+    print(f"Converting {len(todo)} PDFs to {args.format} "
+          f"(device={args.device}, {skipped} already done)...")
+
+    if not todo:
+        return
 
     converter = make_converter(args.device)
 
-    for i, pdf in enumerate(pdfs, 1):
-        print(f"[{i}/{len(pdfs)}] {pdf.name}")
+    for i, pdf in enumerate(todo, 1):
+        print(f"[{i}/{len(todo)}] {pdf.name}")
         try:
             result = converter.convert(str(pdf))
             content = export_fn(result.document)

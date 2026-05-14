@@ -337,6 +337,7 @@
   <p class="about-link">
     <a href="{base}/runs">/runs &rarr;</a>
     <a href="{base}/prompts">/prompts &rarr;</a>
+    <a href="{base}/annotations">/annotations &rarr;</a>
     <a href="{base}/about">/about &rarr;</a>
   </p>
 

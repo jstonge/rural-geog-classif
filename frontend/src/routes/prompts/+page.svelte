@@ -106,6 +106,7 @@
   <p class="header-links">
     <a href="{base}/runs">/runs &rarr;</a>
     <a href="{base}/compare">/compare &rarr;</a>
+    <a href="{base}/annotations">/annotations &rarr;</a>
   </p>
 
   {#if totalRuns === 0}

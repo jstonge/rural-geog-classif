@@ -1,7 +1,7 @@
 """
 Map PDF files named as [Author Year Title].pdf to DOI-based filenames.
 
-PDFs in input/OneDrive_1_2026-05-01/ use the naming convention:
+PDFs in input/OneDrive_1_2026-05-14/ use the naming convention:
     LastName Year Partial Title.pdf
     e.g. "Adu-Poku 2026 Geographical Disparities in Energy Access...pdf"
 
@@ -17,7 +17,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-PDF_DIR = ROOT / "input" / "OneDrive_1_2026-05-01"
+PDF_DIR = ROOT / "input" / "OneDrive_1_2026-05-14"
 CSV_PATH = ROOT / "input" / "Full Dataset Rur Geog WoS 1986-2025 4-28-2026.csv"
 OUT_DIR = ROOT / "output" / "pdfs"
 
