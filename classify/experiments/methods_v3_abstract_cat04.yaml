@@ -1,0 +1,14 @@
+# V3 methods, abstract-only, with cat04 — distribution-corrected definitions.
+# Adjustments vs cat03 based on label-distribution gap with annotator GT:
+#   - unclear: softened so gemma actually uses it (gap: GT=10, gemma=5)
+#   - mixed: lowered "equal weight" bar (gap: GT=9, gemma=5)
+#   - descriptive-empirical: tightened to exclude lit-review + discourse (gap: GT=5, gemma=14)
+#   - spatial: requires NAMED spatial-statistical method in abstract (gap: GT=6, gemma=13)
+#   - qual: added discourse analysis (moved from descriptive-empirical)
+#   - theoretical-conceptual: now catches literature reviews of a defined corpus
+task: methods
+schema: v3
+strategy: abstract
+cat_variant: "04"
+name: v3_abstract_cat04
+all_papers: false

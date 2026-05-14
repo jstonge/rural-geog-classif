@@ -96,24 +96,55 @@ def _msg_fulltext(row) -> str:
 
 # ---------- strategy: sections ----------
 
+PICKER_CACHE_PATH = Path("/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/output/picker_cache.parquet")
+
+
+def _load_picker_cache() -> dict[str, list[str]]:
+    """Read DOI -> picked-headers cache. Empty dict if file missing."""
+    if not PICKER_CACHE_PATH.exists():
+        return {}
+    df = pd.read_parquet(PICKER_CACHE_PATH)
+    return {row["doi"]: list(row["picked"]) for _, row in df.iterrows()}
+
+
+def _save_picker_cache(cache: dict[str, list[str]]) -> None:
+    PICKER_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    df = pd.DataFrame([{"doi": d, "picked": p} for d, p in cache.items()])
+    df.to_parquet(PICKER_CACHE_PATH)
+
+
 def _prepare_sections(papers: pd.DataFrame) -> pd.DataFrame:
+    """Phase A (parse docling sections) + Phase B (LLM picks methodology headers).
+
+    Phase B output is cached per-DOI at classify/output/picker_cache.parquet.
+    DOIs already in cache skip the LLM call. Delete the cache file if you
+    edit the picker prompt (it's schema-agnostic so doesn't usually need it).
+    """
     out = _prepare_fulltext(papers)
     out["sections"] = out["fulltext"].map(lambda t: _parse_sections(t) if t else {})
 
-    pick_msgs = [
-        _build_picker_prompt(r["title"], r["abstract"], list(r["sections"].keys()))
-        for _, r in out.iterrows()
+    cache = _load_picker_cache()
+    fire_idx = [
+        i for i, r in enumerate(out.itertuples())
+        if r.doi not in cache and len(r.sections) > 0
     ]
-    fire = out["sections"].map(len) > 0
-    picked: list[str | None] = [None] * len(out)
-    fire_idx  = [i for i, f in enumerate(fire) if f]
-    fire_msgs = [pick_msgs[i] for i in fire_idx]
-    fire_texts = classify_batch(fire_msgs, max_tokens=256)
-    for i, t in zip(fire_idx, fire_texts):
-        picked[i] = t
-    out["picked"] = [_parse_picked(t) if t else [] for t in picked]
+
+    if fire_idx:
+        fire_msgs = [
+            _build_picker_prompt(out.iloc[i]["title"],
+                                  out.iloc[i]["abstract"],
+                                  list(out.iloc[i]["sections"].keys()))
+            for i in fire_idx
+        ]
+        fire_texts = classify_batch(fire_msgs, max_tokens=256)
+        for i, t in zip(fire_idx, fire_texts):
+            cache[out.iloc[i]["doi"]] = _parse_picked(t)
+        _save_picker_cache(cache)
+
+    out["picked"] = [cache.get(d, []) for d in out["doi"]]
     n = (out["picked"].map(len) > 0).sum()
-    print(f"  picker: {n}/{len(out)} papers got methodology headers")
+    print(f"  picker: {n}/{len(out)} have picked headers "
+          f"({len(out) - len(fire_idx)} from cache, {len(fire_idx)} fresh)")
     return out
 
 

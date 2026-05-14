@@ -2,7 +2,7 @@ Value,Definition
 qual,"primary evidence is in-depth interviews, ethnography, focus groups, or narrative accounts of a small number of cases (e.g. fieldwork in a village, life-history interviews)"
 quant,"primary evidence is statistical analysis on a large-N survey or non-spatial numeric dataset — no spatial methods, no in-depth qualitative work"
 mixed,"explicitly integrates qualitative interviews/ethnography AND quantitative analysis as co-equal sources of evidence (qual + quant, both genuinely present)"
-spatial,"uses spatial methods — GIS, remote sensing, cartography, or spatial statistics (GWR, spatial autocorrelation, point-pattern). Pick spatial over quant whenever a paper does both."
+spatial,"geography is in the analytical model itself — GWR, spatial autocorrelation / Moran's I, kriging, spatial lag/error, point-pattern analysis, remote-sensing classification, or GIS overlay where the spatial join produces the inferential claim. Mere cartographic visualization of results from a non-spatial analysis (e.g. cartograms displaying regression output) does NOT count."
 descriptive-empirical,"describes an original case or named corpus through narrative, archival, or historical analysis — no inferential testing, no in-depth interviews"
 theoretical-conceptual,"humanities-style essay in rural geography — argues a conceptual or theoretical position with no original empirical data (no fieldwork, no new survey, no archive)"
 unclear,"abstract gestures at 'reviewing', 'reflecting', or 'expanding agendas' but names no data source, no analytical method, and no specific cases"

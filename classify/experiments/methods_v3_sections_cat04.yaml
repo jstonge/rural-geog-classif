@@ -1,0 +1,9 @@
+# V3 methods with section-picking AND cat04 distribution-corrected definitions.
+# Pairs with methods_v3_abstract_cat04 (same defs, abstract-only) so the B×C
+# matrix isolates the sections effect under cat04.
+task: methods
+schema: v3
+strategy: sections
+cat_variant: "04"
+name: v3_sections_cat04
+all_papers: false

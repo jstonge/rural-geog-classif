@@ -1,0 +1,9 @@
+# V3 methods, section-picking, with the corpus-anchored category definitions (cat 03).
+# Pairs with methods_v3_abstract_cat03 — same definitions, but gemma sees the
+# methodology sections from the full text, not just the abstract.
+task: methods
+schema: v3
+strategy: sections
+cat_variant: "03"
+name: v3_sections_cat03
+all_papers: false

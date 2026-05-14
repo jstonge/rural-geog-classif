@@ -1,0 +1,8 @@
+Value,Definition
+qual,"primary evidence is in-depth interviews, ethnography, focus groups, narrative accounts, or discourse analysis of a small number of cases"
+quant,"primary evidence is statistical analysis on a large-N survey or non-spatial numeric dataset — no spatial methods, no in-depth qualitative work"
+mixed,"qualitative interviews/ethnography AND quantitative analysis are both genuinely present, even if one is somewhat larger than the other; use this whenever a paper combines the two engines (don't require strict equality)"
+spatial,"the abstract NAMES an explicit spatial-statistical method (geographically weighted regression, spatial autocorrelation / Moran's I, kriging, spatial lag/error, point-pattern analysis, remote-sensing classification, or a GIS overlay that produces the inferential claim). Cartographic visualization alone is NOT enough."
+descriptive-empirical,"describes an original case or named corpus through narrative, archival, or historical analysis with original empirical material (case study, fieldwork notes, archives). NOT for literature reviews, NOT for discourse analysis."
+theoretical-conceptual,"humanities-style essay, conceptual position paper, or literature review of a defined corpus, with no original empirical data (no new fieldwork, no new survey, no original archive)"
+unclear,"the methodology cannot be clearly determined from the abstract — the paper might be doing one of several things but the abstract doesn't name a specific data source, analytical method, or case material"
