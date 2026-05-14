@@ -34,8 +34,11 @@ def main():
     parser = argparse.ArgumentParser(description="Pipeline status report")
     parser.add_argument("-o", "--output", type=Path, default=None,
                         help="Output CSV path (default: stdout)")
+    parser.add_argument("--incomplete", action="store_true",
+                        help="Only write rows where the pipeline isn't done "
+                             "(missing PDF / no parser output / not summarized)")
     parser.add_argument("--missing", action="store_true",
-                        help="Print DOI links for papers without PDFs")
+                        help="Print DOI links for papers without PDFs (stderr)")
     args = parser.parse_args()
 
     # Load OpenAlex DOIs
@@ -71,8 +74,8 @@ def main():
 
     # Build output
     fieldnames = ["doi", "has_pdf", "docling_parsed", "olmocr_parsed",
-                  "dots_parsed", "summarized", "pub_year", "article_title",
-                  "match_oa"]
+                  "dots_parsed", "summarized", "done",
+                  "pub_year", "article_title", "match_oa"]
 
     out = open(args.output, "w", newline="") if args.output else sys.stdout
     writer = csv.DictWriter(out, fieldnames=fieldnames)
@@ -108,18 +111,21 @@ def main():
 
         done = has_pdf and (docling_parsed or olmocr_parsed or dots_parsed) \
             and summarized
-        if not done:
-            writer.writerow({
-                "doi": doi,
-                "has_pdf": has_pdf,
-                "docling_parsed": docling_parsed,
-                "olmocr_parsed": olmocr_parsed,
-                "dots_parsed": dots_parsed,
-                "summarized": summarized,
-                "pub_year": row.get("Pub Year", "").strip(),
-                "article_title": row.get("Article Title", "").strip(),
-                "match_oa": match_oa,
-            })
+
+        if args.incomplete and done:
+            continue
+        writer.writerow({
+            "doi": doi,
+            "has_pdf": has_pdf,
+            "docling_parsed": docling_parsed,
+            "olmocr_parsed": olmocr_parsed,
+            "dots_parsed": dots_parsed,
+            "summarized": summarized,
+            "done": done,
+            "pub_year": row.get("Pub Year", "").strip(),
+            "article_title": row.get("Article Title", "").strip(),
+            "match_oa": match_oa,
+        })
 
     if args.output:
         out.close()

@@ -2,6 +2,7 @@
   <Text name="text" value="$text"/>
   <View style="box-shadow: 2px 2px 5px #999;                padding: 20px; margin-top: 2em;                border-radius: 5px;">
     <Header value="Choose Methods"/>
+    <HyperText name="methods_extra" value="$method_section_html" inline="true"/>
     <Choices name="methods" toName="text" choice="single" showInLine="true">
       <Choice value="qual"/>
       <Choice value="quant"/>

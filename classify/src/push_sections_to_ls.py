@@ -1,14 +1,18 @@
-"""Append gemma-extracted methodology sections to each LS task's `text` field
-(the abstract that annotators already see) so they get the section text inline
-without any schema change.
+"""Push gemma-extracted methodology sections to each LS task as a separate
+`method_section_html` field, rendered as a collapsible <details> block under
+the "Choose Methods" header in the schema (see schemas/prompts/v3/schema.xml).
+
+This replaces the older behavior of appending the sections onto `text`. The
+sections now live as their own task field, so annotators see them attached to
+the methods question rather than mixed into the abstract.
 
 Strategy:
-  - On first push, the original abstract is saved into `text_original` so future
-    re-pushes can restore it before re-appending (idempotent).
-  - The appended content is plain markdown — LS's <Text> control shows it
-    verbatim (## markers visible, but readable).
-  - No label_config change. Reversible via `--restore` which writes
-    `text_original` back into `text` and deletes the sentinel field.
+  - Push HTML directly into `data.method_section_html`; the schema's
+    <HyperText value="$method_section_html"/> renders it inline.
+  - `text` is left untouched.
+  - --restore clears `method_section_html` and, for tasks pushed under the
+    older "append to text" scheme, also writes `text_original` back into
+    `text` and drops the sentinel.
 
 Run `python classify/src/ls_backup.py 113` first.
 
@@ -19,7 +23,7 @@ Usage:
     # Actually push
     python classify/src/push_sections_to_ls.py --snapshot <sections-snapshot> --apply
 
-    # Roll back to the original abstracts
+    # Clear the field (and restore any legacy text_original)
     python classify/src/push_sections_to_ls.py --restore --apply
 """
 from __future__ import annotations
@@ -28,6 +32,7 @@ import argparse
 import os
 
 import httpx
+import markdown
 from dotenv import load_dotenv
 from label_studio_sdk import LabelStudio
 
@@ -35,24 +40,46 @@ from lib.snapshots import load_snapshot
 
 PROJECT_ID = 113
 SECTION_PREVIEW_CHARS = 1500
-SEPARATOR = "\n\n---\n\nAUTO-EXTRACTED METHODS SECTIONS (from full text):\n"
 
 
-def build_sections_block(row) -> str:
-    """Format picked sections as a markdown block to append to the abstract."""
+def _escape(s: str) -> str:
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def build_sections_html(row) -> str:
+    """Format picked sections as a collapsible HTML <details> block.
+    Section bodies are docling markdown — converted to HTML so headers, lists,
+    emphasis render properly instead of showing literal `##` etc.
+    """
     picked = row.get("picked") if hasattr(row, "get") else None
     sections = row.get("sections") if hasattr(row, "get") else None
     if not picked or not sections:
         return ""
-    parts = []
+    body_parts = []
     for h in picked:
         body = sections.get(h) or next(
             (v for k, v in sections.items() if k.lower() == h.lower()), None
         )
         if not body:
             continue
-        parts.append(f"\n## {h}\n\n{body[:SECTION_PREVIEW_CHARS].strip()}")
-    return "\n".join(parts) if parts else ""
+        snippet_md = body[:SECTION_PREVIEW_CHARS].strip()
+        snippet_html = markdown.markdown(snippet_md, extensions=["extra"])
+        body_parts.append(
+            f"<h4 style='margin:0.5em 0 0.2em'>{_escape(h)}</h4>"
+            f"<div style='font-size:0.9em;margin:0;padding:0.5em;"
+            f"background:#f7f7f7;border-radius:4px;line-height:1.45'>"
+            f"{snippet_html}</div>"
+        )
+    if not body_parts:
+        return ""
+    return (
+        "<details style='margin:0.5em 0'>"
+        "<summary style='cursor:pointer;font-weight:600'>"
+        "Auto-extracted method sections (click to expand)"
+        "</summary>"
+        + "".join(body_parts)
+        + "</details>"
+    )
 
 
 def main():
@@ -78,59 +105,67 @@ def main():
     tasks = list(client.tasks.list(project=PROJECT_ID))
     print(f"Project {PROJECT_ID}: {len(tasks)} tasks")
 
-    # --- RESTORE branch: text = text_original; drop text_original ---
+    # --- RESTORE branch: drop method_section_html; restore legacy text_original ---
     if args.restore:
-        to_restore = [t for t in tasks if (t.data or {}).get("text_original")]
-        print(f"Tasks with text_original (to restore): {len(to_restore)}")
+        to_restore = [
+            t for t in tasks
+            if (t.data or {}).get("method_section_html")
+            or (t.data or {}).get("text_original")
+        ]
+        print(f"Tasks to clean (method_section_html or text_original): {len(to_restore)}")
         if not args.apply:
             print("DRY RUN — pass --apply to push.")
             return
         for t in to_restore:
-            d = {**t.data, "text": t.data["text_original"]}
-            d.pop("text_original", None)
+            d = {**t.data}
+            if d.get("text_original"):
+                d["text"] = d["text_original"]
+                d.pop("text_original", None)
+            d.pop("method_section_html", None)
             client.tasks.update(id=t.id, data=d)
-        print(f"Restored {len(to_restore)} tasks.")
+        print(f"Cleaned {len(to_restore)} tasks.")
         return
 
-    # --- APPEND branch ---
+    # --- PUSH branch ---
     snap = load_snapshot(args.snapshot)
     preds = snap["predictions"]
     if "picked" not in preds.columns or "sections" not in preds.columns:
         raise SystemExit(
             f"Snapshot {args.snapshot} has no picked/sections columns (sections-strategy required)."
         )
-    doi_to_block = {}
+    doi_to_html = {}
     for _, r in preds.iterrows():
-        block = build_sections_block(r)
-        if block:
-            doi_to_block[r["doi"]] = block
-    print(f"Built section blocks for {len(doi_to_block)} DOIs")
+        html = build_sections_html(r)
+        if html:
+            doi_to_html[r["doi"]] = html
+    print(f"Built section HTML for {len(doi_to_html)} DOIs")
 
-    # Build per-task patches (idempotent: restore from text_original before re-appending)
+    # Build per-task patches. If a task was previously augmented via the old
+    # "append to text" path, restore text from text_original first.
     patches = []
     for t in tasks:
         doi = (t.data or {}).get("DOI")
-        block = doi_to_block.get(doi)
-        if not block:
+        html = doi_to_html.get(doi)
+        if not html:
             continue
-        original = t.data.get("text_original") or t.data.get("text") or ""
-        new_text = original + SEPARATOR + block
-        patches.append((t.id, {**t.data, "text": new_text, "text_original": original}))
+        new_data = {**t.data, "method_section_html": html}
+        if new_data.get("text_original"):
+            new_data["text"] = new_data["text_original"]
+            new_data.pop("text_original", None)
+        patches.append((t.id, new_data))
 
     print(f"Patches to apply: {len(patches)}")
     if not args.apply:
         print("DRY RUN — pass --apply to push.")
-        # Show a sample
         if patches:
             tid, sample = patches[0]
-            print(f"\nSample task {tid} new text (first 600 chars after the separator):")
-            idx = sample["text"].find(SEPARATOR)
-            print(sample["text"][idx:idx + 600] + ("..." if len(sample["text"]) > idx + 600 else ""))
+            print(f"\nSample task {tid} method_section_html (first 500 chars):")
+            print(sample["method_section_html"][:500] + "...")
         return
 
     for tid, new_data in patches:
         client.tasks.update(id=tid, data=new_data)
-    print(f"Augmented `text` for {len(patches)} tasks in project {PROJECT_ID}")
+    print(f"Set method_section_html on {len(patches)} tasks in project {PROJECT_ID}")
 
 
 if __name__ == "__main__":
