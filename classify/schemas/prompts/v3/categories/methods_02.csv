@@ -1,0 +1,8 @@
+Value,Definition
+qual,"interviews, focus groups, ethnography, questionnaires, surveys with a small n, diaries"
+quant,"surveys with large n, data sources with a high n, statistical analysis, modeling, regression"
+mixed,"uses both qualitative and quantitative methods, using qualitative and spatial methods"
+spatial,"mapping, geo-referenced data, cartography, GIS, remote sensing, spatial statistics"
+descriptive-empirical,"document review, records review, historical, archival research, humanities, discourse analysis, literature review, essay, natural history"
+theoretical-conceptual,"social theory essay, discourse analysis"
+unclear,cannot be determined

@@ -1,0 +1,10 @@
+# V3 methods, abstract-only, with the corpus-anchored category definitions (cat 03).
+# - "mixed" tightened to strictly qual+quant
+# - "spatial" takes precedence over quant when a paper does both
+# - "theoretical-conceptual" anchored to humanities-style essays
+task: methods
+schema: v3
+strategy: abstract
+cat_variant: "03"
+name: v3_abstract_cat03
+all_papers: false

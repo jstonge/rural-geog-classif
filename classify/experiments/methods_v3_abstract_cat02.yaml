@@ -1,0 +1,9 @@
+# V3 methods, abstract-only, with the annotator-revised category definitions (cat 02).
+# Prompt template + examples stay at 01 so the only difference vs methods_v3_abstract
+# is the {CATEGORIES} block.
+task: methods
+schema: v3
+strategy: abstract
+cat_variant: "02"
+name: v3_abstract_cat02
+all_papers: false
