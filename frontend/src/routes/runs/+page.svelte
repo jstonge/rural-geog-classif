@@ -3,11 +3,23 @@
   import { base } from '$app/paths';
   import data from '$lib/data/runs.json';
 
+  type PerLabelStat = {
+    p: number;
+    r: number;
+    f1: number;
+    support_gt: number;
+    support_pred: number;
+  };
+
   type Metrics = {
     n_total: number;
     n_correct: number;
     exact_match: number | null;
     mean_jaccard?: number | null;
+    mean_precision?: number | null;
+    mean_recall?: number | null;
+    mean_f1?: number | null;
+    per_label?: Record<string, PerLabelStat>;
     label_distribution?: Record<string, number>;
     confusion_matrix?: Record<string, Record<string, number>>;
   };
@@ -437,8 +449,58 @@
                                 <td class="mono">{formatJaccard(m.mean_jaccard)}</td>
                               </tr>
                             {/if}
+                            {#if m.mean_precision != null}
+                              <tr>
+                                <th scope="row">mean_precision</th>
+                                <td class="mono">{formatJaccard(m.mean_precision)}</td>
+                              </tr>
+                            {/if}
+                            {#if m.mean_recall != null}
+                              <tr>
+                                <th scope="row">mean_recall</th>
+                                <td class="mono">{formatJaccard(m.mean_recall)}</td>
+                              </tr>
+                            {/if}
+                            {#if m.mean_f1 != null}
+                              <tr>
+                                <th scope="row">mean_f1</th>
+                                <td class="mono">{formatJaccard(m.mean_f1)}</td>
+                              </tr>
+                            {/if}
                           </tbody>
                         </table>
+
+                        {#if m.per_label && Object.keys(m.per_label).length > 0}
+                          {@const pl = m.per_label as Record<string, PerLabelStat>}
+                          {@const plRows = Object.entries(pl).sort(
+                            (a, b) => b[1].support_gt - a[1].support_gt
+                          )}
+                          <h4 class="cm-heading">Per-label P / R / F1</h4>
+                          <table class="pl">
+                            <thead>
+                              <tr>
+                                <th scope="col">label</th>
+                                <th scope="col" class="num">gt</th>
+                                <th scope="col" class="num">pred</th>
+                                <th scope="col" class="num">P</th>
+                                <th scope="col" class="num">R</th>
+                                <th scope="col" class="num">F1</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {#each plRows as [lbl, s] (lbl)}
+                                <tr>
+                                  <th scope="row">{lbl}</th>
+                                  <td class="num">{s.support_gt}</td>
+                                  <td class="num">{s.support_pred}</td>
+                                  <td class="num">{s.p.toFixed(2)}</td>
+                                  <td class="num">{s.r.toFixed(2)}</td>
+                                  <td class="num">{s.f1.toFixed(2)}</td>
+                                </tr>
+                              {/each}
+                            </tbody>
+                          </table>
+                        {/if}
 
                         {#if hasConfusionMatrix(m)}
                           {@const cm = m.confusion_matrix as Record<
@@ -880,6 +942,39 @@
 
   table.cm td.cm-zero {
     color: #bbb;
+  }
+
+  table.pl {
+    border-collapse: collapse;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    color: #222;
+    margin-top: 4px;
+  }
+
+  table.pl th,
+  table.pl td {
+    border-bottom: 1px solid #eee;
+    padding: 3px 10px;
+    text-align: left;
+  }
+
+  table.pl thead th {
+    background: #fafafa;
+    color: #555;
+    font-weight: 500;
+    border-bottom: 2px solid #e2e2e2;
+  }
+
+  table.pl tbody th {
+    color: #444;
+    font-weight: 500;
+  }
+
+  table.pl th.num,
+  table.pl td.num {
+    text-align: right;
+    min-width: 36px;
   }
 
   .muted {

@@ -27,6 +27,7 @@ import httpx
 from dotenv import load_dotenv
 
 from lib.snapshots import load_snapshot
+from lib.tasks import get_task
 from lib.wos import load_wos
 
 COMPARE_JSON = Path("/gpfs1/home/j/s/jstonge1/rural-geog-classif/frontend/src/lib/data/compare.json")
@@ -35,15 +36,25 @@ COMPARE_JSON = Path("/gpfs1/home/j/s/jstonge1/rural-geog-classif/frontend/src/li
 SCHEMA_LS_PROJECTS = {"v1": 110, "v3": 113}
 LS_TAB = 172  # data manager view id (same as old /review export)
 
+# Tasks whose /compare bundle should render as single-label (confusion matrix)
+# even though task.multi_label_scoring is True in the registry. Annotators
+# almost always pick one location, so the per-label table is overkill.
+COMPARE_FORCE_SINGLE_LABEL = {"location"}
+
 
 def _pred_entry(row):
-    """Pull (label, reasoning, picked, sections) from a single row."""
+    """Pull (labels, reasoning, picked, sections) from a single row.
+
+    `labels` is the full prediction list — for single-label controls this is
+    a 1-element list; for multi-label (location, topic) it can be 0+ elements.
+    The frontend renders chips and decides what to do per task.
+    """
     pred_col = next((c for c in row.index if c.endswith("_pred")), None)
     reason_col = next((c for c in row.index if c.endswith("_reasoning")), None)
     pred = row.get(pred_col) if pred_col else None
-    label = pred[0] if isinstance(pred, list) and pred else None
+    labels = list(pred) if isinstance(pred, list) else []
     entry = {
-        "label": label,
+        "labels": labels,
         "reasoning": (row.get(reason_col) if reason_col else "") or "",
     }
     if isinstance(row.get("picked"), list):
@@ -74,7 +85,25 @@ def _ls_doi_to_task(project_id: int) -> dict[str, int]:
 
 def _build_schema_bundle(schema: str, snaps: list[dict],
                          title_map: dict, abstract_map: dict) -> dict:
-    """Build {records: [...]} for one schema's worth of snapshots."""
+    """Build {multi_label, records: [...]} for one schema's worth of snapshots."""
+    # Multi-label flag for the task (drives chip rendering / set-equality
+    # agreement / per-label agreement table on /compare). All snapshots in this
+    # group share a task, so the first one's task is authoritative.
+    # Tasks in COMPARE_FORCE_SINGLE_LABEL get the single-label confusion matrix
+    # view even when the registry marks them multi-label.
+    multi_label = False
+    for s in snaps:
+        task_name = s["config"].get("task") or s["config"].get("control")
+        if task_name:
+            if task_name in COMPARE_FORCE_SINGLE_LABEL:
+                multi_label = False
+                break
+            try:
+                multi_label = get_task(task_name).multi_label_scoring
+                break
+            except ValueError:
+                continue
+
     # Annotator GT — pick the first snapshot with gt.parquet (all should share schema)
     gt_df = None
     for s in snaps:
@@ -82,7 +111,7 @@ def _build_schema_bundle(schema: str, snaps: list[dict],
             gt_df = s["gt"]
             break
     if gt_df is None:
-        return {"records": []}
+        return {"multi_label": multi_label, "records": []}
     gt_col = next((c for c in gt_df.columns if c.endswith("_gt")), None)
     gt_by_doi = {
         row["doi"]: (list(row[gt_col]) if row[gt_col] is not None else [])
@@ -123,7 +152,7 @@ def _build_schema_bundle(schema: str, snaps: list[dict],
             "ls_task_id": task_id,
             "ls_url":     ls_url,
         })
-    return {"records": records}
+    return {"multi_label": multi_label, "records": records}
 
 
 def main():

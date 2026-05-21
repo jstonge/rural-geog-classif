@@ -6,6 +6,7 @@ parse/output/results/
 summarize/output/all_summaries.json
 transform/output/runs/
 transform/output/latest
+classify/output/runs/*/predictions.parquet
 extract/input/OneDrive_1_2026-05-14/
 extract/input/OneDrive_1_2026-05-14.zip
 

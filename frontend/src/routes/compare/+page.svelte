@@ -4,7 +4,7 @@
   import data from '$lib/data/compare.json';
 
   type PredEntry = {
-    label: string | null;
+    labels: string[];
     reasoning: string;
     picked?: string[];
     sections?: Record<string, string>;
@@ -20,10 +20,10 @@
     ls_url:     string | null;
   };
 
-  type CompareBundle = { records?: CompareRecord[] };
+  type CompareBundle = { multi_label?: boolean; records?: CompareRecord[] };
   type CompareData = Record<string, Record<string, CompareBundle>>;
 
-  const compareData = data as CompareData;
+  const compareData = data as unknown as CompareData;
   const taskKeys: string[] = Object.keys(compareData).sort();
 
   const ANNOTATOR = 'annotator' as const;
@@ -83,6 +83,17 @@
   };
   let cmSelected: CmSelection | null = $state(null);
 
+  // Multi-label cell selection: clicking a label in the per-label table filters
+  // to papers where that label is in the chosen bucket (both, onlyA, onlyB).
+  type MlSelection = {
+    matrixIdx: number;
+    label: string;
+    bucket: 'both' | 'onlyA' | 'onlyB';
+    rowLabeller: string;
+    colLabeller: string;
+  };
+  let mlSelected: MlSelection | null = $state(null);
+
   const schemaKeys: string[] = $derived(schemasFor(activeTask));
 
   const currentSelections = $derived(
@@ -95,6 +106,10 @@
 
   const records: CompareRecord[] = $derived(
     compareData[activeTask]?.[activeSchema]?.records ?? []
+  );
+
+  const multiLabel: boolean = $derived(
+    compareData[activeTask]?.[activeSchema]?.multi_label === true
   );
 
   const labellers: string[] = $derived(computeLabellers(records));
@@ -142,11 +157,22 @@
     cmSelected = { matrixIdx, row, col, rowLabeller, colLabeller };
   }
 
-  function resolveLabel(rec: CompareRecord, labeller: string): string | null {
+  function resolveLabels(rec: CompareRecord, labeller: string): string[] {
     if (labeller === ANNOTATOR) {
-      return rec.annotator?.[0] ?? null;
+      return rec.annotator ?? [];
     }
-    return rec.preds?.[labeller]?.label ?? null;
+    return rec.preds?.[labeller]?.labels ?? [];
+  }
+
+  function resolveLabel(rec: CompareRecord, labeller: string): string | null {
+    return resolveLabels(rec, labeller)[0] ?? null;
+  }
+
+  function setsEqual(a: string[], b: string[]): boolean {
+    if (a.length !== b.length) return false;
+    const sa = new Set(a);
+    for (const x of b) if (!sa.has(x)) return false;
+    return true;
   }
 
   function resolvePred(rec: CompareRecord, labeller: string): PredEntry | null {
@@ -191,15 +217,17 @@
 
   let activeAgreement: AgreementFilter = $state('any-disagree');
 
-  function classifyTriple(a: string | null, b: string | null, c: string | null): AgreementFilter {
-    const vals = [a, b, c];
-    const distinct = new Set(vals.filter((v) => v != null));
-    // If any is null, treat each null as its own bucket conceptually:
-    //   - "agree" requires non-null and all equal
-    //   - "triple-disagree" requires 3 distinct non-null values
-    const nullCount = vals.filter((v) => v == null).length;
-    if (nullCount === 0 && distinct.size === 1) return 'agree';
-    if (nullCount === 0 && distinct.size === 3) return 'triple-disagree';
+  // Set-based agreement classifier — works for both single-label (length-1
+  // arrays) and multi-label (length-0+) tasks. An empty array is treated as
+  // "missing" and forces 'any-disagree' so we don't claim agreement when one
+  // labeller has no data.
+  function classifyTriple(a: string[], b: string[], c: string[]): AgreementFilter {
+    if (!a.length || !b.length || !c.length) return 'any-disagree';
+    const ab = setsEqual(a, b);
+    const ac = setsEqual(a, c);
+    const bc = setsEqual(b, c);
+    if (ab && ac && bc) return 'agree';
+    if (!ab && !ac && !bc) return 'triple-disagree';
     return 'any-disagree';
   }
 
@@ -212,11 +240,18 @@
     return p.a === cmSelected.rowLabeller && p.b === cmSelected.colLabeller;
   });
 
+  const mlSelectedValid = $derived.by(() => {
+    if (!mlSelected) return false;
+    const p = pairs[mlSelected.matrixIdx];
+    if (!p) return false;
+    return p.a === mlSelected.rowLabeller && p.b === mlSelected.colLabeller;
+  });
+
   const filtered = $derived(
     records.filter((r) => {
-      const a = resolveLabel(r, currentSelections.a);
-      const b = resolveLabel(r, currentSelections.b);
-      const c = resolveLabel(r, currentSelections.c);
+      const a = resolveLabels(r, currentSelections.a);
+      const b = resolveLabels(r, currentSelections.b);
+      const c = resolveLabels(r, currentSelections.c);
       const klass = classifyTriple(a, b, c);
       let agreementOk = true;
       if (activeAgreement === 'all') agreementOk = true;
@@ -224,13 +259,24 @@
       else if (activeAgreement === 'triple-disagree')
         agreementOk = klass === 'triple-disagree';
       else if (activeAgreement === 'any-disagree') {
-        agreementOk = !(a != null && b != null && c != null && a === b && b === c);
+        agreementOk = !(a.length && b.length && c.length && setsEqual(a, b) && setsEqual(b, c));
       }
       if (!agreementOk) return false;
-      if (cmSelected && cmSelectedValid) {
+      // Cell-click filter (single-label confusion matrix only).
+      if (!multiLabel && cmSelected && cmSelectedValid) {
         const rowVal = resolveLabel(r, cmSelected.rowLabeller);
         const colVal = resolveLabel(r, cmSelected.colLabeller);
         if (rowVal !== cmSelected.row || colVal !== cmSelected.col) return false;
+      }
+      // Per-label disagree filter (multi-label).
+      if (multiLabel && mlSelected && mlSelectedValid) {
+        const sa = new Set(resolveLabels(r, mlSelected.rowLabeller));
+        const sb = new Set(resolveLabels(r, mlSelected.colLabeller));
+        const inA = sa.has(mlSelected.label);
+        const inB = sb.has(mlSelected.label);
+        if (mlSelected.bucket === 'both' && !(inA && inB)) return false;
+        if (mlSelected.bucket === 'onlyA' && !(inA && !inB)) return false;
+        if (mlSelected.bucket === 'onlyB' && !(inB && !inA)) return false;
       }
       return true;
     })
@@ -265,6 +311,70 @@
   const matrices = $derived(
     pairs.map((p) => ({ ...p, ...buildMatrix(p.a, p.b, records) }))
   );
+
+  // Per-label agreement table for multi-label tasks. For each label that
+  // appears in either labeller's predictions across the dataset, count:
+  //   both  — papers where A and B both picked it
+  //   onlyA — A picked but B didn't
+  //   onlyB — B picked but A didn't
+  // Rows are sorted by support (both + onlyA + onlyB) descending.
+  function buildPerLabel(la: string, lb: string, recs: CompareRecord[]) {
+    const counts: Record<string, { both: number; onlyA: number; onlyB: number }> = {};
+    let n = 0;
+    for (const r of recs) {
+      const sa = new Set(resolveLabels(r, la));
+      const sb = new Set(resolveLabels(r, lb));
+      if (sa.size === 0 && sb.size === 0) continue;
+      n++;
+      const all = new Set<string>([...sa, ...sb]);
+      for (const l of all) {
+        if (!counts[l]) counts[l] = { both: 0, onlyA: 0, onlyB: 0 };
+        if (sa.has(l) && sb.has(l)) counts[l].both++;
+        else if (sa.has(l)) counts[l].onlyA++;
+        else counts[l].onlyB++;
+      }
+    }
+    const rows = Object.entries(counts).map(([label, c]) => ({
+      label,
+      both: c.both,
+      onlyA: c.onlyA,
+      onlyB: c.onlyB,
+      total: c.both + c.onlyA + c.onlyB
+    }));
+    rows.sort((x, y) => y.total - x.total || x.label.localeCompare(y.label));
+    let max = 0;
+    for (const row of rows) {
+      max = Math.max(max, row.both, row.onlyA, row.onlyB);
+    }
+    return { rows, total: n, max: max === 0 ? 1 : max };
+  }
+
+  const mlMatrices = $derived(
+    pairs.map((p) => ({ ...p, ...buildPerLabel(p.a, p.b, records) }))
+  );
+
+  function toggleMlCell(
+    matrixIdx: number,
+    label: string,
+    bucket: 'both' | 'onlyA' | 'onlyB',
+    count: number,
+    rowLabeller: string,
+    colLabeller: string
+  ): void {
+    if (count === 0) return;
+    if (
+      mlSelected &&
+      mlSelected.matrixIdx === matrixIdx &&
+      mlSelected.label === label &&
+      mlSelected.bucket === bucket &&
+      mlSelected.rowLabeller === rowLabeller &&
+      mlSelected.colLabeller === colLabeller
+    ) {
+      mlSelected = null;
+      return;
+    }
+    mlSelected = { matrixIdx, label, bucket, rowLabeller, colLabeller };
+  }
 
   function cellStyle(count: number, isDiag: boolean, max: number): string {
     if (count === 0) return '';
@@ -327,6 +437,13 @@
   function isMismatch(self: string | null, others: (string | null)[]): boolean {
     for (const o of others) {
       if (o !== self) return true;
+    }
+    return false;
+  }
+
+  function isMismatchSet(self: string[], others: string[][]): boolean {
+    for (const o of others) {
+      if (!setsEqual(self, o)) return true;
     }
     return false;
   }
@@ -469,10 +586,115 @@
     </div>
   {/snippet}
 
+  {#snippet perLabelView(m: (typeof mlMatrices)[number], mi: number)}
+    <div class="matrix-wrap">
+      <div class="matrix-title">{m.title}</div>
+      <div class="matrix-sub">
+        <span class="mono">{displayName(m.a)}</span>
+        <span class="x">x</span>
+        <span class="mono">{displayName(m.b)}</span>
+      </div>
+      {#if m.rows.length === 0}
+        <p class="muted">No overlapping labelled records.</p>
+      {:else}
+        <table class="cm pl">
+          <caption>n = {m.total}</caption>
+          <thead>
+            <tr>
+              <th scope="col" class="pl-label-col">label</th>
+              <th scope="col" class="pl-num">both</th>
+              <th scope="col" class="pl-num">only A</th>
+              <th scope="col" class="pl-num">only B</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each m.rows as row (row.label)}
+              {@const bothActive =
+                mlSelected !== null &&
+                mlSelectedValid &&
+                mlSelected.matrixIdx === mi &&
+                mlSelected.label === row.label &&
+                mlSelected.bucket === 'both'}
+              {@const onlyAActive =
+                mlSelected !== null &&
+                mlSelectedValid &&
+                mlSelected.matrixIdx === mi &&
+                mlSelected.label === row.label &&
+                mlSelected.bucket === 'onlyA'}
+              {@const onlyBActive =
+                mlSelected !== null &&
+                mlSelectedValid &&
+                mlSelected.matrixIdx === mi &&
+                mlSelected.label === row.label &&
+                mlSelected.bucket === 'onlyB'}
+              <tr>
+                <th scope="row" class="pl-label-col">{row.label}</th>
+                <td
+                  class:cm-zero={row.both === 0}
+                  class:cm-active={bothActive}
+                  style={cellStyle(row.both, true, m.max)}
+                >
+                  {#if row.both !== 0}
+                    <button
+                      type="button"
+                      class="cm-cell-btn"
+                      aria-pressed={bothActive}
+                      onclick={() => toggleMlCell(mi, row.label, 'both', row.both, m.a, m.b)}
+                    >
+                      {row.both}
+                    </button>
+                  {/if}
+                </td>
+                <td
+                  class:cm-zero={row.onlyA === 0}
+                  class:cm-active={onlyAActive}
+                  style={cellStyle(row.onlyA, false, m.max)}
+                >
+                  {#if row.onlyA !== 0}
+                    <button
+                      type="button"
+                      class="cm-cell-btn"
+                      aria-pressed={onlyAActive}
+                      onclick={() => toggleMlCell(mi, row.label, 'onlyA', row.onlyA, m.a, m.b)}
+                    >
+                      {row.onlyA}
+                    </button>
+                  {/if}
+                </td>
+                <td
+                  class:cm-zero={row.onlyB === 0}
+                  class:cm-active={onlyBActive}
+                  style={cellStyle(row.onlyB, false, m.max)}
+                >
+                  {#if row.onlyB !== 0}
+                    <button
+                      type="button"
+                      class="cm-cell-btn"
+                      aria-pressed={onlyBActive}
+                      onclick={() => toggleMlCell(mi, row.label, 'onlyB', row.onlyB, m.a, m.b)}
+                    >
+                      {row.onlyB}
+                    </button>
+                  {/if}
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      {/if}
+    </div>
+  {/snippet}
+
   <section class="matrices">
-    {#each matrices as m, mi (m.title)}
-      {@render matrixView(m, mi)}
-    {/each}
+    {#if multiLabel}
+      {#each mlMatrices as m, mi (m.title)}
+        {@render perLabelView(m, mi)}
+      {/each}
+    {:else}
+      {#each matrices as m, mi (m.title)}
+        {@render matrixView(m, mi)}
+      {/each}
+    {/if}
   </section>
 
   <div class="filter-row">
@@ -488,15 +710,20 @@
         </button>
       {/each}
     </div>
-    {#if cmSelected !== null}
+    {#if !multiLabel && cmSelected !== null}
       <button class="chip clear-cell" onclick={() => (cmSelected = null)}>
+        Clear cell selection
+      </button>
+    {/if}
+    {#if multiLabel && mlSelected !== null}
+      <button class="chip clear-cell" onclick={() => (mlSelected = null)}>
         Clear cell selection
       </button>
     {/if}
     <span class="filter-count">{filtered.length} / {records.length}</span>
   </div>
 
-  {#if cmSelected !== null && cmSelectedValid}
+  {#if !multiLabel && cmSelected !== null && cmSelectedValid}
     <p class="cell-filter-line">
       cell filter:
       <span class="mono">{displayName(cmSelected.rowLabeller)}({cmSelected.row})</span>
@@ -508,10 +735,25 @@
     </p>
   {/if}
 
+  {#if multiLabel && mlSelected !== null && mlSelectedValid}
+    <p class="cell-filter-line">
+      label filter:
+      <span class="mono">{mlSelected.label}</span>
+      <span class="cell-filter-matrix">
+        — {mlSelected.bucket === 'both'
+          ? `both ${displayName(mlSelected.rowLabeller)} and ${displayName(mlSelected.colLabeller)}`
+          : mlSelected.bucket === 'onlyA'
+            ? `only ${displayName(mlSelected.rowLabeller)}`
+            : `only ${displayName(mlSelected.colLabeller)}`}
+        [matrix {pairs[mlSelected.matrixIdx]?.title ?? ''}]
+      </span>
+    </p>
+  {/if}
+
   {#each filtered as r (r.doi)}
-    {@const la = resolveLabel(r, currentSelections.a)}
-    {@const lb = resolveLabel(r, currentSelections.b)}
-    {@const lc = resolveLabel(r, currentSelections.c)}
+    {@const la = resolveLabels(r, currentSelections.a)}
+    {@const lb = resolveLabels(r, currentSelections.b)}
+    {@const lc = resolveLabels(r, currentSelections.c)}
     {@const picked = pickedBlocks(r, [currentSelections.b, currentSelections.c])}
     {@const reasonings = reasoningBlocks(r, [currentSelections.a, currentSelections.b, currentSelections.c])}
     <article class="card">
@@ -525,17 +767,35 @@
       </header>
 
       <div class="labels">
-        <div class="label-cell" class:disagree={isMismatch(la, [lb, lc])}>
+        <div class="label-cell" class:disagree={isMismatchSet(la, [lb, lc])}>
           <div class="label-key">A &middot; <span class="mono">{currentSelections.a}</span></div>
-          <div class="label-val">{la ?? '—'}</div>
+          <div class="label-val">
+            {#if la.length === 0}
+              —
+            {:else}
+              {#each la as v (v)}<span class="label-chip">{v}</span>{/each}
+            {/if}
+          </div>
         </div>
-        <div class="label-cell" class:disagree={isMismatch(lb, [la, lc])}>
+        <div class="label-cell" class:disagree={isMismatchSet(lb, [la, lc])}>
           <div class="label-key">B &middot; <span class="mono">{currentSelections.b}</span></div>
-          <div class="label-val">{lb ?? '—'}</div>
+          <div class="label-val">
+            {#if lb.length === 0}
+              —
+            {:else}
+              {#each lb as v (v)}<span class="label-chip">{v}</span>{/each}
+            {/if}
+          </div>
         </div>
-        <div class="label-cell" class:disagree={isMismatch(lc, [la, lb])}>
+        <div class="label-cell" class:disagree={isMismatchSet(lc, [la, lb])}>
           <div class="label-key">C &middot; <span class="mono">{currentSelections.c}</span></div>
-          <div class="label-val">{lc ?? '—'}</div>
+          <div class="label-val">
+            {#if lc.length === 0}
+              —
+            {:else}
+              {#each lc as v (v)}<span class="label-chip">{v}</span>{/each}
+            {/if}
+          </div>
         </div>
       </div>
 
@@ -972,6 +1232,33 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 13px;
     color: #222;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .label-chip {
+    display: inline-block;
+    padding: 1px 7px;
+    background: #fff;
+    border: 1px solid #d8d8d8;
+    border-radius: 999px;
+    font-size: 11px;
+    color: #333;
+  }
+
+  table.cm.pl .pl-label-col {
+    text-align: left;
+    padding: 4px 10px;
+    font-weight: 500;
+    color: #444;
+    min-width: 160px;
+  }
+
+  table.cm.pl td.pl-num,
+  table.cm.pl th.pl-num {
+    text-align: right;
+    padding-right: 10px;
   }
 
   .picked {

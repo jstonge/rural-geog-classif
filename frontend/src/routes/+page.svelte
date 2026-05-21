@@ -1,6 +1,7 @@
 <script lang="ts">
   import { scaleLinear, scaleOrdinal, scaleBand } from 'd3-scale';
   import { schemeTableau10 } from 'd3-scale-chromatic';
+  import { SvelteMap } from 'svelte/reactivity';
   import data from '$lib/data/methods_viz.json';
   import locationsData from '$lib/data/locations_viz.json';
 
@@ -47,13 +48,13 @@
   const barHeight = 500;
   const barMargin = { top: 20, right: 20, bottom: 50, left: 60 };
 
-  // 5-year bucketing (data spans 1992–2026). Labels are bucket start years.
-  const decades = ['1990', '1995', '2000', '2005', '2010', '2015', '2020', '2025'] as const;
+  // 5-year bucketing anchored at 1992 (data range 1992–2026). Labels are bucket start years.
+  const decades = ['1992', '1997', '2002', '2007', '2012', '2017', '2022'] as const;
 
   function getDecade(year: string): string {
     const y = parseInt(year, 10);
-    const start = Math.max(1990, Math.floor(y / 5) * 5);
-    return String(Math.min(start, 2025));
+    const clamped = Math.max(1992, Math.min(2026, y));
+    return String(1992 + Math.floor((clamped - 1992) / 5) * 5);
   }
 
   type DecadeData = {
@@ -266,11 +267,133 @@
     }
     return bucketLabel(best.decade);
   }
+
+  // ---------------------------------------------------------------
+  // Methods by region: USA vs non-USA
+  // ---------------------------------------------------------------
+
+  const nonUsRegions = new Set<string>([
+    'Asia',
+    'Africa',
+    'Europe',
+    'South America',
+    'Other North America',
+    'Australia/New Zealand/Pacific'
+  ]);
+
+  const regionByDoi: SvelteMap<string, string> = $derived.by(() => {
+    const m = new SvelteMap<string, string>();
+    for (const l of locations) m.set(l.doi, l.region);
+    return m;
+  });
+
+  type Bucket = 'us' | 'nonUs' | 'excluded';
+
+  function classifyBucket(doi: string): Bucket {
+    const region = regionByDoi.get(doi);
+    if (!region) return 'excluded';
+    if (region === 'USA') return 'us';
+    if (nonUsRegions.has(region)) return 'nonUs';
+    return 'excluded';
+  }
+
+  const usPapers = $derived(papers.filter((p) => classifyBucket(p.doi) === 'us'));
+  const nonUsPapers = $derived(papers.filter((p) => classifyBucket(p.doi) === 'nonUs'));
+
+  function computeMethodSeries(subset: Paper[]): MethodSeries[] {
+    const byDecade = decades.map((decade) => {
+      const decadePapers = subset.filter((d) => getDecade(d.pub_year) === decade);
+      const total = decadePapers.length;
+      const counts = methodCategories.map((method) => ({
+        method,
+        count: decadePapers.filter((d) => d.method === method).length,
+        total
+      }));
+      return { decade, counts };
+    });
+    return methodCategories.map((method) => {
+      const points = byDecade.map((d) => {
+        const entry = d.counts.find((c) => c.method === method);
+        const count = entry ? entry.count : 0;
+        const total = entry ? entry.total : 0;
+        const proportion = total > 0 ? count / total : 0;
+        return { decade: d.decade, proportion, count };
+      });
+      const max = points.reduce((m, p) => (p.proportion > m ? p.proportion : m), 0);
+      return { method, max, points };
+    });
+  }
+
+  const usMethodSeries: MethodSeries[] = $derived(computeMethodSeries(usPapers));
+  const nonUsMethodSeries: MethodSeries[] = $derived(computeMethodSeries(nonUsPapers));
+
+  const usColor = '#e15759';
+  const nonUsColor = '#4e79a7';
+
+  type CombinedMethodSeries = {
+    method: string;
+    us: MethodSeries;
+    nonUs: MethodSeries;
+  };
+
+  const combinedMethodSeries: CombinedMethodSeries[] = $derived(
+    methodCategories.map((method) => ({
+      method,
+      us: usMethodSeries.find((s) => s.method === method) as MethodSeries,
+      nonUs: nonUsMethodSeries.find((s) => s.method === method) as MethodSeries
+    }))
+  );
+
+  const compareYMax = $derived(
+    Math.min(
+      1,
+      Math.ceil(
+        Math.max(
+          usMethodSeries.reduce((m, s) => (s.max > m ? s.max : m), 0),
+          nonUsMethodSeries.reduce((m, s) => (s.max > m ? s.max : m), 0)
+        ) * 10
+      ) / 10
+    )
+  );
+  const compareY = $derived(
+    scaleLinear().domain([0, compareYMax]).range([facetInnerHeight, 0])
+  );
+  const compareYTicks = $derived([0, compareYMax / 2, compareYMax]);
+  const compareTotal = $derived(usPapers.length + nonUsPapers.length);
+
+  type UsNonUsBucket = 'USA' | 'Non-USA';
+
+  type DecadeUsNonUs = {
+    decade: string;
+    total: number;
+    segments: {
+      bucket: UsNonUsBucket;
+      y0: number;
+      y1: number;
+      proportion: number;
+      count: number;
+    }[];
+  };
+
+  const decadeUsNonUsProportions: DecadeUsNonUs[] = $derived(
+    decades.map((decade) => {
+      const usCount = usPapers.filter((d) => getDecade(d.pub_year) === decade).length;
+      const nonUsCount = nonUsPapers.filter((d) => getDecade(d.pub_year) === decade).length;
+      const total = usCount + nonUsCount;
+      const usProp = total > 0 ? usCount / total : 0;
+      const nonUsProp = total > 0 ? nonUsCount / total : 0;
+      const segments: DecadeUsNonUs['segments'] = [
+        { bucket: 'USA', y0: 0, y1: usProp, proportion: usProp, count: usCount },
+        { bucket: 'Non-USA', y0: usProp, y1: usProp + nonUsProp, proportion: nonUsProp, count: nonUsCount }
+      ];
+      return { decade, total, segments };
+    })
+  );
 </script>
 
-<h1>Methods classification across rural geography (1990–2026)</h1>
+<h1>Methods classification across rural geography (1992–2026)</h1>
 <p class="caption">
-  Predicted by Gemma 4 31B on {papers.length} papers (snapshot: 2026-05-20_1458_methods_v3_sections_full).
+  Predicted by Gemma 4 31B on {papers.length} papers (snapshot: 2026-05-20_1458_methods_v3_sections_full). The 2022–2026 bucket includes partial 2026.
 </p>
 
 <div class="legend">
@@ -459,7 +582,7 @@
 </section>
 </div>
 
-<h2 class="section-h2">Region across rural geography (1990–2026)</h2>
+<h2 class="section-h2">Region across rural geography (1992–2026)</h2>
 <p class="caption">
   Predicted on {locations.length} papers (snapshot: 2026-05-20_2325_location_v3_abstract).
 </p>
@@ -620,6 +743,201 @@
                 cy={regionFacetY(p.proportion)}
                 r="2.5"
                 fill={locationColor(series.region)}
+                opacity={dimmed ? 0.15 : 0.9}
+              />
+            {/each}
+          {/if}
+        </g>
+        <g transform="translate({facetMargin.left},{facetMargin.top + facetInnerHeight})">
+          <text
+            x={facetCx(decades[0])}
+            y={12}
+            text-anchor="middle"
+            font-size="9"
+            fill="#888"
+          >{decades[0]}</text>
+          <text
+            x={facetCx(decades[decades.length - 1])}
+            y={12}
+            text-anchor="middle"
+            font-size="9"
+            fill="#888"
+          >{decades[decades.length - 1]}</text>
+        </g>
+      </svg>
+    </button>
+  {/each}
+</section>
+</div>
+
+<h2 class="section-h2">Methods by region: USA vs non-USA (1992–2026)</h2>
+<p class="caption">
+  Methods proportion over time, <span style="color: {usColor}; font-weight: 600;">USA</span> vs <span style="color: {nonUsColor}; font-weight: 600;">Non-USA</span>. n={compareTotal} (USA={usPapers.length}, Non-USA={nonUsPapers.length}). Papers with region <em>multiple regions</em> or <em>unclear or conceptual</em>, and papers missing from the locations dataset, are excluded.
+</p>
+
+<div class="legend">
+  <div class="legend-item static">
+    <span class="swatch" style="background: {usColor};"></span>
+    <span class="label">USA (n={usPapers.length})</span>
+  </div>
+  <div class="legend-item static">
+    <span class="swatch" style="background: {nonUsColor};"></span>
+    <span class="label">Non-USA (n={nonUsPapers.length})</span>
+  </div>
+</div>
+
+<div class="charts-row">
+<svg width={barWidth} height={barHeight} class="bar-chart">
+  <text
+    x={-(barHeight / 2)}
+    y={16}
+    transform="rotate(-90)"
+    text-anchor="middle"
+    font-size="12"
+    fill="#666"
+  >Proportion</text>
+
+  {#each [0, 0.25, 0.5, 0.75, 1.0] as tick (tick)}
+    <line
+      x1={barMargin.left}
+      x2={barWidth - barMargin.right}
+      y1={yBar(tick)}
+      y2={yBar(tick)}
+      stroke="#e0e0e0"
+      stroke-width="1"
+    />
+    <text
+      x={barMargin.left - 8}
+      y={yBar(tick) + 4}
+      text-anchor="end"
+      font-size="11"
+      fill="#666"
+    >{tick}</text>
+  {/each}
+
+  {#each decadeUsNonUsProportions as { decade, segments } (decade)}
+    {#each segments as seg (seg.bucket)}
+      {#if seg.proportion > 0}
+        {@const x = xBand(decade) ?? 0}
+        {@const bw = xBand.bandwidth()}
+        {@const yTop = yBar(seg.y1)}
+        {@const h = yBar(seg.y0) - yBar(seg.y1)}
+        <rect
+          x={x}
+          y={yTop}
+          width={bw}
+          height={h}
+          fill={seg.bucket === 'USA' ? usColor : nonUsColor}
+          opacity={0.85}
+        />
+        {#if seg.proportion > 0.06}
+          <text
+            x={x + bw / 2}
+            y={yTop + h / 2 + 4}
+            text-anchor="middle"
+            font-size="11"
+            fill="white"
+            pointer-events="none"
+          >n={seg.count}</text>
+        {/if}
+      {/if}
+    {/each}
+  {/each}
+
+  {#each decades as decade (decade)}
+    <text
+      x={(xBand(decade) ?? 0) + xBand.bandwidth() / 2}
+      y={barHeight - barMargin.bottom + 20}
+      text-anchor="middle"
+      font-size="12"
+      fill="#333"
+    >{decade}</text>
+  {/each}
+
+  <text
+    x={(barMargin.left + barWidth - barMargin.right) / 2}
+    y={barHeight - 8}
+    text-anchor="middle"
+    font-size="12"
+    fill="#666"
+  >Year (5-year buckets)</text>
+</svg>
+
+<section class="facets" aria-label="Methods USA vs non-USA over time">
+  {#each combinedMethodSeries as { method, us, nonUs } (method)}
+    {@const dimmed = selectedMethod !== null && selectedMethod !== method}
+    {@const usPct = (us.max * 100).toFixed(0)}
+    {@const nonUsPct = (nonUs.max * 100).toFixed(0)}
+    {@const usN = us.points.reduce((a, p) => a + p.count, 0)}
+    {@const nonUsN = nonUs.points.reduce((a, p) => a + p.count, 0)}
+    <button
+      type="button"
+      class="facet"
+      class:dimmed
+      onclick={() => toggleMethod(method)}
+      aria-label="{method} proportion over time: USA peak {usPct}%, Non-USA peak {nonUsPct}%"
+    >
+      <div class="facet-header">
+        <span class="facet-name">{method}</span>
+        <span class="facet-max">· US peak {usPct}% · NonUS peak {nonUsPct}% (n_US={usN}, n_NonUS={nonUsN})</span>
+      </div>
+      <svg width={facetWidth} height={facetHeight} class="facet-svg">
+        <g transform="translate({facetMargin.left},{facetMargin.top})">
+          {#each compareYTicks as t (t)}
+            <line
+              x1={0}
+              x2={facetInnerWidth}
+              y1={compareY(t)}
+              y2={compareY(t)}
+              stroke="#eee"
+              stroke-width="1"
+            />
+            <text
+              x={-4}
+              y={compareY(t) + 3}
+              text-anchor="end"
+              font-size="9"
+              fill="#888"
+            >{(t * 100).toFixed(0)}%</text>
+          {/each}
+          {#if us.max > 0}
+            {@const usPath = us.points
+              .map((p, i) => `${i === 0 ? 'M' : 'L'} ${facetCx(p.decade)} ${compareY(p.proportion)}`)
+              .join(' ')}
+            <path
+              d={usPath}
+              fill="none"
+              stroke={usColor}
+              stroke-width="1.5"
+              opacity={dimmed ? 0.15 : 0.9}
+            />
+            {#each us.points as p (p.decade)}
+              <circle
+                cx={facetCx(p.decade)}
+                cy={compareY(p.proportion)}
+                r="2.5"
+                fill={usColor}
+                opacity={dimmed ? 0.15 : 0.9}
+              />
+            {/each}
+          {/if}
+          {#if nonUs.max > 0}
+            {@const nonUsPath = nonUs.points
+              .map((p, i) => `${i === 0 ? 'M' : 'L'} ${facetCx(p.decade)} ${compareY(p.proportion)}`)
+              .join(' ')}
+            <path
+              d={nonUsPath}
+              fill="none"
+              stroke={nonUsColor}
+              stroke-width="1.5"
+              opacity={dimmed ? 0.15 : 0.9}
+            />
+            {#each nonUs.points as p (p.decade)}
+              <circle
+                cx={facetCx(p.decade)}
+                cy={compareY(p.proportion)}
+                r="2.5"
+                fill={nonUsColor}
                 opacity={dimmed ? 0.15 : 0.9}
               />
             {/each}
@@ -856,6 +1174,13 @@
     font-size: 11px;
   }
 
+  .legend-item.static {
+    cursor: default;
+  }
+
+  .legend-item.static:hover {
+    background: none;
+  }
 
   .table-section {
     margin-top: 24px;

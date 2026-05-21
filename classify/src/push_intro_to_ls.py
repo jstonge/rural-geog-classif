@@ -31,7 +31,6 @@ from __future__ import annotations
 
 import argparse
 import os
-import re
 from datetime import datetime
 from pathlib import Path
 
@@ -41,210 +40,24 @@ from dotenv import load_dotenv
 from label_studio_sdk import LabelStudio
 
 from input_strategies import _load_docling, _parse_sections
+from lib.intro_outline import pick_outline
 
 PROJECT_ID = 113
-N_HEADERS = 3
-SECTION_PREVIEW_CHARS = 1200
-RESCUED_PREVIEW_CHARS = 3000  # Larger window for headerless intros (rescue path)
-MIN_BODY_CHARS = 200
-ABSTRACT_OVERLAP_DROP = 0.4
-TITLE_OVERLAP_DROP = 0.85
 
 DOCLING_GH_URL = (
     "https://github.com/jstonge/rural-geog-classif/blob/main/parse/output/docling/{key}.md"
 )
-
-JUNK_HEADER_RE = re.compile(
-    r"(?:please\s+scroll|downloaded\s+by|publication\s+details|"
-    r"please\s+cite|to\s+link\s+to|terms\s+(?:and|&)\s+conditions|"
-    r"acknowledg|^notes?$|^references$|^bibliography$|^appendix|"
-    r"supplementary|^abstract$|^keywords?$|^disclosure|^funding$|^orcid)",
-    re.IGNORECASE,
-)
-
-# Headers that mark the start of the methods/results portion of the paper.
-# When we hit one of these we stop picking — everything beyond is past the
-# intro/framing region. Conservative: only the clearest markers, so things
-# like "Analytical Framework" (which can be either lit-review or methods)
-# still flow through the normal path.
-STOP_HEADER_RE = re.compile(
-    r"^(?:"
-    r"methodolog\w*|methods?|materials?\s+and\s+methods?|"
-    r"study\s+(?:area|site|design|setting)|"
-    r"data(?:\s+and)?(?:\s+(?:collection|analysis|sources?|set|description))?|"
-    r"results?|findings?|discussion|conclusion"
-    r")\s*$",
-    re.IGNORECASE,
-)
-
-# Body-side filter: a section whose body STARTS with any of these is metadata
-# (citation blurb, ISSN block, license, etc.), regardless of what the header
-# happens to be. Catches journal-name headers, author bylines, and copyright
-# statements without needing to enumerate every journal title.
-JUNK_BODY_RE = re.compile(
-    r"^\s*(?:to\s+cite\s+this\s+article|issn[:\s]|"
-    r"journal\s+homepage|publication\s+details|published\s+online|"
-    r"this\s+is\s+an\s+open\s+access|to\s+link\s+to|"
-    r"\(c\)|©|copyright|"
-    r"<!--\s*image\s*-->\s*$)",
-    re.IGNORECASE,
-)
-
-IMAGE_COMMENT_RE = re.compile(r"<!--\s*image\s*-->", re.IGNORECASE)
-
-# Affiliation paragraph: starts with a single-letter superscript label
-# ("a Kwame Nkrumah University…", "b Department of…") and names an institution.
-AFFILIATION_RE = re.compile(
-    r"^[a-z]\s+\w+.*\b("
-    r"University|Universit[aá]|Institute|Institut|College|"
-    r"School|Department|Faculty|Lab|Center|Centre|Academy"
-    r")\b",
-    re.IGNORECASE,
-)
-
-# Cheap English-language sniff: count occurrences of high-frequency English
-# function words. Translations of the abstract (Chinese, Spanish, etc.) that
-# get embedded in docling output have ~zero of these.
-ENGLISH_MARKERS_RE = re.compile(
-    r"\b(?:the|of|and|in|to|is|are|that|this|with|for|from|by|as)\b",
-    re.IGNORECASE,
-)
-# English paragraphs hit these markers ~30-50 times per 1000 chars; Spanish
-# (with badly-OCR'd accents creating spurious "as" matches) sits around 1-2.
-MIN_ENGLISH_MARKER_DENSITY = 0.008  # 8 markers per 1000 chars
 
 
 def _escape(s: str) -> str:
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def _word_set(text: str) -> set[str]:
-    return set(re.findall(r"\w+", (text or "").lower()))
-
-
-def _shingles(text: str, n: int = 3) -> set[tuple[str, ...]]:
-    toks = re.findall(r"\w+", (text or "").lower())
-    if len(toks) < n:
-        return set()
-    return {tuple(toks[i:i + n]) for i in range(len(toks) - n + 1)}
-
-
-def _jaccard(a: set, b: set) -> float:
-    if not a or not b:
-        return 0.0
-    return len(a & b) / len(a | b)
-
-
-def _truncate_at_paragraph(body: str, max_chars: int) -> str:
-    """Cut at the last paragraph break (\\n\\n) before max_chars; if none found
-    in the back half of the window, fall back to last single \\n, then last
-    sentence end, then a hard cut. Avoids slicing mid-sentence in the snippet.
+def _pick_outline(sections, title, abstract, diagnostics=None):
+    """Thin alias preserving the local call sites — actual picker lives in
+    lib.intro_outline so input_strategies can share it.
     """
-    if len(body) <= max_chars:
-        return body.strip()
-    cut = body[:max_chars]
-    half = max_chars // 2
-    for boundary in ("\n\n", "\n"):
-        idx = cut.rfind(boundary)
-        if idx >= half:
-            return cut[:idx].strip()
-    for end in (". ", "? ", "! "):
-        idx = cut.rfind(end)
-        if idx >= half:
-            return cut[:idx + 1].strip()
-    return cut.strip()
-
-
-MIN_PARA_CHARS = 100
-
-
-def _strip_abstract_paragraphs(body: str, abs_shingles: set) -> str:
-    """For a body block that contains [authors / affiliations / abstract / intro],
-    drop the abstract paragraph(s), very-short paragraphs (author names,
-    affiliations, captions), and metadata paragraphs (citation blurbs / ISSN /
-    license blocks). Returns whatever intro paragraphs remain.
-    """
-    paras = re.split(r"\n{2,}", body)
-    kept = []
-    for p in paras:
-        s = p.strip()
-        if len(s) < MIN_PARA_CHARS:
-            continue
-        if JUNK_BODY_RE.match(s):
-            continue
-        if AFFILIATION_RE.match(s):
-            continue
-        if len(ENGLISH_MARKERS_RE.findall(s)) / max(len(s), 1) < MIN_ENGLISH_MARKER_DENSITY:
-            continue
-        if _jaccard(_shingles(s), abs_shingles) >= ABSTRACT_OVERLAP_DROP:
-            continue
-        kept.append(s)
-    return "\n\n".join(kept)
-
-
-def _pick_outline(sections: dict[str, str], title: str, abstract: str,
-                  diagnostics: list | None = None) -> list[tuple[str, str]]:
-    abs_shingles = _shingles(abstract)
-    picked: list[tuple[str, str]] = []
-    rescued_once = False
-
-    def log(header, info):
-        if diagnostics is not None:
-            diagnostics.append((header, None, info))
-
-    for header, body in sections.items():
-        if len(picked) >= N_HEADERS:
-            break
-
-        if STOP_HEADER_RE.match(header.strip()):
-            log(header, "stopped: reached methods/results boundary")
-            break
-
-        if JUNK_HEADER_RE.search(header):
-            log(header, "skipped: boilerplate/back-matter")
-            continue
-        if JUNK_BODY_RE.match(body or ""):
-            log(header, "skipped: metadata body (citation/license/ISSN)")
-            continue
-
-        cleaned = IMAGE_COMMENT_RE.sub("", body or "").strip()
-
-        h_words, t_words = _word_set(header), _word_set(title)
-        title_j = (len(h_words & t_words) / len(h_words | t_words)
-                   if h_words and t_words else 0.0)
-
-        if title_j >= TITLE_OVERLAP_DROP:
-            if rescued_once:
-                log(header, f"skipped: title duplicate (jaccard={title_j:.2f})")
-                continue
-            rescued = _strip_abstract_paragraphs(cleaned, abs_shingles)
-            if len(rescued) < MIN_BODY_CHARS:
-                log(header, f"skipped: title duplicate (jaccard={title_j:.2f}), "
-                            f"no intro paragraphs to rescue")
-                continue
-            snippet = _truncate_at_paragraph(rescued, RESCUED_PREVIEW_CHARS)
-            if diagnostics is not None:
-                diagnostics.append(
-                    (header, len(snippet),
-                     f"RESCUED intro from title-duplicate body: {snippet[:200]}"))
-            picked.append(("Introduction", snippet))
-            rescued_once = True
-            continue
-
-        if len(cleaned) < MIN_BODY_CHARS:
-            log(header, f"skipped: body too short ({len(cleaned)} chars)")
-            continue
-
-        overlap = _jaccard(_shingles(cleaned), abs_shingles)
-        if overlap >= ABSTRACT_OVERLAP_DROP:
-            log(header, f"skipped: abstract overlap (jaccard={overlap:.2f})")
-            continue
-
-        snippet = _truncate_at_paragraph(cleaned, SECTION_PREVIEW_CHARS)
-        if diagnostics is not None:
-            diagnostics.append((header, len(snippet), snippet[:200]))
-        picked.append((header, snippet))
-    return picked
+    return pick_outline(sections, title, abstract, diagnostics=diagnostics)
 
 
 def _render_html(picked: list[tuple[str, str]], doi: str) -> str:

@@ -1,0 +1,10 @@
+# V3 topic classifier — abstract + heuristic intro outline (no LLM picker).
+# Same prompt as topic_v3_abstract but the user message includes the first 3
+# substantive body headers + their previews, picked by lib.intro_outline.
+task: topic
+schema: v3
+strategy: intro
+name: v3_intro
+all_papers: false
+thinking: true
+max_tokens: 4096

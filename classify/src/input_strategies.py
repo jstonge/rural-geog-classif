@@ -1,9 +1,11 @@
 """Input strategies for the classifier — different ways to build the user message.
 
-Three strategies:
+Four strategies:
   abstract  — title + abstract (default; what locations / topics use)
   fulltext  — title + first N chars of docling-parsed text
   sections  — title + abstract + methodology sections picked by gemma (Phase A+B)
+  intro     — title + abstract + heuristic intro outline (first 3 substantive
+              body headers + previews, via lib.intro_outline.pick_outline)
 
 Each strategy has two parts:
   prepare(papers)       — add columns the strategy needs (fulltext / sections / picked)
@@ -17,6 +19,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from lib.intro_outline import pick_outline
 from lib.llm import classify_batch
 
 DOCLING_DIR    = Path("/gpfs1/home/j/s/jstonge1/rural-geog-classif/parse/output/docling")
@@ -162,12 +165,45 @@ def _msg_sections(row) -> str:
     return "\n\n".join(parts)
 
 
+# ---------- strategy: intro ----------
+# Heuristic outline (no LLM picker). Reuses the docling parse already done in
+# _prepare_fulltext + _parse_sections, then runs lib.intro_outline.pick_outline.
+# The picker is deterministic so we don't cache.
+
+def _prepare_intro(papers: pd.DataFrame) -> pd.DataFrame:
+    out = _prepare_fulltext(papers)
+    out["sections"] = out["fulltext"].map(lambda t: _parse_sections(t) if t else {})
+    outlines: list[list[tuple[str, str]]] = []
+    for _, r in out.iterrows():
+        if not r["sections"]:
+            outlines.append([])
+            continue
+        outlines.append(pick_outline(r["sections"], r.get("title") or "",
+                                      r.get("abstract") or ""))
+    out["intro_outline"] = outlines
+    n = sum(1 for o in outlines if o)
+    print(f"  intro: {n}/{len(out)} papers have a picked outline")
+    return out
+
+
+def _msg_intro(row) -> str:
+    outline = row.get("intro_outline") or []
+    if not outline:
+        return _msg_abstract(row)
+    parts = [f"Title: {row['title']}", f"Abstract: {row['abstract']}",
+             "\nIntroduction / framing sections (auto-extracted from full text):"]
+    for header, snippet in outline:
+        parts.append(f"\n## {header}\n{snippet}")
+    return "\n\n".join(parts)
+
+
 # ---------- dispatcher ----------
 
 _REGISTRY = {
     "abstract": (_prepare_abstract, _msg_abstract),
     "fulltext": (_prepare_fulltext, _msg_fulltext),
     "sections": (_prepare_sections, _msg_sections),
+    "intro":    (_prepare_intro,    _msg_intro),
 }
 
 STRATEGIES = list(_REGISTRY)
