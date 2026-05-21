@@ -1,0 +1,141 @@
+{
+  "n_total": 87,
+  "n_correct": 8,
+  "exact_match": 0.092,
+  "mean_jaccard": 0.5402,
+  "mean_precision": 0.5916,
+  "mean_recall": 0.8017,
+  "mean_f1": 0.671,
+  "per_label": {
+    "agriculture/food": {
+      "p": 0.5,
+      "r": 1.0,
+      "f1": 0.6667,
+      "support_gt": 12,
+      "support_pred": 24
+    },
+    "built environment": {
+      "p": 0.5455,
+      "r": 0.375,
+      "f1": 0.4444,
+      "support_gt": 16,
+      "support_pred": 11
+    },
+    "climate and natural hazards": {
+      "p": 0.75,
+      "r": 0.8571,
+      "f1": 0.8,
+      "support_gt": 7,
+      "support_pred": 8
+    },
+    "emotion": {
+      "p": 0.875,
+      "r": 0.6364,
+      "f1": 0.7368,
+      "support_gt": 11,
+      "support_pred": 8
+    },
+    "energy": {
+      "p": 1.0,
+      "r": 1.0,
+      "f1": 1.0,
+      "support_gt": 5,
+      "support_pred": 5
+    },
+    "governance": {
+      "p": 0.4651,
+      "r": 0.8696,
+      "f1": 0.6061,
+      "support_gt": 23,
+      "support_pred": 43
+    },
+    "human-environment": {
+      "p": 0.4286,
+      "r": 1.0,
+      "f1": 0.6,
+      "support_gt": 15,
+      "support_pred": 35
+    },
+    "identity": {
+      "p": 0.6957,
+      "r": 0.5926,
+      "f1": 0.64,
+      "support_gt": 27,
+      "support_pred": 23
+    },
+    "methods": {
+      "p": 0.1111,
+      "r": 1.0,
+      "f1": 0.2,
+      "support_gt": 2,
+      "support_pred": 18
+    },
+    "mobility": {
+      "p": 0.6842,
+      "r": 0.8667,
+      "f1": 0.7647,
+      "support_gt": 15,
+      "support_pred": 19
+    },
+    "natural environment": {
+      "p": 0.4,
+      "r": 0.8,
+      "f1": 0.5333,
+      "support_gt": 5,
+      "support_pred": 10
+    },
+    "place": {
+      "p": 0.4884,
+      "r": 0.7241,
+      "f1": 0.5833,
+      "support_gt": 29,
+      "support_pred": 43
+    },
+    "recreation": {
+      "p": 0.5,
+      "r": 1.0,
+      "f1": 0.6667,
+      "support_gt": 1,
+      "support_pred": 2
+    },
+    "social power": {
+      "p": 0.8525,
+      "r": 0.8525,
+      "f1": 0.8525,
+      "support_gt": 61,
+      "support_pred": 61
+    },
+    "technology": {
+      "p": 0.7143,
+      "r": 1.0,
+      "f1": 0.8333,
+      "support_gt": 5,
+      "support_pred": 7
+    },
+    "weather": {
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0,
+      "support_gt": 1,
+      "support_pred": 0
+    }
+  },
+  "label_distribution": {
+    "social power": 61,
+    "place": 43,
+    "governance": 43,
+    "human-environment": 35,
+    "agriculture/food": 24,
+    "identity": 23,
+    "mobility": 19,
+    "methods": 18,
+    "built environment": 11,
+    "natural environment": 10,
+    "emotion": 8,
+    "climate and natural hazards": 8,
+    "technology": 7,
+    "energy": 5,
+    "recreation": 2
+  },
+  "confusion_matrix": {}
+}

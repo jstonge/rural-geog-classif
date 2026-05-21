@@ -172,15 +172,22 @@ def _msg_sections(row) -> str:
 
 def _prepare_intro(papers: pd.DataFrame) -> pd.DataFrame:
     out = _prepare_fulltext(papers)
-    out["sections"] = out["fulltext"].map(lambda t: _parse_sections(t) if t else {})
+    full_sections = out["fulltext"].map(lambda t: _parse_sections(t) if t else {})
     outlines: list[list[tuple[str, str]]] = []
-    for _, r in out.iterrows():
-        if not r["sections"]:
+    for i in range(len(out)):
+        sec = full_sections.iloc[i]
+        if not sec:
             outlines.append([])
             continue
-        outlines.append(pick_outline(r["sections"], r.get("title") or "",
-                                      r.get("abstract") or ""))
+        outlines.append(pick_outline(sec,
+                                     out.iloc[i].get("title") or "",
+                                     out.iloc[i].get("abstract") or ""))
     out["intro_outline"] = outlines
+    # `picked` + `sections` mirror the methods-sections strategy so the snapshot
+    # carries exactly what gemma saw and /compare's pickedBlocks renders it
+    # without any strategy-specific code on the frontend.
+    out["picked"] = [[h for h, _ in o] for o in outlines]
+    out["sections"] = [{h: s for h, s in o} for o in outlines]
     n = sum(1 for o in outlines if o)
     print(f"  intro: {n}/{len(out)} papers have a picked outline")
     return out

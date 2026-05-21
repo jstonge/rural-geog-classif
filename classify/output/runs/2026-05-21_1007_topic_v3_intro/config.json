@@ -1,0 +1,19 @@
+{
+  "task": "topic",
+  "schema": "v3",
+  "variant": "01",
+  "prompt_variant": "01",
+  "cat_variant": "01",
+  "ex_variant": "01",
+  "strategy": "intro",
+  "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/topic_01.md",
+  "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/topic_01.csv",
+  "examples_path": null,
+  "max_tokens": 4096,
+  "thinking": true,
+  "all_papers": false,
+  "model": "google/gemma-4-31B-it",
+  "temperature": 0.0,
+  "control": "topic",
+  "saved_at": "2026-05-21T10:07:49"
+}

@@ -31,6 +31,10 @@ from lib.tasks import get_task
 from lib.wos import load_wos
 
 COMPARE_JSON = Path("/gpfs1/home/j/s/jstonge1/rural-geog-classif/frontend/src/lib/data/compare.json")
+DOCLING_DIR = Path("/gpfs1/home/j/s/jstonge1/rural-geog-classif/parse/output/docling")
+DOCLING_GH_URL = (
+    "https://github.com/jstonge/rural-geog-classif/blob/main/parse/output/docling/{key}.md"
+)
 
 # Per-schema LS project routing. Add new schemas here as they're created.
 SCHEMA_LS_PROJECTS = {"v1": 110, "v3": 113}
@@ -143,14 +147,19 @@ def _build_schema_bundle(schema: str, snaps: list[dict],
         ls_url = (f"{base_url}/projects/{ls_project}/data?task={task_id}&tab={LS_TAB}"
                   if (base_url and ls_project and task_id is not None) else None)
 
+        docling_key = doi.replace("/", "_")
+        docling_url = (DOCLING_GH_URL.format(key=docling_key)
+                       if (DOCLING_DIR / f"{docling_key}.md").exists() else None)
+
         records.append({
-            "doi":        doi,
-            "title":      title_map.get(doi, ""),
-            "abstract":   abstract_map.get(doi, ""),
-            "annotator":  gt_by_doi.get(doi, []),
-            "preds":      preds,
-            "ls_task_id": task_id,
-            "ls_url":     ls_url,
+            "doi":         doi,
+            "title":       title_map.get(doi, ""),
+            "abstract":    abstract_map.get(doi, ""),
+            "annotator":   gt_by_doi.get(doi, []),
+            "preds":       preds,
+            "ls_task_id":  task_id,
+            "ls_url":      ls_url,
+            "docling_url": docling_url,
         })
     return {"multi_label": multi_label, "records": records}
 

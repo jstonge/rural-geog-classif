@@ -18,6 +18,7 @@
     preds: Record<string, PredEntry>;
     ls_task_id: number | null;
     ls_url:     string | null;
+    docling_url: string | null;
   };
 
   type CompareBundle = { multi_label?: boolean; records?: CompareRecord[] };
@@ -763,6 +764,9 @@
         </a>
         {#if r.ls_url}
           <a class="ls-link" href={r.ls_url} target="_blank" rel="noreferrer noopener">↗ Label Studio</a>
+        {/if}
+        {#if r.docling_url}
+          <a class="ls-link" href={r.docling_url} target="_blank" rel="noreferrer noopener">↗ Full text</a>
         {/if}
       </header>
 
