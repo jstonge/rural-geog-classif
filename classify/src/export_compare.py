@@ -94,8 +94,11 @@ def _build_schema_bundle(schema: str, snaps: list[dict],
     doi_to_task = _ls_doi_to_task(ls_project) if ls_project else {}
     base_url = (os.getenv("LABEL_STUDIO_URL") or "").rstrip("/")
 
-    # Union of DOIs across these snapshots
-    all_dois = sorted(set().union(*(set(s["predictions"]["doi"]) for s in snaps)))
+    # Union of DOIs across these snapshots (skip null DOIs — WoS rows without DOIs
+    # leak through load_wos and end up as None in --all-papers snapshots).
+    all_dois = sorted(set().union(*(
+        {d for d in s["predictions"]["doi"] if isinstance(d, str)} for s in snaps
+    )))
 
     records = []
     for doi in all_dois:

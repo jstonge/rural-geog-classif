@@ -58,7 +58,7 @@ def main():
     ap.add_argument("--config", type=Path, default=None,
                     help="YAML config; keys override CLI defaults.")
     args = ap.parse_args()
-    args = merge_yaml_into_args(args, args.config)
+    args = merge_yaml_into_args(args, args.config, ap)
 
     if args.task is None:
         ap.error("--task is required (or set 'task: ...' in YAML config)")

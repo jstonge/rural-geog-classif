@@ -1,0 +1,10 @@
+# V3 topic classifier — abstract-only, restricted to v3-annotated papers (project 113).
+# Multi-label task; validate.py scores strict exact_match (set equality) plus
+# Jaccard / P / R / F1 sample averages and per-label P/R/F1.
+task: topic
+schema: v3
+strategy: abstract
+name: v3_abstract
+all_papers: false
+thinking: true
+max_tokens: 4096

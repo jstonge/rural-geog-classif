@@ -13,7 +13,8 @@
       <Choice value="unclear"/>
     </Choices>
     <Header value="Choose topic"/>
-    <Choices name="topic" toName="text" choice="multiple" showInLine="true">  
+    <HyperText name="topic_extra" value="$intro_section_html" inline="true"/>
+    <Choices name="topic" toName="text" choice="multiple" showInLine="true">
       <Choice value="agriculture/food"/>
       <Choice value="place"/>
       <Choice value="natural environment"/>

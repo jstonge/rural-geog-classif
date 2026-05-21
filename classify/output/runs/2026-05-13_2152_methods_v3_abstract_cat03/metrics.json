@@ -1,7 +1,7 @@
 {
   "n_total": 81,
-  "n_correct": 43,
-  "exact_match": 0.5309,
+  "n_correct": 64,
+  "exact_match": 0.7901,
   "label_distribution": {
     "qual": 24,
     "quant": 17,
@@ -13,66 +13,66 @@
   },
   "confusion_matrix": {
     "descriptive-empirical": {
-      "descriptive-empirical": 2,
-      "mixed": 1,
-      "qual": 7,
-      "quant": 1,
+      "descriptive-empirical": 8,
+      "mixed": 0,
+      "qual": 6,
+      "quant": 0,
       "spatial": 0,
       "theoretical-conceptual": 0,
-      "unclear": 3
+      "unclear": 0
     },
     "mixed": {
       "descriptive-empirical": 0,
-      "mixed": 4,
+      "mixed": 5,
       "qual": 0,
       "quant": 0,
-      "spatial": 1,
+      "spatial": 0,
       "theoretical-conceptual": 0,
       "unclear": 0
     },
     "qual": {
       "descriptive-empirical": 0,
-      "mixed": 2,
-      "qual": 18,
+      "mixed": 1,
+      "qual": 23,
       "quant": 0,
       "spatial": 0,
-      "theoretical-conceptual": 1,
-      "unclear": 3
+      "theoretical-conceptual": 0,
+      "unclear": 0
     },
     "quant": {
       "descriptive-empirical": 0,
       "mixed": 0,
       "qual": 0,
       "quant": 15,
-      "spatial": 1,
-      "theoretical-conceptual": 0,
-      "unclear": 1
-    },
-    "spatial": {
-      "descriptive-empirical": 0,
-      "mixed": 2,
-      "qual": 0,
-      "quant": 8,
-      "spatial": 3,
+      "spatial": 2,
       "theoretical-conceptual": 0,
       "unclear": 0
     },
+    "spatial": {
+      "descriptive-empirical": 0,
+      "mixed": 0,
+      "qual": 0,
+      "quant": 2,
+      "spatial": 10,
+      "theoretical-conceptual": 1,
+      "unclear": 0
+    },
     "theoretical-conceptual": {
-      "descriptive-empirical": 1,
+      "descriptive-empirical": 0,
       "mixed": 0,
       "qual": 0,
       "quant": 0,
       "spatial": 0,
-      "theoretical-conceptual": 0,
-      "unclear": 2
+      "theoretical-conceptual": 2,
+      "unclear": 1
     },
     "unclear": {
-      "descriptive-empirical": 2,
-      "mixed": 0,
-      "qual": 1,
+      "descriptive-empirical": 1,
+      "mixed": 1,
+      "qual": 0,
       "quant": 0,
-      "spatial": 1,
-      "theoretical-conceptual": 0,
+      "spatial": 0,
+      "theoretical-conceptual": 2,
       "unclear": 1
     }
   }

@@ -40,7 +40,7 @@ def load_gt_ls(project_id: int, control: str, *,
     """Fetch ground truth for a given control from a live LS project.
 
     control: "methods" / "Location" / "topic" — matches the LS `<Choices name="...">`.
-    Picks the first annotation per task; if a task has multiple annotators, takes the first.
+    When a task has multiple annotators, the most-recently-updated annotation wins.
     Returns DataFrame with [doi, {control}_gt].
     """
     if ls_client is None:
@@ -57,7 +57,12 @@ def load_gt_ls(project_id: int, control: str, *,
         doi = (t.data or {}).get("DOI")
         if not doi:
             continue
-        for ann in (t.annotations or []):
+        anns = sorted(
+            t.annotations or [],
+            key=lambda a: a.get("updated_at") or a.get("created_at") or "",
+            reverse=True,
+        )
+        for ann in anns:
             found = False
             for r in ann.get("result", []):
                 if r.get("from_name") == control and r.get("type") == "choices":

@@ -37,7 +37,8 @@ def main():
     metrics = score_mod.score(snap["predictions"], gt,
                               pred_col=pred_col, gt_col=task.gt_col,
                               multi_label=task.multi_label_scoring)
-    dist = score_mod.label_distribution(snap["predictions"], pred_col)
+    dist = score_mod.label_distribution(snap["predictions"], pred_col,
+                                         multi_label=task.multi_label_scoring)
 
     cm = None
     if not task.multi_label_scoring:

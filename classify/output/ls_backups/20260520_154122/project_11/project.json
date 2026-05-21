@@ -1,0 +1,7 @@
+{
+  "id": 11,
+  "title": "Faculty Fishing",
+  "description": "Label if a given PNG split is properly a faculty roster listing",
+  "label_config": "<View>\n  <Image name=\"image\" value=\"$image\"/>\n  <Choices name=\"choice\" toName=\"image\">\n    \n    \n    \n  <Choice value=\"Yes\"/><Choice value=\"No\"/><Choice value=\"Maybe\"/></Choices>\n</View>",
+  "created_at": "2025-05-15 17:31:58.561746+00:00"
+}

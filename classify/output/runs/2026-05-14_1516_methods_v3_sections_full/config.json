@@ -1,0 +1,19 @@
+{
+  "task": "methods",
+  "schema": "v3",
+  "variant": "01",
+  "prompt_variant": "01",
+  "cat_variant": "01",
+  "ex_variant": "01",
+  "strategy": "sections",
+  "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_01.md",
+  "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_01.csv",
+  "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_01.md",
+  "max_tokens": 4096,
+  "thinking": true,
+  "all_papers": false,
+  "model": "google/gemma-4-31B-it",
+  "temperature": 0.0,
+  "control": "methods",
+  "saved_at": "2026-05-14T15:16:22"
+}

@@ -1,8 +1,0 @@
-{
-  "n_test": 87,
-  "mean_jaccard": 0.447,
-  "exact_match": 0.046,
-  "macro_f1": 0.551,
-  "mean_gt_size": 3.05,
-  "mean_pred_size": 3.31
-}

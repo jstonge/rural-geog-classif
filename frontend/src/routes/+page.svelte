@@ -1,79 +1,85 @@
 <script lang="ts">
   import { scaleLinear, scaleOrdinal, scaleBand } from 'd3-scale';
-  import { extent } from 'd3-array';
   import { schemeTableau10 } from 'd3-scale-chromatic';
-  import data from '$lib/data/viz.json';
+  import data from '$lib/data/methods_viz.json';
+  import locationsData from '$lib/data/locations_viz.json';
 
-  type Point = {
+  type Paper = {
     doi: string;
     title: string;
-    abstract: string;
     authors: string;
     pub_year: string;
     source: string;
     keywords: string;
-    cluster: number;
-    x: number;
-    y: number;
+    abstract: string;
+    method: string;
   };
 
-  const points: Point[] = data as Point[];
+  const papers: Paper[] = data as Paper[];
 
-  const width = 800;
-  const height = 600;
-  const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+  const methodCategories = [
+    'qual',
+    'quant',
+    'mixed',
+    'descriptive-empirical',
+    'theoretical-conceptual',
+    'spatial',
+    'unclear'
+  ] as const;
 
-  const xExtent = extent(points, (d) => d.x) as [number, number];
-  const yExtent = extent(points, (d) => d.y) as [number, number];
+  // From classify/schemas/prompts/v3/categories/methods_01.csv
+  const methodDescriptions: Record<string, string> = {
+    'qual': 'qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)',
+    'quant': 'non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)',
+    'mixed': 'mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary',
+    'spatial': "geography is core to the methodology — GIS, cartography, remote sensing, geospatial visualization, OR spatial statistical methods (GWR, Moran's I, kriging, spatial lag/error, point-pattern analysis, remote-sensing classification)",
+    'descriptive-empirical': 'original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases',
+    'theoretical-conceptual': 'conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases',
+    'unclear': 'methodology cannot be determined from the title and abstract',
+  };
 
-  const xScale = scaleLinear()
-    .domain(xExtent)
-    .range([margin.left, width - margin.right]);
-
-  const yScale = scaleLinear()
-    .domain(yExtent)
-    .range([height - margin.bottom, margin.top]);
-
-  const clusters = [...new Set(points.map((d) => d.cluster))].sort((a, b) => a - b);
-  const color = scaleOrdinal<number, string>().domain(clusters).range(schemeTableau10);
+  const color = scaleOrdinal<string, string>()
+    .domain(methodCategories as unknown as string[])
+    .range(schemeTableau10);
 
   // Bar chart dimensions
-  const barWidth = 350;
-  const barHeight = 600;
-  const barMargin = { top: 20, right: 20, bottom: 40, left: 50 };
+  const barWidth = 600;
+  const barHeight = 500;
+  const barMargin = { top: 20, right: 20, bottom: 50, left: 60 };
 
-  // Decade bucketing
-  const decades = ['1980–1990', '1990–2000', '2000–2010', '2010–2020'] as const;
+  // 5-year bucketing (data spans 1992–2026). Labels are bucket start years.
+  const decades = ['1990', '1995', '2000', '2005', '2010', '2015', '2020', '2025'] as const;
 
   function getDecade(year: string): string {
     const y = parseInt(year, 10);
-    if (y < 1990) return '1980–1990';
-    if (y < 2000) return '1990–2000';
-    if (y < 2010) return '2000–2010';
-    return '2010–2020';
+    const start = Math.max(1990, Math.floor(y / 5) * 5);
+    return String(Math.min(start, 2025));
   }
 
-  // Filter out noise cluster (-1) for bar chart
-  const nonNoiseClusters = clusters.filter((c) => c !== -1);
-
-  // Compute proportions: for each decade, fraction of papers in each cluster
   type DecadeData = {
     decade: string;
-    segments: { cluster: number; y0: number; y1: number; proportion: number }[];
+    total: number;
+    segments: {
+      method: string;
+      y0: number;
+      y1: number;
+      proportion: number;
+      count: number;
+    }[];
   };
 
   const decadeProportions: DecadeData[] = decades.map((decade) => {
-    const decadePoints = points.filter((d) => d.cluster !== -1 && getDecade(d.pub_year) === decade);
-    const total = decadePoints.length;
+    const decadePapers = papers.filter((d) => getDecade(d.pub_year) === decade);
+    const total = decadePapers.length;
     let cumulative = 0;
-    const segments = nonNoiseClusters.map((cluster) => {
-      const count = decadePoints.filter((d) => d.cluster === cluster).length;
+    const segments = methodCategories.map((method) => {
+      const count = decadePapers.filter((d) => d.method === method).length;
       const proportion = total > 0 ? count / total : 0;
       const y0 = cumulative;
       cumulative += proportion;
-      return { cluster, y0, y1: cumulative, proportion };
+      return { method, y0, y1: cumulative, proportion, count };
     });
-    return { decade, segments };
+    return { decade, total, segments };
   });
 
   // Bar chart scales
@@ -86,170 +92,567 @@
     .domain([0, 1])
     .range([barHeight - barMargin.bottom, barMargin.top]);
 
-  let hovered: Point | null = $state(null);
-  let tooltipX = $state(0);
-  let tooltipY = $state(0);
-  let selectedCluster: number | null = $state(null);
+  let selectedMethod: string | null = $state(null);
 
-  const filteredPoints = $derived(
-    selectedCluster !== null ? points.filter((d) => d.cluster === selectedCluster) : []
+  const filteredPapers = $derived(
+    selectedMethod !== null ? papers.filter((d) => d.method === selectedMethod) : []
   );
 
-  function onPointerMove(e: PointerEvent) {
-    const svg = (e.currentTarget as SVGSVGElement);
-    const rect = svg.getBoundingClientRect();
-    tooltipX = e.clientX - rect.left;
-    tooltipY = e.clientY - rect.top;
-
-    const target = e.target as SVGElement;
-    const idx = target.dataset.idx;
-    if (idx != null) {
-      hovered = points[+idx];
-    } else {
-      hovered = null;
-    }
+  function toggleMethod(method: string) {
+    selectedMethod = selectedMethod === method ? null : method;
   }
 
-  function onClick(e: MouseEvent) {
-    const target = e.target as SVGElement;
-    const idx = target.dataset.idx;
-    if (idx != null) {
-      const cluster = points[+idx].cluster;
-      selectedCluster = selectedCluster === cluster ? null : cluster;
-    }
+  // Facet (small multiples) configuration
+  const facetWidth = 300;
+  const facetHeight = 80;
+  const facetMargin = { top: 14, right: 8, bottom: 16, left: 30 };
+  const facetInnerWidth = facetWidth - facetMargin.left - facetMargin.right;
+  const facetInnerHeight = facetHeight - facetMargin.top - facetMargin.bottom;
+
+  const facetX = scaleBand<string>()
+    .domain([...decades])
+    .range([0, facetInnerWidth])
+    .padding(0.1);
+
+  type MethodSeries = {
+    method: string;
+    max: number;
+    points: { decade: string; proportion: number; count: number }[];
+  };
+
+  const methodSeries: MethodSeries[] = $derived.by(() => {
+    return methodCategories.map((method) => {
+      const points = decadeProportions.map((d) => {
+        const seg = d.segments.find((s) => s.method === method);
+        return {
+          decade: d.decade,
+          proportion: seg ? seg.proportion : 0,
+          count: seg ? seg.count : 0,
+        };
+      });
+      const max = points.reduce((m, p) => (p.proportion > m ? p.proportion : m), 0);
+      return { method, max, points };
+    });
+  });
+
+  // Shared y-domain across all facets so trends are visually comparable.
+  // Round the global max up to the nearest 0.1 for a clean tick.
+  const facetYMax = $derived(
+    Math.min(1, Math.ceil(methodSeries.reduce((m, s) => (s.max > m ? s.max : m), 0) * 10) / 10)
+  );
+  const facetY = $derived(
+    scaleLinear().domain([0, facetYMax]).range([facetInnerHeight, 0])
+  );
+  const facetYTicks = $derived([0, facetYMax / 2, facetYMax]);
+
+  function bucketLabel(decade: string): string {
+    const start = parseInt(decade, 10);
+    return `${start}–${start + 4}`;
   }
 
-  function onBarClick(cluster: number) {
-    selectedCluster = selectedCluster === cluster ? null : cluster;
+  function peakBucket(points: { decade: string; proportion: number }[]): string {
+    let best = points[0];
+    for (const p of points) {
+      if (p.proportion > best.proportion) best = p;
+    }
+    return bucketLabel(best.decade);
+  }
+
+  function facetCx(decade: string): number {
+    return (facetX(decade) ?? 0) + facetX.bandwidth() / 2;
+  }
+
+  // ---------------------------------------------------------------
+  // Locations section
+  // ---------------------------------------------------------------
+
+  type Location = {
+    doi: string;
+    title: string;
+    authors: string;
+    pub_year: string;
+    source: string;
+    abstract: string;
+    region: string;
+  };
+
+  const locations: Location[] = locationsData as Location[];
+
+  const locationCategories = [
+    'USA',
+    'Asia',
+    'Africa',
+    'Europe',
+    'South America',
+    'Other North America',
+    'multiple regions',
+    'unclear or conceptual',
+    'Australia/New Zealand/Pacific'
+  ] as const;
+
+  const locationColor = scaleOrdinal<string, string>()
+    .domain(locationCategories as unknown as string[])
+    .range(schemeTableau10);
+
+  type DecadeRegionData = {
+    decade: string;
+    total: number;
+    segments: {
+      region: string;
+      y0: number;
+      y1: number;
+      proportion: number;
+      count: number;
+    }[];
+  };
+
+  const decadeRegionProportions: DecadeRegionData[] = decades.map((decade) => {
+    const decadeLocations = locations.filter((d) => getDecade(d.pub_year) === decade);
+    const total = decadeLocations.length;
+    let cumulative = 0;
+    const segments = locationCategories.map((region) => {
+      const count = decadeLocations.filter((d) => d.region === region).length;
+      const proportion = total > 0 ? count / total : 0;
+      const y0 = cumulative;
+      cumulative += proportion;
+      return { region, y0, y1: cumulative, proportion, count };
+    });
+    return { decade, total, segments };
+  });
+
+  let selectedRegion: string | null = $state(null);
+
+  const filteredLocations = $derived(
+    selectedRegion !== null ? locations.filter((d) => d.region === selectedRegion) : []
+  );
+
+  function toggleRegion(region: string) {
+    selectedRegion = selectedRegion === region ? null : region;
+  }
+
+  type RegionSeries = {
+    region: string;
+    max: number;
+    points: { decade: string; proportion: number; count: number }[];
+  };
+
+  const regionSeries: RegionSeries[] = $derived.by(() => {
+    return locationCategories.map((region) => {
+      const points = decadeRegionProportions.map((d) => {
+        const seg = d.segments.find((s) => s.region === region);
+        return {
+          decade: d.decade,
+          proportion: seg ? seg.proportion : 0,
+          count: seg ? seg.count : 0,
+        };
+      });
+      const max = points.reduce((m, p) => (p.proportion > m ? p.proportion : m), 0);
+      return { region, max, points };
+    });
+  });
+
+  const regionFacetYMax = $derived(
+    Math.min(1, Math.ceil(regionSeries.reduce((m, s) => (s.max > m ? s.max : m), 0) * 10) / 10)
+  );
+  const regionFacetY = $derived(
+    scaleLinear().domain([0, regionFacetYMax]).range([facetInnerHeight, 0])
+  );
+  const regionFacetYTicks = $derived([0, regionFacetYMax / 2, regionFacetYMax]);
+
+  function peakRegionBucket(points: { decade: string; proportion: number }[]): string {
+    let best = points[0];
+    for (const p of points) {
+      if (p.proportion > best.proportion) best = p;
+    }
+    return bucketLabel(best.decade);
   }
 </script>
 
-<h1>Rural Geography Methodology Clusters</h1>
+<h1>Methods classification across rural geography (1990–2026)</h1>
+<p class="caption">
+  Predicted by Gemma 4 31B on {papers.length} papers (snapshot: 2026-05-20_1458_methods_v3_sections_full).
+</p>
 
-<div class="container">
-  <div class="scatter-wrapper">
-    <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
-    <svg
-      {width}
-      {height}
-      onpointermove={onPointerMove}
-      onpointerleave={() => (hovered = null)}
-      onclick={onClick}
-    >
-      {#each points as point, i (point.doi)}
-        <circle
-          cx={xScale(point.x)}
-          cy={yScale(point.y)}
-          r={hovered === point ? 7 : 4}
-          fill={point.cluster === -1 ? '#ccc' : color(point.cluster)}
-          opacity={selectedCluster !== null && point.cluster !== selectedCluster ? 0.15 : hovered && hovered !== point ? 0.3 : 0.8}
-          data-idx={i}
-        />
-      {/each}
-    </svg>
-
-    {#if hovered}
-      <div
-        class="tooltip"
-        style="left: {tooltipX > width / 2 ? tooltipX - 315 : tooltipX + 15}px; top: {tooltipY + 15}px;"
+<div class="legend">
+  {#each methodCategories as method (method)}
+    <div class="legend-cell">
+      <button
+        type="button"
+        class="legend-item"
+        class:dimmed={selectedMethod !== null && selectedMethod !== method}
+        onclick={() => toggleMethod(method)}
       >
-        <strong>{hovered.title || hovered.doi}</strong>
-        <div class="meta">
-          <span class="cluster">Cluster {hovered.cluster}</span>
-          {#if hovered.pub_year}<span class="tag">{hovered.pub_year}</span>{/if}
-        </div>
-        {#if hovered.authors}<div class="authors">{hovered.authors}</div>{/if}
-        {#if hovered.source}<div class="source">{hovered.source}</div>{/if}
-        {#if hovered.keywords}<div class="keywords">{hovered.keywords}</div>{/if}
-        <p>{hovered.abstract.slice(0, 650)}...</p>
-      </div>
-    {/if}
-  </div>
-
-  <svg
-    width={barWidth}
-    height={barHeight}
-    class="bar-chart"
-  >
-    <!-- Y-axis label -->
-    <text
-      x={-(barHeight / 2)}
-      y={14}
-      transform="rotate(-90)"
-      text-anchor="middle"
-      font-size="12"
-      fill="#666"
-    >Proportion</text>
-
-    <!-- Y-axis ticks -->
-    {#each [0, 0.25, 0.5, 0.75, 1.0] as tick (tick)}
-      <line
-        x1={barMargin.left}
-        x2={barWidth - barMargin.right}
-        y1={yBar(tick)}
-        y2={yBar(tick)}
-        stroke="#e0e0e0"
-        stroke-width="1"
-      />
-      <text
-        x={barMargin.left - 6}
-        y={yBar(tick) + 4}
-        text-anchor="end"
-        font-size="11"
-        fill="#666"
-      >{tick}</text>
-    {/each}
-
-    <!-- Stacked bars -->
-    {#each decadeProportions as { decade, segments } (decade)}
-      {#each segments as seg (seg.cluster)}
-        {#if seg.proportion > 0}
-          <rect
-            x={xBand(decade)}
-            y={yBar(seg.y1)}
-            width={xBand.bandwidth()}
-            height={yBar(seg.y0) - yBar(seg.y1)}
-            fill={color(seg.cluster)}
-            opacity={selectedCluster !== null && seg.cluster !== selectedCluster ? 0.15 : 0.85}
-            role="button"
-            tabindex="-1"
-            aria-label="Cluster {seg.cluster}, {decade}"
-            onclick={() => onBarClick(seg.cluster)}
-            onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') onBarClick(seg.cluster); }}
-            style="cursor: pointer;"
-          />
-        {/if}
-      {/each}
-    {/each}
-
-    <!-- X-axis decade labels -->
-    {#each decades as decade (decade)}
-      <text
-        x={(xBand(decade) ?? 0) + xBand.bandwidth() / 2}
-        y={barHeight - barMargin.bottom + 20}
-        text-anchor="middle"
-        font-size="12"
-        fill="#333"
-      >{decade}</text>
-    {/each}
-
-    <!-- X-axis label -->
-    <text
-      x={(barMargin.left + barWidth - barMargin.right) / 2}
-      y={barHeight - 4}
-      text-anchor="middle"
-      font-size="12"
-      fill="#666"
-    >Decade</text>
-  </svg>
+        <span class="swatch" style="background: {color(method)};"></span>
+        <span class="label">{method}</span>
+      </button>
+      <div class="legend-desc" role="tooltip">{methodDescriptions[method]}</div>
+    </div>
+  {/each}
 </div>
 
-{#if selectedCluster !== null}
+<div class="charts-row">
+<svg width={barWidth} height={barHeight} class="bar-chart">
+  <!-- Y-axis label -->
+  <text
+    x={-(barHeight / 2)}
+    y={16}
+    transform="rotate(-90)"
+    text-anchor="middle"
+    font-size="12"
+    fill="#666"
+  >Proportion</text>
+
+  <!-- Y-axis ticks -->
+  {#each [0, 0.25, 0.5, 0.75, 1.0] as tick (tick)}
+    <line
+      x1={barMargin.left}
+      x2={barWidth - barMargin.right}
+      y1={yBar(tick)}
+      y2={yBar(tick)}
+      stroke="#e0e0e0"
+      stroke-width="1"
+    />
+    <text
+      x={barMargin.left - 8}
+      y={yBar(tick) + 4}
+      text-anchor="end"
+      font-size="11"
+      fill="#666"
+    >{tick}</text>
+  {/each}
+
+  <!-- Stacked bars -->
+  {#each decadeProportions as { decade, segments } (decade)}
+    {#each segments as seg (seg.method)}
+      {#if seg.proportion > 0}
+        {@const x = xBand(decade) ?? 0}
+        {@const bw = xBand.bandwidth()}
+        {@const yTop = yBar(seg.y1)}
+        {@const h = yBar(seg.y0) - yBar(seg.y1)}
+        <rect
+          x={x}
+          y={yTop}
+          width={bw}
+          height={h}
+          fill={color(seg.method)}
+          opacity={selectedMethod !== null && seg.method !== selectedMethod ? 0.15 : 0.85}
+          role="button"
+          tabindex="-1"
+          aria-label="{seg.method}, {decade}"
+          onclick={() => toggleMethod(seg.method)}
+          onkeydown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') toggleMethod(seg.method);
+          }}
+          style="cursor: pointer;"
+        />
+        {#if seg.proportion > 0.06}
+          <text
+            x={x + bw / 2}
+            y={yTop + h / 2 + 4}
+            text-anchor="middle"
+            font-size="11"
+            fill="white"
+            pointer-events="none"
+          >n={seg.count}</text>
+        {/if}
+      {/if}
+    {/each}
+  {/each}
+
+  <!-- X-axis decade labels -->
+  {#each decades as decade (decade)}
+    <text
+      x={(xBand(decade) ?? 0) + xBand.bandwidth() / 2}
+      y={barHeight - barMargin.bottom + 20}
+      text-anchor="middle"
+      font-size="12"
+      fill="#333"
+    >{decade}</text>
+  {/each}
+
+  <!-- X-axis label -->
+  <text
+    x={(barMargin.left + barWidth - barMargin.right) / 2}
+    y={barHeight - 8}
+    text-anchor="middle"
+    font-size="12"
+    fill="#666"
+  >Year (5-year buckets)</text>
+</svg>
+
+<section class="facets" aria-label="Method proportion over time">
+  {#each methodSeries as series (series.method)}
+    {@const dimmed = selectedMethod !== null && selectedMethod !== series.method}
+    {@const maxPct = (series.max * 100).toFixed(0)}
+    <button
+      type="button"
+      class="facet"
+      class:dimmed
+      onclick={() => toggleMethod(series.method)}
+      aria-label="{series.method} proportion over time: peak {maxPct}% in {peakBucket(series.points)}"
+    >
+      <div class="facet-header">
+        <span class="swatch small" style="background: {color(series.method)};"></span>
+        <span class="facet-name">{series.method}</span>
+        <span class="facet-max">· peak {maxPct}%</span>
+      </div>
+      <svg width={facetWidth} height={facetHeight} class="facet-svg">
+        <g transform="translate({facetMargin.left},{facetMargin.top})">
+          {#each facetYTicks as t (t)}
+            <line
+              x1={0}
+              x2={facetInnerWidth}
+              y1={facetY(t)}
+              y2={facetY(t)}
+              stroke="#eee"
+              stroke-width="1"
+            />
+            <text
+              x={-4}
+              y={facetY(t) + 3}
+              text-anchor="end"
+              font-size="9"
+              fill="#888"
+            >{(t * 100).toFixed(0)}%</text>
+          {/each}
+          {#if series.max > 0}
+            {@const pathD = series.points
+              .map((p, i) => `${i === 0 ? 'M' : 'L'} ${facetCx(p.decade)} ${facetY(p.proportion)}`)
+              .join(' ')}
+            <path
+              d={pathD}
+              fill="none"
+              stroke={color(series.method)}
+              stroke-width="1.5"
+              opacity={dimmed ? 0.15 : 0.9}
+            />
+            {#each series.points as p (p.decade)}
+              <circle
+                cx={facetCx(p.decade)}
+                cy={facetY(p.proportion)}
+                r="2.5"
+                fill={color(series.method)}
+                opacity={dimmed ? 0.15 : 0.9}
+              />
+            {/each}
+          {/if}
+        </g>
+        <g transform="translate({facetMargin.left},{facetMargin.top + facetInnerHeight})">
+          <text
+            x={facetCx(decades[0])}
+            y={12}
+            text-anchor="middle"
+            font-size="9"
+            fill="#888"
+          >{decades[0]}</text>
+          <text
+            x={facetCx(decades[decades.length - 1])}
+            y={12}
+            text-anchor="middle"
+            font-size="9"
+            fill="#888"
+          >{decades[decades.length - 1]}</text>
+        </g>
+      </svg>
+    </button>
+  {/each}
+</section>
+</div>
+
+<h2 class="section-h2">Region across rural geography (1990–2026)</h2>
+<p class="caption">
+  Predicted on {locations.length} papers (snapshot: 2026-05-20_2325_location_v3_abstract).
+</p>
+
+<div class="legend">
+  {#each locationCategories as region (region)}
+    <button
+      type="button"
+      class="legend-item"
+      class:dimmed={selectedRegion !== null && selectedRegion !== region}
+      onclick={() => toggleRegion(region)}
+    >
+      <span class="swatch" style="background: {locationColor(region)};"></span>
+      <span class="label">{region}</span>
+    </button>
+  {/each}
+</div>
+
+<div class="charts-row">
+<svg width={barWidth} height={barHeight} class="bar-chart">
+  <!-- Y-axis label -->
+  <text
+    x={-(barHeight / 2)}
+    y={16}
+    transform="rotate(-90)"
+    text-anchor="middle"
+    font-size="12"
+    fill="#666"
+  >Proportion</text>
+
+  <!-- Y-axis ticks -->
+  {#each [0, 0.25, 0.5, 0.75, 1.0] as tick (tick)}
+    <line
+      x1={barMargin.left}
+      x2={barWidth - barMargin.right}
+      y1={yBar(tick)}
+      y2={yBar(tick)}
+      stroke="#e0e0e0"
+      stroke-width="1"
+    />
+    <text
+      x={barMargin.left - 8}
+      y={yBar(tick) + 4}
+      text-anchor="end"
+      font-size="11"
+      fill="#666"
+    >{tick}</text>
+  {/each}
+
+  <!-- Stacked bars -->
+  {#each decadeRegionProportions as { decade, segments } (decade)}
+    {#each segments as seg (seg.region)}
+      {#if seg.proportion > 0}
+        {@const x = xBand(decade) ?? 0}
+        {@const bw = xBand.bandwidth()}
+        {@const yTop = yBar(seg.y1)}
+        {@const h = yBar(seg.y0) - yBar(seg.y1)}
+        <rect
+          x={x}
+          y={yTop}
+          width={bw}
+          height={h}
+          fill={locationColor(seg.region)}
+          opacity={selectedRegion !== null && seg.region !== selectedRegion ? 0.15 : 0.85}
+          role="button"
+          tabindex="-1"
+          aria-label="{seg.region}, {decade}"
+          onclick={() => toggleRegion(seg.region)}
+          onkeydown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') toggleRegion(seg.region);
+          }}
+          style="cursor: pointer;"
+        />
+        {#if seg.proportion > 0.06}
+          <text
+            x={x + bw / 2}
+            y={yTop + h / 2 + 4}
+            text-anchor="middle"
+            font-size="11"
+            fill="white"
+            pointer-events="none"
+          >n={seg.count}</text>
+        {/if}
+      {/if}
+    {/each}
+  {/each}
+
+  <!-- X-axis decade labels -->
+  {#each decades as decade (decade)}
+    <text
+      x={(xBand(decade) ?? 0) + xBand.bandwidth() / 2}
+      y={barHeight - barMargin.bottom + 20}
+      text-anchor="middle"
+      font-size="12"
+      fill="#333"
+    >{decade}</text>
+  {/each}
+
+  <!-- X-axis label -->
+  <text
+    x={(barMargin.left + barWidth - barMargin.right) / 2}
+    y={barHeight - 8}
+    text-anchor="middle"
+    font-size="12"
+    fill="#666"
+  >Year (5-year buckets)</text>
+</svg>
+
+<section class="facets" aria-label="Region proportion over time">
+  {#each regionSeries as series (series.region)}
+    {@const dimmed = selectedRegion !== null && selectedRegion !== series.region}
+    {@const maxPct = (series.max * 100).toFixed(0)}
+    <button
+      type="button"
+      class="facet"
+      class:dimmed
+      onclick={() => toggleRegion(series.region)}
+      aria-label="{series.region} proportion over time: peak {maxPct}% in {peakRegionBucket(series.points)}"
+    >
+      <div class="facet-header">
+        <span class="swatch small" style="background: {locationColor(series.region)};"></span>
+        <span class="facet-name">{series.region}</span>
+        <span class="facet-max">· peak {maxPct}%</span>
+      </div>
+      <svg width={facetWidth} height={facetHeight} class="facet-svg">
+        <g transform="translate({facetMargin.left},{facetMargin.top})">
+          {#each regionFacetYTicks as t (t)}
+            <line
+              x1={0}
+              x2={facetInnerWidth}
+              y1={regionFacetY(t)}
+              y2={regionFacetY(t)}
+              stroke="#eee"
+              stroke-width="1"
+            />
+            <text
+              x={-4}
+              y={regionFacetY(t) + 3}
+              text-anchor="end"
+              font-size="9"
+              fill="#888"
+            >{(t * 100).toFixed(0)}%</text>
+          {/each}
+          {#if series.max > 0}
+            {@const pathD = series.points
+              .map((p, i) => `${i === 0 ? 'M' : 'L'} ${facetCx(p.decade)} ${regionFacetY(p.proportion)}`)
+              .join(' ')}
+            <path
+              d={pathD}
+              fill="none"
+              stroke={locationColor(series.region)}
+              stroke-width="1.5"
+              opacity={dimmed ? 0.15 : 0.9}
+            />
+            {#each series.points as p (p.decade)}
+              <circle
+                cx={facetCx(p.decade)}
+                cy={regionFacetY(p.proportion)}
+                r="2.5"
+                fill={locationColor(series.region)}
+                opacity={dimmed ? 0.15 : 0.9}
+              />
+            {/each}
+          {/if}
+        </g>
+        <g transform="translate({facetMargin.left},{facetMargin.top + facetInnerHeight})">
+          <text
+            x={facetCx(decades[0])}
+            y={12}
+            text-anchor="middle"
+            font-size="9"
+            fill="#888"
+          >{decades[0]}</text>
+          <text
+            x={facetCx(decades[decades.length - 1])}
+            y={12}
+            text-anchor="middle"
+            font-size="9"
+            fill="#888"
+          >{decades[decades.length - 1]}</text>
+        </g>
+      </svg>
+    </button>
+  {/each}
+</section>
+</div>
+
+{#if selectedRegion !== null}
   <div class="table-section">
     <h2>
-      Cluster {selectedCluster}
-      <span class="count">({filteredPoints.length} papers)</span>
-      <button onclick={() => (selectedCluster = null)}>Clear</button>
+      Region: {selectedRegion}
+      <span class="count">({filteredLocations.length} papers)</span>
+      <button onclick={() => (selectedRegion = null)}>Clear</button>
     </h2>
     <table>
       <thead>
@@ -261,7 +664,37 @@
         </tr>
       </thead>
       <tbody>
-        {#each filteredPoints as p (p.doi)}
+        {#each filteredLocations as p (p.doi)}
+          <tr>
+            <td>{p.pub_year}</td>
+            <td>{p.title || p.doi}</td>
+            <td>{p.authors}</td>
+            <td>{p.source}</td>
+          </tr>
+        {/each}
+      </tbody>
+    </table>
+  </div>
+{/if}
+
+{#if selectedMethod !== null}
+  <div class="table-section">
+    <h2>
+      Methods: {selectedMethod}
+      <span class="count">({filteredPapers.length} papers)</span>
+      <button onclick={() => (selectedMethod = null)}>Clear</button>
+    </h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th>Title</th>
+          <th>Authors</th>
+          <th>Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        {#each filteredPapers as p (p.doi)}
           <tr>
             <td>{p.pub_year}</td>
             <td>{p.title || p.doi}</td>
@@ -275,15 +708,87 @@
 {/if}
 
 <style>
-  .container {
-    display: flex;
-    gap: 24px;
-    align-items: flex-start;
+  h1 {
+    font-family: system-ui, sans-serif;
+    margin-bottom: 4px;
+  }
+
+  .section-h2 {
+    font-size: 18px;
+    margin: 32px 0 4px;
     font-family: system-ui, sans-serif;
   }
 
-  .scatter-wrapper {
+  .caption {
+    font-family: system-ui, sans-serif;
+    color: #888;
+    font-size: 13px;
+    margin: 0 0 16px;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-family: system-ui, sans-serif;
+  }
+
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    padding: 4px 6px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #333;
+    border-radius: 4px;
+    transition: opacity 0.15s, background 0.15s;
+  }
+
+  .legend-item:hover {
+    background: #f0f0f0;
+  }
+
+  .legend-item.dimmed {
+    opacity: 0.35;
+  }
+
+  .legend-cell {
     position: relative;
+  }
+
+  .legend-desc {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    width: 320px;
+    padding: 8px 10px;
+    background: #222;
+    color: #f4f4f4;
+    border-radius: 4px;
+    font-size: 11px;
+    line-height: 1.45;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s;
+    z-index: 10;
+  }
+
+  .legend-cell:hover .legend-desc,
+  .legend-cell:focus-within .legend-desc {
+    opacity: 1;
+  }
+
+  .swatch {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
   }
 
   svg {
@@ -294,67 +799,63 @@
     transition: opacity 0.15s;
   }
 
-  circle {
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-
-  .tooltip {
-    position: absolute;
-    pointer-events: none;
-    width: 300px;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 12px;
-    font-size: 13px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .tooltip strong {
-    display: block;
-    margin-bottom: 4px;
-  }
-
-  .meta {
+  .charts-row {
     display: flex;
-    gap: 4px;
-    margin-bottom: 6px;
+    gap: 24px;
+    align-items: flex-start;
   }
 
-  .cluster, .tag {
-    display: inline-block;
-    font-size: 11px;
+  .facets {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 16px;
+    row-gap: 8px;
+    width: 620px;
+    font-family: system-ui, sans-serif;
+  }
+
+  .facet {
+    background: none;
+    border: none;
+    padding: 4px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: opacity 0.15s, background 0.15s;
+  }
+
+  .facet:hover {
     background: #f0f0f0;
-    padding: 2px 6px;
-    border-radius: 3px;
   }
 
-  .authors {
+  .facet.dimmed {
+    opacity: 0.35;
+  }
+
+  .facet-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 12px;
     color: #333;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
 
-  .source {
-    font-size: 11px;
-    font-style: italic;
-    color: #666;
-    margin-bottom: 4px;
+  .swatch.small {
+    width: 12px;
+    height: 12px;
   }
 
-  .keywords {
-    font-size: 11px;
+  .facet-name {
+    font-weight: 500;
+  }
+
+  .facet-max {
     color: #888;
-    margin-bottom: 4px;
+    font-size: 11px;
   }
 
-  .tooltip p {
-    margin: 6px 0 0;
-    color: #555;
-    line-height: 1.4;
-    font-size: 12px;
-  }
 
   .table-section {
     margin-top: 24px;
