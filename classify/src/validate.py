@@ -11,9 +11,10 @@ from __future__ import annotations
 
 import argparse
 
+import rebuild_runs_index
+import score as score_mod
 from lib.snapshots import load_snapshot, save_validation
 from lib.tasks import get_task
-import score as score_mod
 
 
 def main():
@@ -55,6 +56,7 @@ def main():
     }
     save_validation(snap["path"], metrics=full_metrics, gt=gt)
     print(f"Wrote metrics + gt -> {snap['path']}")
+    rebuild_runs_index.main()
 
 
 if __name__ == "__main__":

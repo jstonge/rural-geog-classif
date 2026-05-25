@@ -762,12 +762,14 @@
         <a class="title" href={`https://doi.org/${r.doi}`} target="_blank" rel="noreferrer noopener">
           {r.title || r.doi}
         </a>
-        {#if r.ls_url}
-          <a class="ls-link" href={r.ls_url} target="_blank" rel="noreferrer noopener">↗ Label Studio</a>
-        {/if}
-        {#if r.docling_url}
-          <a class="ls-link" href={r.docling_url} target="_blank" rel="noreferrer noopener">↗ Full text</a>
-        {/if}
+        <div class="card-links">
+          {#if r.ls_url}
+            <a class="ls-link" href={r.ls_url} target="_blank" rel="noreferrer noopener">↗ Label Studio</a>
+          {/if}
+          {#if r.docling_url}
+            <a class="ls-link" href={r.docling_url} target="_blank" rel="noreferrer noopener">↗ Full text</a>
+          {/if}
+        </div>
       </header>
 
       <div class="labels">
@@ -1184,6 +1186,12 @@
 
   .title:hover {
     text-decoration: underline;
+  }
+
+  .card-links {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
   }
 
   .ls-link {
