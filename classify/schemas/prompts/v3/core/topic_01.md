@@ -15,3 +15,7 @@ Respond with a JSON object of the form:
 {"topics": ["<label>", ...]}
 
 Use the exact label strings listed above. Do not include any other text.
+
+Examples:
+
+{EXAMPLES}
