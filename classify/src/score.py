@@ -90,18 +90,25 @@ def score(predictions: pd.DataFrame, gt: pd.DataFrame, *,
 
     if multi_label:
         exact = sum(set(p or []) == set(g or []) for p, g in zip(pred_lists, gt_lists))
+        # "annotator ⊆ pred" — did the model cover every label the annotator
+        # picked, possibly plus extras? Loosens strict equality by treating
+        # the annotator's set as a high-bar must-include subset of a wider
+        # defensible-set hypothesis.
+        ann_subset = sum(set(g or []).issubset(set(p or []))
+                         for p, g in zip(pred_lists, gt_lists))
         jaccs = [_jaccard(p, g) for p, g in zip(pred_lists, gt_lists)]
         prfs = [_prf(p, g) for p, g in zip(pred_lists, gt_lists)]
         n = len(prfs)
         return {
             "n_total": int(n_total),
             "n_correct": int(exact),
-            "exact_match":    round(exact / n_total, 4),
-            "mean_jaccard":   round(sum(jaccs) / n, 4),
-            "mean_precision": round(sum(p for p, _, _ in prfs) / n, 4),
-            "mean_recall":    round(sum(r for _, r, _ in prfs) / n, 4),
-            "mean_f1":        round(sum(f for _, _, f in prfs) / n, 4),
-            "per_label":      _per_label_stats(pred_lists, gt_lists),
+            "exact_match":     round(exact / n_total, 4),
+            "ann_subset_pred": round(ann_subset / n_total, 4),
+            "mean_jaccard":    round(sum(jaccs) / n, 4),
+            "mean_precision":  round(sum(p for p, _, _ in prfs) / n, 4),
+            "mean_recall":     round(sum(r for _, r, _ in prfs) / n, 4),
+            "mean_f1":         round(sum(f for _, _, f in prfs) / n, 4),
+            "per_label":       _per_label_stats(pred_lists, gt_lists),
         }
 
     # Single-label: existing behavior
@@ -144,6 +151,9 @@ def print_report(name: str, metrics: dict, cm: pd.DataFrame | None = None,
     if "mean_jaccard" in metrics and metrics["mean_jaccard"] is not None:
         line += f"   mean-jaccard: {metrics['mean_jaccard']:.3f}"
     print(line)
+    if "ann_subset_pred" in metrics:
+        print(f"  annotator ⊆ pred: {metrics['ann_subset_pred']:.1%}  "
+              f"(model covered every annotator-picked label)")
     if "mean_f1" in metrics:
         print(f"  sample-avg P/R/F1: "
               f"{metrics['mean_precision']:.3f} / "
