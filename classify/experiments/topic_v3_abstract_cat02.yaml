@@ -1,0 +1,14 @@
+# V3 topic classifier — abstract-only, tightened `methods` definition.
+# Isolates the category-definition revision: same prompt template (topic_01.md)
+# and no examples, but categories CSV is topic_02.csv with an anti-pattern
+# added to the `methods` topic label (rules out "this method allows us to
+# understand X" / "the method can be applied elsewhere" generalizability
+# claims, which currently drive a 9x over-prediction of `methods`).
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "02"
+name: v3_abstract_cat02
+all_papers: false
+thinking: true
+max_tokens: 4096

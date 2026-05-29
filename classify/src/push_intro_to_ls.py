@@ -30,17 +30,14 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import os
 from datetime import datetime
 from pathlib import Path
 
-import httpx
 import markdown
-from dotenv import load_dotenv
-from label_studio_sdk import LabelStudio
 
 from input_strategies import _load_docling, _parse_sections
 from lib.intro_outline import pick_outline
+from lib.labelstudio import make_client
 
 PROJECT_ID = 113
 
@@ -100,12 +97,7 @@ def main():
                     help="Write diagnostics to this path (default: ~/intro_picker_diag_<ts>.txt).")
     args = ap.parse_args()
 
-    load_dotenv()
-    client = LabelStudio(
-        base_url=os.getenv("LABEL_STUDIO_URL"),
-        api_key=os.getenv("LABEL_STUDIO_API_KEY"),
-        httpx_client=httpx.Client(verify=False),
-    )
+    client = make_client()
 
     tasks = list(client.tasks.list(project=PROJECT_ID))
     if args.limit:

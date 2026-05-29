@@ -17,3 +17,4 @@ parse/output/dots/*
 !parse/output/dots/*.md
 parse/output/olmocr/*
 !parse/output/olmocr/*.md
+classify/output/runs/

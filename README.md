@@ -133,8 +133,10 @@ uv run vllm serve google/gemma-4-31B-it \
   --tool-call-parser gemma4 \
   --chat-template transform/src/tool_chat_template_gemma4.jinja
 ```
-For that to work, you need the template [tool_chat_template_gemma4.jinja](https://github.com/vllm-project/vllm/blob/main/examples/tool_chat_template_gemma4.jinja) (docs on thinking mode can be found [here](https://ai.google.dev/gemma/docs/capabilities/thinking)). Lets run a jupyter server to serve the notebook. It needs to live on the same node than our LLM:
+For that to work, you need the template [tool_chat_template_gemma4.jinja](https://github.com/vllm-project/vllm/blob/main/examples/tool_chat_template_gemma4.jinja) (docs on thinking mode can be found [here](https://ai.google.dev/gemma/docs/capabilities/thinking)). 
+
+If using a jupyter server to serve the notebook, it needs to live on the same node than our LLM:
 ```
 uv run jupyter notebook --no-browser --ip=0.0.0.0 --port=8888
 ```
-Connect to provided port in notebook. Once the `vllm` server shows `(APIServer pid=1192940) INFO:     Application startup complete.`, you're ready to go!
+Connect to provided port in notebook. Once the `vllm` server shows `(APIServer pid=1192940) INFO:     Application startup complete.`, you're ready to go. The local server can also be used within script.

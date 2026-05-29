@@ -1,0 +1,12 @@
+# V3 topic classifier — abstract-only, using the curated examples in
+# classify/schemas/prompts/v3/examples/topic_claude_01.md (out-of-sample
+# annotated papers from Annals targeting under-supported labels + restraint
+# cases for over-predicted labels).
+task: topic
+schema: v3
+strategy: abstract
+ex_variant: claude_01
+name: v3_abstract_claude_ex
+all_papers: false
+thinking: true
+max_tokens: 4096

@@ -1,21 +1,21 @@
-"""Annotation (ground-truth) loaders.
+"""Annotation (ground-truth) loaders — rural-geog-specific glue.
 
 Two sources:
-  - parquet  (annotations exported from LS, e.g. project 110 via align_annotations.py)
-  - LS API   (live fetch from a Label Studio project, e.g. project 113)
+  - parquet  (v1 annotations exported from LS project 110 via
+              transform/src/align_annotations.py)
+  - LS API   (v3 live fetch from LS project 113)
+
+The LS-API path delegates to lib.labelstudio.load_gt; this file just
+adds the rural-geog conventions (DOI as task key, lowercase "doi" column,
+parquet path, v1-vs-v3 schema dispatch).
 """
 from __future__ import annotations
 
-import os
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-import httpx
 import pandas as pd
-from dotenv import load_dotenv
 
-if TYPE_CHECKING:
-    from label_studio_sdk import LabelStudio
+from lib.labelstudio import load_gt, make_client
 
 ANNOTATIONS_PARQUET = Path("/gpfs1/home/j/s/jstonge1/rural-geog-classif/transform/output/annotations.parquet")
 
@@ -35,46 +35,15 @@ def load_gt_parquet(control: str, *, parquet_path: Path = ANNOTATIONS_PARQUET) -
     return df[["doi", col]].rename(columns={col: f"{control}_gt"}).reset_index(drop=True)
 
 
-def load_gt_ls(project_id: int, control: str, *,
-                ls_client: "LabelStudio | None" = None) -> pd.DataFrame:
+def load_gt_ls(project_id: int, control: str, *, ls_client=None) -> pd.DataFrame:
     """Fetch ground truth for a given control from a live LS project.
 
-    control: "methods" / "Location" / "topic" — matches the LS `<Choices name="...">`.
-    When a task has multiple annotators, the most-recently-updated annotation wins.
-    Returns DataFrame with [doi, {control}_gt].
+    Rural-geog convention: task key field is "DOI", output column lowercase "doi".
+    Most-recently-updated annotation wins (handled in lib.labelstudio.load_gt).
     """
-    if ls_client is None:
-        load_dotenv()
-        from label_studio_sdk import LabelStudio
-        ls_client = LabelStudio(
-            base_url=os.getenv("LABEL_STUDIO_URL"),
-            api_key=os.getenv("LABEL_STUDIO_API_KEY"),
-            httpx_client=httpx.Client(verify=False),
-        )
-
-    records = []
-    for t in ls_client.tasks.list(project=project_id, fields="all"):
-        doi = (t.data or {}).get("DOI")
-        if not doi:
-            continue
-        anns = sorted(
-            t.annotations or [],
-            key=lambda a: a.get("updated_at") or a.get("created_at") or "",
-            reverse=True,
-        )
-        for ann in anns:
-            found = False
-            for r in ann.get("result", []):
-                if r.get("from_name") == control and r.get("type") == "choices":
-                    choices = r.get("value", {}).get("choices", [])
-                    if choices:
-                        records.append({"doi": doi, f"{control}_gt": list(choices)})
-                        found = True
-                        break
-            if found:
-                break
-
-    return pd.DataFrame(records) if records else pd.DataFrame(columns=["doi", f"{control}_gt"])
+    client = ls_client or make_client()
+    df = load_gt(client, project_id, control, key_field="DOI")
+    return df.rename(columns={"DOI": "doi"})
 
 
 def load_methods_gt(schema: str) -> pd.DataFrame:

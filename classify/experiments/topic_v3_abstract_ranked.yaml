@@ -1,0 +1,12 @@
+# V3 topic classifier — abstract-only, ranked-output variant.
+# Prompt asks for up to 5 topics ordered primary → secondary → also defensible.
+# Pairs with the new ann_subset_pred metric (annotator ⊆ pred): we accept
+# extras as long as the model covers every annotator-picked tag.
+task: topic
+schema: v3
+strategy: abstract
+prompt_variant: "02"
+name: v3_abstract_ranked
+all_papers: false
+thinking: true
+max_tokens: 4096

@@ -17,6 +17,7 @@
     <Choices name="topic" toName="text" choice="multiple" showInLine="true">
       <Choice value="agriculture/food"/>
       <Choice value="place"/>
+      <Choice value="scale/location"/>
       <Choice value="natural environment"/>
       <Choice value="weather"/>
       <Choice value="climate and natural hazards"/>

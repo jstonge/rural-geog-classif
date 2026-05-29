@@ -91,9 +91,20 @@ def main():
         schema_path if schema_path.exists() else None,
         examples_path if examples_path.exists() else None,
     )
-    has_examples = examples_path.exists() and bool(examples_path.read_text().strip())
-    print(f"Prompt: {template_path.name} + cat/{schema_path.name} + ex/{examples_path.name} "
-          f"({'with examples' if has_examples else 'no examples'})")
+    # Examples are only injected if the template has a {EXAMPLES} placeholder
+    # AND the file exists with content. Just having the file on disk isn't enough.
+    template_text = template_path.read_text()
+    examples_used = (
+        examples_path.exists()
+        and bool(examples_path.read_text().strip())
+        and "{EXAMPLES}" in template_text
+    )
+    ex_note = (
+        f"with examples ({examples_path.name})" if examples_used
+        else "no examples (template has no {EXAMPLES} placeholder)" if not "{EXAMPLES}" in template_text
+        else "no examples (file missing or empty)"
+    )
+    print(f"Prompt: {template_path.name} + cat/{schema_path.name}  [{ex_note}]")
 
     # --- load + filter papers ---
     papers = load_wos()

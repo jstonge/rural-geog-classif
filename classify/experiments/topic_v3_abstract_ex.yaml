@@ -1,0 +1,10 @@
+# V3 topic classifier — abstract-only, WITH 8-example few-shot block.
+# Baseline counterpart: topic_v3_abstract.yaml (no examples).
+# Examples file: classify/schemas/prompts/v3/examples/topic_01.md
+task: topic
+schema: v3
+strategy: abstract
+name: v3_abstract_ex
+all_papers: false
+thinking: true
+max_tokens: 4096
