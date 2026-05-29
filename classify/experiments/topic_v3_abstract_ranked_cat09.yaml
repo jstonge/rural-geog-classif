@@ -1,0 +1,11 @@
+# V3 topic classifier — stacked: ranked prompt + cat09 (tightened governance,
+# scale/location, identity expansion). Comparison targets: bare/ranked cat08.
+task: topic
+schema: v3
+strategy: abstract
+prompt_variant: "02"
+cat_variant: "09"
+name: v3_abstract_ranked_cat09
+all_papers: false
+thinking: true
+max_tokens: 4096

@@ -1,0 +1,12 @@
+# V3 topic classifier — stacked: ranked prompt + cat07 (expanded identity).
+# Target: identity F1 climbs from cat06's 0.82 (ranked) toward 0.85+, and
+# bare identity recall rises from 0.67 (28/42) toward 0.85+.
+task: topic
+schema: v3
+strategy: abstract
+prompt_variant: "02"
+cat_variant: "07"
+name: v3_abstract_ranked_cat07
+all_papers: false
+thinking: true
+max_tokens: 4096

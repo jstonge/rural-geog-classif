@@ -1,0 +1,13 @@
+# V3 topic classifier — stacked: ranked prompt + cat08 (tightened
+# scale/location, expanded identity). Comparison targets: ranked cat07
+# (subset 0.602, scale/loc F1 0.56, identity F1 0.80) and bare cat07
+# (F1 0.73, identity F1 0.84).
+task: topic
+schema: v3
+strategy: abstract
+prompt_variant: "02"
+cat_variant: "08"
+name: v3_abstract_ranked_cat08
+all_papers: false
+thinking: true
+max_tokens: 4096

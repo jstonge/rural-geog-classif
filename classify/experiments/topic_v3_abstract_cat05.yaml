@@ -1,0 +1,15 @@
+# V3 topic classifier — cat05: place-based study def gets a much stronger
+# anti-pattern (named location ≠ tag; "case of X to explore Y" anti-phrasings;
+# explicit transferability test) plus mirrored adjustment to scale/location.
+# Tests whether the prose-level tightening reduces gemma's place-based-study
+# over-prediction (cat04 pred 35 vs gt 20) without losing GT cases (0/20
+# annotator-tagged papers fire the anti-pattern triggers).
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "05"
+ex_variant: "off"
+name: v3_abstract_cat05
+all_papers: false
+thinking: true
+max_tokens: 4096

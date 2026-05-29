@@ -1,0 +1,18 @@
+# V3 topic classifier — cat10: tighten agriculture/food + human-environment.
+# Both labels were over-predicted ~2× under cat09 with same root cause:
+# gemma keyword-matches on vocabulary adjacent to but not central to the
+# analytical contribution. ag/food fires on "land", "agrarian", "agriculture
+# in title"; human-environment fires on any human + environment co-occurrence.
+# cat10 applies the composable playbook (positive cases, anti-pattern
+# phrasings, transferability test, "be selective") to both. Preserves cat07
+# identity expansion, cat08 scale/location, cat09 governance, cat06 place-
+# based study softening, earlier methods tightening.
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "10"
+ex_variant: "off"
+name: v3_abstract_cat10
+all_papers: false
+thinking: true
+max_tokens: 4096

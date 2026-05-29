@@ -1,0 +1,17 @@
+# V3 topic classifier — cat09: tighten governance (keep cat07's identity
+# expansion + cat08's scale/location tightening). cat08 still over-predicted
+# governance (gt=30, bare pred=38, ranked pred=54). Walk-through of the 12
+# bare over-predictions showed five lexical patterns: development/intervention/
+# empowerment vocabulary; institutional language as backdrop; land/property/
+# resource themes; "sustainable development" framing; policy-implications
+# closer. cat09 adds the same playbook applied successfully to place-based
+# study (cat06) and scale/location (cat08).
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "09"
+ex_variant: "off"
+name: v3_abstract_cat09
+all_papers: false
+thinking: true
+max_tokens: 4096

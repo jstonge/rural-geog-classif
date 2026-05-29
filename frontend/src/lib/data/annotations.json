@@ -1,4 +1,307 @@
 {
-  "exported_at": "1970-01-01T00:00:00+00:00",
-  "schemas": []
+  "exported_at": "2026-05-29T14:39:43+00:00",
+  "schemas": [
+    {
+      "name": "v1",
+      "project_id": 110,
+      "n_tasks_total": 360,
+      "n_tasks_annotated": 88,
+      "controls": [
+        "Location",
+        "methods",
+        "topic"
+      ],
+      "annotators": [
+        {
+          "id": 5,
+          "name": "JSO",
+          "email": "jonathan.st-onge@uvm.edu",
+          "n_annotations": 88,
+          "n_tasks": 88,
+          "controls": [
+            "Location",
+            "methods",
+            "topic"
+          ]
+        }
+      ],
+      "label_distribution": {
+        "Location": {
+          "USA": 27,
+          "Asia": 24,
+          "Europe": 10,
+          "Africa": 9,
+          "Other North America": 8,
+          "multiple regions": 4,
+          "South America": 3,
+          "unclear or conceptual": 3,
+          "Australia": 1
+        },
+        "methods": {
+          "quant": 25,
+          "qual": 25,
+          "Descriptive": 12,
+          "unclear": 11,
+          "both": 9,
+          "spatial/mapping": 6
+        },
+        "topic": {
+          "Agriculture": 19,
+          "inequality": 18,
+          "landscape": 18,
+          "migration": 16,
+          "Livelihood": 15,
+          "natural resources": 14,
+          "development": 13,
+          "policy": 12,
+          "gender": 11,
+          "identity": 11,
+          "power": 11,
+          "class": 10,
+          "political systems": 10,
+          "water": 9,
+          "race": 8,
+          "Climate Change": 7,
+          "planning": 6,
+          "urbanization": 6,
+          "justice": 5,
+          "infrastructure": 5,
+          "energy": 4,
+          "mobility": 4,
+          "digital technology": 4,
+          "Indigenous Populations": 4,
+          "poverty": 4,
+          "Property": 4,
+          "animals or plants": 3,
+          "weather or hazards": 3,
+          "emotion": 2,
+          "not rural?": 2,
+          "resilience": 2,
+          "recreation/second homes": 2,
+          "forests": 2,
+          "idenity": 1
+        }
+      },
+      "by_annotator": {
+        "Location": {
+          "5": {
+            "USA": 27,
+            "Asia": 24,
+            "Europe": 10,
+            "Africa": 9,
+            "Other North America": 8,
+            "multiple regions": 4,
+            "South America": 3,
+            "unclear or conceptual": 3,
+            "Australia": 1
+          }
+        },
+        "methods": {
+          "5": {
+            "quant": 25,
+            "qual": 25,
+            "Descriptive": 12,
+            "unclear": 11,
+            "both": 9,
+            "spatial/mapping": 6
+          }
+        },
+        "topic": {
+          "5": {
+            "Agriculture": 19,
+            "inequality": 18,
+            "landscape": 18,
+            "migration": 16,
+            "Livelihood": 15,
+            "natural resources": 14,
+            "development": 13,
+            "policy": 12,
+            "gender": 11,
+            "identity": 11,
+            "power": 11,
+            "class": 10,
+            "political systems": 10,
+            "water": 9,
+            "race": 8,
+            "Climate Change": 7,
+            "planning": 6,
+            "urbanization": 6,
+            "justice": 5,
+            "infrastructure": 5,
+            "energy": 4,
+            "mobility": 4,
+            "digital technology": 4,
+            "Indigenous Populations": 4,
+            "poverty": 4,
+            "Property": 4,
+            "animals or plants": 3,
+            "weather or hazards": 3,
+            "emotion": 2,
+            "not rural?": 2,
+            "resilience": 2,
+            "recreation/second homes": 2,
+            "forests": 2,
+            "idenity": 1
+          }
+        }
+      },
+      "annotations_per_task": {
+        "0": 272,
+        "1": 88
+      }
+    },
+    {
+      "name": "v3",
+      "project_id": 113,
+      "n_tasks_total": 345,
+      "n_tasks_annotated": 88,
+      "controls": [
+        "Location",
+        "methods",
+        "topic"
+      ],
+      "annotators": [
+        {
+          "id": 54,
+          "name": "cheryl.morse@uvm.edu",
+          "email": "cheryl.morse@uvm.edu",
+          "n_annotations": 88,
+          "n_tasks": 88,
+          "controls": [
+            "Location",
+            "methods",
+            "topic"
+          ]
+        },
+        {
+          "id": 5,
+          "name": "JSO",
+          "email": "jonathan.st-onge@uvm.edu",
+          "n_annotations": 88,
+          "n_tasks": 88,
+          "controls": [
+            "Location",
+            "methods",
+            "topic"
+          ]
+        }
+      ],
+      "label_distribution": {
+        "Location": {
+          "USA": 53,
+          "Asia": 48,
+          "Europe": 20,
+          "Africa": 18,
+          "Other North America": 14,
+          "multiple regions": 9,
+          "South America": 8,
+          "unclear or conceptual": 7,
+          "Australia/New Zealand/Pacific": 2
+        },
+        "methods": {
+          "qual": 54,
+          "quant": 43,
+          "spatial": 18,
+          "mixed": 16,
+          "descriptive-empirical": 13,
+          "unclear": 11,
+          "theoretical-conceptual": 5
+        },
+        "topic": {
+          "social power": 67,
+          "identity": 43,
+          "governance": 31,
+          "scale/location": 23,
+          "built environment": 22,
+          "place-based study": 21,
+          "human-environment": 17,
+          "mobility": 15,
+          "agriculture/food": 12,
+          "emotion": 11,
+          "climate and natural hazards": 7,
+          "energy": 5,
+          "technology": 5,
+          "natural environment": 4,
+          "methods": 2,
+          "recreation": 1,
+          "weather": 1
+        }
+      },
+      "by_annotator": {
+        "Location": {
+          "54": {
+            "USA": 27,
+            "Asia": 24,
+            "Europe": 10,
+            "Africa": 9,
+            "Other North America": 8,
+            "multiple regions": 4,
+            "South America": 3,
+            "unclear or conceptual": 3,
+            "Australia/New Zealand/Pacific": 1
+          },
+          "5": {
+            "USA": 26,
+            "Asia": 24,
+            "Europe": 10,
+            "Africa": 9,
+            "Other North America": 6,
+            "South America": 5,
+            "multiple regions": 5,
+            "unclear or conceptual": 4,
+            "Australia/New Zealand/Pacific": 1
+          }
+        },
+        "methods": {
+          "54": {
+            "qual": 25,
+            "quant": 24,
+            "unclear": 10,
+            "mixed": 9,
+            "spatial": 6
+          },
+          "5": {
+            "qual": 29,
+            "quant": 19,
+            "descriptive-empirical": 13,
+            "spatial": 12,
+            "mixed": 7,
+            "theoretical-conceptual": 5,
+            "unclear": 1
+          }
+        },
+        "topic": {
+          "5": {
+            "social power": 66,
+            "identity": 42,
+            "governance": 30,
+            "scale/location": 23,
+            "built environment": 22,
+            "place-based study": 20,
+            "human-environment": 17,
+            "mobility": 15,
+            "agriculture/food": 12,
+            "emotion": 11,
+            "climate and natural hazards": 7,
+            "energy": 5,
+            "technology": 5,
+            "natural environment": 4,
+            "methods": 2,
+            "recreation": 1,
+            "weather": 1
+          },
+          "54": {
+            "place-based study": 1,
+            "social power": 1,
+            "identity": 1,
+            "governance": 1
+          }
+        }
+      },
+      "annotations_per_task": {
+        "0": 257,
+        "2": 88
+      }
+    }
+  ]
 }

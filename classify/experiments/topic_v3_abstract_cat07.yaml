@@ -1,0 +1,21 @@
+# V3 topic classifier — cat07: expanded identity definition.
+# cat06 under-predicted identity (bare pred=28 vs gt=42; ranked pred=36).
+# Walk-through showed gemma misses identity in 12/14 cases that have social
+# power instead — implicit identity in group labels (peasants, hukou
+# holders, rural communities), economic/occupational identities, and
+# politico-legal status identities aren't firing because the def's anchor
+# phrases ("gender, race, ethnicity, class") don't cover them.
+# cat07 expands the def with:
+#   - explicit lists for economic, politico-legal, and class identities
+#   - rural-as-identity (not just setting)
+#   - positive-pattern phrasings
+#   - explicit "identity and social power are NOT mutually exclusive" note
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "07"
+ex_variant: "off"
+name: v3_abstract_cat07
+all_papers: false
+thinking: true
+max_tokens: 4096

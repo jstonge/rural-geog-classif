@@ -1,0 +1,20 @@
+# V3 topic classifier — cat11: expand built environment definition.
+# Under cat10, built environment was severely under-predicted (gt=22, pred=12,
+# F1≈0.55). Walk-through showed the annotator reads built environment broadly
+# — any paper involving infrastructure systems or material world, including
+# settler irrigation, rural electrification, plumbing, drainage, transportation,
+# heritage sites. Gemma reads it narrowly — only when "the built object is a
+# central subject". This is the identity-cat07-expansion problem in reverse.
+# cat11 applies the same expansion playbook: positive-case lists for
+# infrastructure systems (water/irrigation, electrical, transport, housing),
+# positive-pattern phrasings, and an explicit "NOT mutually exclusive" clause
+# with human-environment + social power + governance (infrastructure mediates).
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "11"
+ex_variant: "off"
+name: v3_abstract_cat11
+all_papers: false
+thinking: true
+max_tokens: 4096

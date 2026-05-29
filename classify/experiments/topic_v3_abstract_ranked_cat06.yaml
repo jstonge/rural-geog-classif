@@ -1,0 +1,12 @@
+# V3 topic classifier — stacked: ranked prompt + cat06 (softened place-based
+# study anti-pattern). Comparison targets: ranked cat04 (subset 0.557,
+# pbs F1 0.34) and ranked cat05 (subset 0.511, pbs F1 0.17 — over-corrected).
+task: topic
+schema: v3
+strategy: abstract
+prompt_variant: "02"
+cat_variant: "06"
+name: v3_abstract_ranked_cat06
+all_papers: false
+thinking: true
+max_tokens: 4096

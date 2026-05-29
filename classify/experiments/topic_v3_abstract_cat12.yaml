@@ -1,0 +1,21 @@
+# V3 topic classifier — cat12: tie-breaker for place-based study.
+# Under cat11 with abstract only, place-based study F1=0.44 (pred=12, gt=20).
+# Inspection of gemma's reasoning showed the cat11 def is correctly causing
+# gemma to ask "subject or setting?" — but the abstract genuinely lacks the
+# signal to answer on borderline cases (the body would resolve it). Intro
+# strategy raised F1 to 0.51 by giving body context. cat12 instead bakes a
+# tie-breaker into the prose: when an abstract names a specific community,
+# village, region, ethnic group, or diasporic population AND analyzes that
+# group's specific experiences/dynamics/trajectory, default to INCLUDING
+# place-based study — even without unambiguous "subject" signal. Tests
+# whether the inclusivity rule shifts gemma's behavior to match what body
+# context did, without paying the cost on other labels.
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "12"
+ex_variant: "off"
+name: v3_abstract_cat12
+all_papers: false
+thinking: true
+max_tokens: 4096

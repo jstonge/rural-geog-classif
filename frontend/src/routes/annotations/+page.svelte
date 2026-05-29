@@ -28,7 +28,7 @@
     schemas: SchemaSummary[];
   };
 
-  const d = data as AnnotationsData;
+  const d = data as unknown as AnnotationsData;
 
   const schemaNames: string[] = d.schemas.map((s) => s.name);
   const initialSchema: string = schemaNames[0] ?? '';

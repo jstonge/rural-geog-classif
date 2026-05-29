@@ -33,6 +33,180 @@ Half-formed ideas; promote to a dated entry once they ship.
 
 ---
 
+## 2026-05-29 — place-based study tie-breaker (topic_12.csv)
+
+- cat11 with abstract only kept place-based study at F1=0.44 (pred=12, gt=20),
+  while cat11 with intro strategy lifted it to F1=0.51 (pred=19).
+- Walk-through of gemma's abstract-only reasoning showed the cat11 def is
+  causing gemma to ask the right boundary question ("substantive subject
+  vs empirical setting?") — but the abstract genuinely lacks the signal
+  to answer on borderline cases. The body resolves it; the abstract
+  doesn't.
+- **`topic_12.csv`** adds a tie-breaker clause specifically for place-based
+  study: when an abstract names a specific community, village, region,
+  ethnic group, or diasporic population AND analyzes that group's specific
+  experiences/dynamics/trajectory, default to INCLUDING the label even
+  without unambiguous "subject" signal. Other labels unchanged.
+- Tests whether a prose-level inclusivity rule can substitute for body
+  context on a single targeted label without paying the per-label cost
+  intro context did on emotion/technology/CNH.
+- **Config** `topic_v3_abstract_cat12.yaml`.
+
+## 2026-05-29 — expand built environment definition (topic_11.csv)
+
+- Under cat10, built environment was severely under-predicted (gt=22,
+  pred=12, F1≈0.55). Walk-through of 11 annotator-only papers showed the
+  annotator reads the label broadly — settler irrigation systems, rural
+  electrification, plumbing, drainage stream alterations, urban gentrification,
+  damaged housing — including cases where infrastructure is the medium
+  through which other arguments (race, governance, social power) are made,
+  not the headline topic. Gemma reads "the built object must be the central
+  subject" strictly and skips these.
+- This is the identity-cat07-expansion problem in reverse: a label
+  whose pretraining prior is narrower than the annotator's working
+  definition.
+- **`topic_11.csv`** expands built environment with: positive-case lists
+  for infrastructure systems (water/irrigation, electrical/energy,
+  transportation, housing); positive-pattern phrasings ("irrigation
+  systems", "electrification", "drinking water systems"); and an explicit
+  "NOT mutually exclusive" clause with human-environment, social power,
+  and governance — infrastructure mediates society-environment relations,
+  drives inequality, and gets regulated.
+- All prior wins preserved.
+- **Config** `topic_v3_abstract_cat11.yaml`.
+
+## 2026-05-29 — tighten agriculture/food + human-environment (topic_10.csv)
+
+- Under cat09, both labels remained over-predicted ~2× with the same root
+  cause: gemma keyword-matches vocabulary adjacent to but not central to
+  the analytical contribution.
+- **`agriculture/food`** patterns: (1) land-use / agrarian-law / land-reform
+  as backdrop; (2) "rural" + farming mention; (3) ag-as-data-source for
+  non-ag studies (Mozambique trade inequality); (4) title bait (Brazil
+  Quilombolas "Nature, Agriculture").
+- **`human-environment`** patterns: (1) climate/hazard impacts on humans as
+  description rather than theory; (2) water access/infrastructure papers
+  (usually built-env + social-power); (3) land-use change as setting;
+  (4) "rural environment" / "natural setting" co-occurrence.
+- **`topic_10.csv`** applies the composable playbook to both: positive
+  cases, anti-pattern phrasings, transferability tests, "be selective"
+  framing. ag/food transferability: "Could the paper transfer to mining,
+  fisheries, tourism without losing its contribution?" H-E transferability:
+  "Is the argument framed as nature-society theory or analogous?".
+- All prior wins preserved (cat06 place-based softening, cat07 identity
+  expansion, cat08 scale/location, cat09 governance, earlier methods).
+- **Config** `topic_v3_abstract_cat10.yaml` (bare only, per current focus).
+- **Expectation**: diminishing returns. Both target labels' F1 should
+  improve modestly; overall headline F1 may move ±0.02.
+
+## 2026-05-29 — tighten governance anti-pattern (topic_09.csv)
+
+- Under cat08, governance was still over-predicted (gt=30, bare pred=38,
+  ranked pred=54). Walk-through of the 12 bare over-predictions surfaced
+  five lexical patterns gemma keys on: (1) "development / intervention /
+  empowerment" framing; (2) institutional vocabulary as backdrop;
+  (3) land/property/resource themes; (4) "sustainable development"
+  framing; (5) policy-implications closers. None of these 12 papers
+  centrally analyze political institutions, policy design, or collective
+  action.
+- **`topic_09.csv`** applies the same composable playbook to governance:
+  positive cases (policy *as object of analysis*, social movements
+  analyzed as collective action, conservation governance arrangements);
+  five-class anti-pattern phrasings list; transferability test
+  ("Could the paper transfer to a private-sector or self-organized
+  analog with no state, no policy?"); "be selective" framing.
+- cat07 identity expansion and cat08 scale/location tightening preserved.
+- **Configs** `topic_v3_abstract_cat09.yaml`, `topic_v3_abstract_ranked_cat09.yaml`.
+
+## 2026-05-29 — tighten scale/location anti-pattern (topic_08.csv)
+
+- Under cat07, scale/location was still over-predicted (gt=23, bare
+  pred=43, ranked pred=56). Reasoning excerpts from gemma showed it was
+  keyword-matching on geographic vocabulary ("spatial", "scale",
+  "rural/urban", "geographic", "different country contexts") and tagging
+  scale/location for any paper that used such words descriptively.
+- Walk-through showed three failure patterns: (a) papers about a
+  non-geographic phenomenon where geography describes variation
+  ("globalized rural crime", "voter power varies by state"); (b) papers
+  whose contribution is the *system* causing the spatial asymmetry, not
+  the geography itself (Electoral College); (c) methodological framings
+  like "data aggregated at multiple scales" without an analytical-scale
+  contribution.
+- **`topic_08.csv`** applies the same playbook that worked for
+  place-based study in cat06: explicit positive cases (rural-urban
+  gradient as theoretical contribution, MAUP studies, cross-scale
+  dynamics, distance-as-explanatory-variable); anti-pattern phrasings
+  list; transferability test ("could the argument transfer to a temporal
+  change, a hierarchical level, a demographic comparison?"); "be
+  selective" framing rather than "do NOT".
+- Identity expansion from cat07 is preserved.
+- **Configs** `topic_v3_abstract_cat08.yaml`, `topic_v3_abstract_ranked_cat08.yaml`.
+- **Expected dynamic**: over-correction first (cat05 → cat06 pattern). If
+  scale/location pred drops below ~20, follow up with cat09 soften.
+
+## 2026-05-29 — expand identity definition (topic_07.csv)
+
+- Under cat06, identity was under-predicted (bare pred=28 vs gt=42; recall
+  ≈ 0.67). Walk-through of the 14 misses showed 12 had `social power` in
+  gemma's prediction set: gemma was reading group-experience-as-identity
+  as just inequality, treating the two labels as mutually exclusive.
+- The annotator's expansion of identity GT (28 → 42 in topic_03/04
+  reviews) included implicit identity in group labels — peasants, hukou
+  holders, "rural America" as belonging, vegetal-geography subaltern
+  groups, post-Soviet Ukrainians. Gemma's prompt def listed explicit
+  categories (gender, race, class) but didn't cover these implicit cases.
+- **`topic_07.csv`** expands the identity definition with five new
+  positive-case groups (demographic; economic/occupational; politico-
+  legal status; class-based; rural-as-identity), positive-pattern
+  phrasings, and an explicit note that identity and social power are
+  NOT mutually exclusive.
+- **Configs** `topic_v3_abstract_cat07.yaml`, `topic_v3_abstract_ranked_cat07.yaml`.
+
+## 2026-05-29 — soften place-based study anti-pattern (topic_06.csv)
+
+- cat05 over-corrected: `place-based study` pred dropped from 35 → 3
+  (bare) and 39 → 3 (ranked) for gt=20. Anti-pattern was too aggressive
+  ("CRITICAL ANTI-PATTERN" caps + "do NOT tag" + 5-phrasings list +
+  transferability test all in one definition).
+- **`topic_06.csv`** softens the language: "be selective" instead of "do
+  NOT tag", keeps a single representative anti-phrasing, drops the
+  transferability test, ends on positive framing ("Tag … when the analysis
+  depends on the specifics of that location"). `scale/location` also
+  loosened so it stops absorbing displaced cases.
+- Hypothesis: cat05's overall metric gains (best F1 of any topic run) were
+  partly collateral from the prose discipline. cat06 should preserve that
+  while restoring `place-based study` to gt-comparable support (target
+  pred ~ 20-25).
+- **Configs** `topic_v3_abstract_cat06.yaml`, `topic_v3_abstract_ranked_cat06.yaml`.
+
+## 2026-05-29 — tightened `place-based study` anti-pattern (topic_05.csv)
+
+- Cat04 still over-predicted `place-based study` (35 pred vs 20 gt). Walk-
+  through of the 15 extras showed gemma was triggering on any named
+  location in the abstract, regardless of whether the location was the
+  substantive subject or just the empirical setting (Suhum District Ghana
+  / health access, Colorado River Basin / resource scarcity, West Virginia
+  / flood resilience, Mt. Pleasant SC / sweetgrass, etc.).
+- **New `topic_05.csv`** strengthens the place-based study def with:
+  positive-case list (place-attachment, ethnography of a single community,
+  sense-of-place); explicit "named location ≠ tag" anti-pattern; anti-
+  pattern phrasings (*'we use the case of X to explore Y'*, *'a study of
+  [phenomenon] in [country]'*, *'this article examines [phenomenon] in
+  [region]'*); a transferability test (*'could the argument transfer to a
+  different town with similar dynamics?'*). Mirrored adjustment to
+  `scale/location` to absorb the "single location as setting for a
+  phenomenon with a geographic dimension" cases.
+- **Pre-check**: 0/20 GT-tagged place-based study papers fire the anti-
+  pattern triggers (verified before drafting). The tightening shouldn't
+  cause false negatives.
+- **Caveat noted**: several GT-tagged papers (e.g. *Smart Divide in Rural
+  America*, *Rural Ruins / Shishmaref*) themselves sit at the boundary —
+  they're empirical-setting cases that the annotator tagged anyway. If
+  cat05 surfaces these as false positives in the annotator's set, flag for
+  re-review rather than further tightening; annotator inconsistency is its
+  own input to the loop.
+- **Configs** `topic_v3_abstract_cat05.yaml`, `topic_v3_abstract_ranked_cat05.yaml`.
+
 ## 2026-05-29 — rename `place` → `place-based study` (topic_04.csv)
 
 - Under cat03, gemma kept over-applying `place` (pred 41 → 62 even though

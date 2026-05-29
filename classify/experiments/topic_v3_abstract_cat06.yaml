@@ -1,0 +1,15 @@
+# V3 topic classifier — cat06: softer place-based study anti-pattern.
+# cat05 overcorrected (pred 3 vs gt 20). cat06 keeps the prose discipline
+# but drops the "CRITICAL" framing, the long anti-pattern phrasings list,
+# and the transferability test in favor of "be selective / be cautious"
+# language plus a single representative anti-phrasing. Target: pred ~ 20-25
+# for gt=20, keeping the collateral gains on other labels.
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "06"
+ex_variant: "off"
+name: v3_abstract_cat06
+all_papers: false
+thinking: true
+max_tokens: 4096

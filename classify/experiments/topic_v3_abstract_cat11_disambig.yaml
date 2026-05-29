@@ -1,0 +1,22 @@
+# V3 topic classifier — cat11 + 2-example disambiguation block.
+# Tests whether a minimal, targeted example pair teaching the place-based
+# study / scale/location boundary lifts performance on those two labels
+# without the distribution-anchoring damage we saw with the 4 and 8 example
+# variants earlier.
+# Examples (in classify/schemas/prompts/v3/examples/topic_disambig.md):
+#   - place-based study positive: Cotton District (Starkville MS) —
+#     single named neighborhood as substantive subject; NOT scale/location
+#   - scale/location positive: Spain urban-rural-gradient cohort study —
+#     multi-scale analytical contribution; NOT place-based
+# Both have multi-label GT to also teach co-occurrence patterns gemma is
+# already mostly getting right (governance, identity, social power, etc.)
+task: topic
+schema: v3
+strategy: abstract
+prompt_variant: "01"   # the prompt with {EXAMPLES} placeholder
+cat_variant: "11"
+ex_variant: "disambig" # → topic_disambig.md
+name: v3_abstract_cat11_disambig
+all_papers: false
+thinking: true
+max_tokens: 4096

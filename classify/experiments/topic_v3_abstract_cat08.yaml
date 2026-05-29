@@ -1,0 +1,18 @@
+# V3 topic classifier — cat08: tighten scale/location (keep cat07's identity
+# expansion). cat07's scale/location was still over-predicted (gt=23,
+# bare pred=43, ranked pred=56) — gemma was keyword-matching on "spatial",
+# "scale", "rural-urban", "geographic" without weighing whether the
+# geographic relationship was the paper's contribution. cat08 adds the
+# same playbook that worked for place-based study in cat06: positive cases,
+# anti-pattern phrasings, transferability test, "be selective" framing.
+# Expect over-correction first (cat05 → cat06 dynamic); we'll soften in
+# cat09 if needed.
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "08"
+ex_variant: "off"
+name: v3_abstract_cat08
+all_papers: false
+thinking: true
+max_tokens: 4096

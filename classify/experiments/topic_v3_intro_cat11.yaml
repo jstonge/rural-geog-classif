@@ -1,0 +1,16 @@
+# V3 topic classifier — cat11 + intro strategy.
+# Tests whether the cat07-11 definition refinements unlocked productive use
+# of body-of-paper context. The intro strategy adds title + abstract +
+# first 3 substantive body sections (heuristic picker, no LLM phase B).
+# Comparison target: bare cat11 (F1=0.77, exact=0.216).
+# When we tested intro with cat01 categories it didn't help topic — this
+# is a re-test under the much-improved category definitions.
+task: topic
+schema: v3
+strategy: intro
+cat_variant: "11"
+ex_variant: "off"
+name: v3_intro_cat11
+all_papers: false
+thinking: true
+max_tokens: 4096
