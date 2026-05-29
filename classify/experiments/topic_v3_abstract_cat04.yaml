@@ -1,0 +1,13 @@
+# V3 topic classifier — abstract-only with cat04: place → place-based study
+# rename + tightened anti-patterns redirecting multi-scale / cross-place
+# framings to scale/location. Tests whether renaming the label (label-name
+# prior) lifts gemma's place F1 (was 0.44 under cat03, 0.59 under cat01).
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "04"
+ex_variant: "off"
+name: v3_abstract_cat04
+all_papers: false
+thinking: true
+max_tokens: 4096

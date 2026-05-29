@@ -33,6 +33,36 @@ Half-formed ideas; promote to a dated entry once they ship.
 
 ---
 
+## 2026-05-29 — rename `place` → `place-based study` (topic_04.csv)
+
+- Under cat03, gemma kept over-applying `place` (pred 41 → 62 even though
+  GT dropped 30 → 20 from the place/scale-location split). Hypothesis:
+  the *word* "place" carries a strong broad-geography prior from
+  pretraining that the v3 definition couldn't override.
+- **Renamed** the label to `place-based study` in `topic_04.csv` to shift
+  the prior toward the single-site / case-study sense.
+- **Added cross-anti-pattern** in both definitions: `place-based study`
+  explicitly excludes multi-scale / cross-place comparisons (→
+  `scale/location`); `scale/location` explicitly excludes single-site
+  substantive subjects (→ `place-based study`).
+- **LS schema** `schema.xml`: `<Choice value="place"/>` →
+  `<Choice value="place-based study"/>`; pushed to project 113.
+- **Migrated** 21 existing `place` annotations to `place-based study`
+  via SDK PATCH (backed up first via `ls_backup.py 113`).
+- **Configs** `topic_v3_abstract_cat04.yaml`, `topic_v3_abstract_ranked_cat04.yaml`.
+- **Methodological observation pending:** if the rename materially lifts
+  the label F1, that's evidence that *label names carry pretraining priors
+  the definition can't override* — worth recording in methods.md.
+
+## 2026-05-25 — normalize `Scale/location` → `scale/location` in LS
+
+- Annotator's post-split review (23 papers tagged `scale/location`) used the
+  Title-S casing the LS UI had at review time. After the lowercase
+  `schema.xml` push, dropdown was lowercase but stored annotations weren't.
+- Backed up project 113 (`ls_backup.py 113`), then PATCHed all 23
+  annotations to lowercase `scale/location` via SDK. Verified 0 Title-S
+  remaining. Now consistent with `topic_03.csv` and gemma's output.
+
 ## 2026-05-25 — split `place` into `place` + `scale/location` (topic_03.csv)
 
 - **New categories** `topic_03.csv` — 17 topic labels (was 16). `place` is

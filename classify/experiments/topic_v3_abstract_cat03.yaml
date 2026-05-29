@@ -1,0 +1,14 @@
+# V3 topic classifier — abstract-only, new 17-label category set (topic_03.csv).
+# Tests the impact of the place / scale/location split + the refined
+# definitions of identity, governance, methods, human-environment.
+# Uses the bare prompt (no examples, no ranking) so the only change vs the
+# 13.6%-exact-match baseline is the category list.
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "03"
+ex_variant: "off"          # points at non-existent file → examples skipped
+name: v3_abstract_cat03
+all_papers: false
+thinking: true
+max_tokens: 4096

@@ -1,0 +1,12 @@
+# V3 topic classifier — stacked: ranked prompt (topic_02.md) + cat04
+# (place → place-based study rename + anti-pattern). Comparison target is
+# ranked cat03 (subset 0.614).
+task: topic
+schema: v3
+strategy: abstract
+prompt_variant: "02"
+cat_variant: "04"
+name: v3_abstract_ranked_cat04
+all_papers: false
+thinking: true
+max_tokens: 4096

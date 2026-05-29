@@ -16,7 +16,7 @@
     <HyperText name="topic_extra" value="$intro_section_html" inline="true"/>
     <Choices name="topic" toName="text" choice="multiple" showInLine="true">
       <Choice value="agriculture/food"/>
-      <Choice value="place"/>
+      <Choice value="place-based study"/>
       <Choice value="scale/location"/>
       <Choice value="natural environment"/>
       <Choice value="weather"/>

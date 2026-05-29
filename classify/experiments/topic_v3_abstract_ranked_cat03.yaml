@@ -1,0 +1,14 @@
+# V3 topic classifier — stacked: ranked prompt (topic_02.md) + new categories
+# (topic_03.csv). Tests whether the subset-coverage win from ranked output
+# (58% → 72%) holds under the new 17-label split, and whether the over-
+# predicted labels (governance, human-environment, methods) get reined in by
+# topic_03.csv's tightened definitions.
+task: topic
+schema: v3
+strategy: abstract
+prompt_variant: "02"       # ranked
+cat_variant: "03"
+name: v3_abstract_ranked_cat03
+all_papers: false
+thinking: true
+max_tokens: 4096
