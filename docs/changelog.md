@@ -33,6 +33,28 @@ Half-formed ideas; promote to a dated entry once they ship.
 
 ---
 
+## 2026-05-29 — narrow tie-breaker for methods topic (topic_14.csv)
+
+- Under cat13, methods F1=0.00 (gt=2, pred=6, zero overlap). Comparison
+  of gemma's reasoning across runs surfaced a pattern: ranked cat06 caught
+  both GT papers (F1=0.31) by reading the methodological framing as central;
+  cat10-13 read the substantive findings as central and skipped them. The
+  cat10 anti-pattern was correctly filtering generalizability-boilerplate
+  cases (Spain Life-Stage's "method can be applied to other study areas")
+  but also filtering legitimate methods papers whose title foregrounds the
+  method ("Mapping Australia Using Nighttime Satellite Imagery", "An
+  Agent-Based Experiment", "A Hybrid Human-Machine Approach").
+- **`topic_14.csv`** adds the same narrow-tie-breaker shape that worked
+  for cat13's place-based study: a specific trigger (title-level
+  foregrounding of the method as a named approach AND abstract-level
+  evaluation of method properties — comparing alternative measures,
+  examining parameter effects, proposing a framework as the contribution)
+  with explicit negative examples ("we use regression to analyze",
+  "using GIS to map" do NOT qualify).
+- Tests whether the cat13 pattern generalizes: same narrow-trigger shape
+  can recover under-tightening on a different label without leak.
+- **Config** `topic_v3_abstract_cat14.yaml`.
+
 ## 2026-05-29 — place-based study tie-breaker (topic_12.csv)
 
 - cat11 with abstract only kept place-based study at F1=0.44 (pred=12, gt=20),

@@ -1,0 +1,19 @@
+# V3 topic classifier — cat14: narrow tie-breaker for methods topic label.
+# Under cat13, methods F1=0.00 (gt=2, pred=6, 0 overlap). Comparison of
+# gemma's reasoning across runs showed cat10's methods anti-pattern correctly
+# filters generalizability-boilerplate cases (Spain Life-Stage's "method can
+# be applied to other study areas") but ALSO filters legitimate methods
+# papers whose title foregrounds the method ("Mapping Australia Using
+# Nighttime Satellite Imagery", "An Agent-Based Experiment").
+# cat14 adds a narrow tie-breaker — same shape that worked for cat13's
+# place-based study lift: a specific trigger (title-level method foregrounding
+# AND abstract-level method evaluation) with explicit negative examples.
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "14"
+ex_variant: "off"
+name: v3_abstract_cat14
+all_papers: false
+thinking: true
+max_tokens: 4096
