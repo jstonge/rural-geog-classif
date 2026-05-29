@@ -140,3 +140,79 @@ If using a jupyter server to serve the notebook, it needs to live on the same no
 uv run jupyter notebook --no-browser --ip=0.0.0.0 --port=8888
 ```
 Connect to provided port in notebook. Once the `vllm` server shows `(APIServer pid=1192940) INFO:     Application startup complete.`, you're ready to go. The local server can also be used within script.
+
+
+## Model loop
+
+```zsh
+                          ┌─────────────────────────┐
+                          │  LATENT TRUE LABELING   │   ← never observed
+                          │     T (per paper)       │   ← target both sides
+                          │                         │     are trying to
+                          │   p(label | abstract)   │     estimate
+                          └────────┬──────┬─────────┘
+                                   │      │
+                       emission ↙         ↘ emission
+                                                    
+        ┌──────────────────────┐         ┌──────────────────────┐
+        │ ANNOTATOR TIMELINE   │         │ MODEL TIMELINE       │
+        │ (human estimator)    │         │ (LLM estimator)      │
+        └──────────────────────┘         └──────────────────────┘
+
+        ╔════════════════════╗           ╔════════════════════╗
+        ║   ann_state_v1     ║           ║   model_state_v1   ║
+        ║   ─────────────    ║           ║   ─────────────    ║
+        ║  hash: a7d2…       ║           ║  hash: c5f1…       ║
+        ║  n_papers: 88      ║           ║  cat_v: 01         ║
+        ║  n_tags:   481     ║           ║  prompt_v: 01      ║
+        ║  τ₁:  2026-05-21   ║           ║  strategy: abstract│
+        ╚══════════╤═════════╝           ║  τ₁:  2026-05-21   ║
+                   │                     ╚═════════╤══════════╝
+                   │   ┌────────────────┐          │
+                   │   │ compare(       │          │
+                   ├──►│  ann_v1,       │◄─────────┤
+                   │   │  model_v1)     │          │
+                   │   │ → metrics      │          │
+                   │   │ → diff per-lbl │          │
+                   │   └────────┬───────┘          │
+                   │            │                  │
+                   │     loop diagnoses            │
+                   │   ┌────────┴──────────┐       │
+                   │   │                   │       │
+                   │   ▼                   ▼       │
+                   │  step 4:           step 5–7:  │
+                   │  model-side        annotator- │
+                   │  intervention      side       │
+                   │  (prompt/cat       revision   │
+                   │   tightening)      (re-tag    │
+                   │                     borderline)│
+                   │            │                  │
+                   ▼            ▼                  ▼
+        ╔════════════════════╗           ╔════════════════════╗
+        ║   ann_state_v2     ║           ║   model_state_v2   ║
+        ║   ─────────────    ║           ║   ─────────────    ║
+        ║  hash: b9e1…       ║           ║  hash: d2a3…       ║
+        ║  n_papers: 90      ║           ║  cat_v: 14         ║
+        ║  n_tags:   519     ║           ║  prompt_v: 01      ║
+        ║  τ₂:  2026-05-29   ║           ║  τ₂:  2026-05-29   ║
+        ║  Δ vs v1:          ║           ║  Δ vs v1: +5 cats, │
+        ║   +6 methods,      ║           ║   +tie-breakers    │
+        ║   +2 new papers,   ║           ║                    │
+        ║   ±some place-     ║           ╚═════════╤══════════╝
+        ║    based study     ║                     │
+        ╚══════════╤═════════╝                     │
+                   │                               │
+                   ▼                               ▼
+                  ...                             ...
+
+        ────────────────────────────────────────────────────
+        EVERY COMPARISON IS LABELED (ann_state_vX, model_state_vY)
+
+        Currently: ann_state_v is implicit. Re-validating an old
+        model snapshot silently picks up the newest ann_state,
+        producing different metrics than were originally reported.
+
+        Proposed:  metrics.json stamps both (ann_hash, model_hash).
+                   `gt_diff.py` shows the Δ between any two ann_states.
+                   Either timeline can roll back / branch independently.
+```

@@ -255,6 +255,106 @@ definition change isolates the schema lever from prompt or example
 changes, and the per-label F1 / support shift on the next run measures
 whether the tightened boundary actually closed the gap.
 
+## Versioned state under the loop
+
+The iterative loop above describes *what* interventions to take at each
+step. A complementary view describes the *state machinery* the loop
+operates on. Both annotator and model are estimators of an unobservable
+correct labeling — neither has direct access to truth, both maintain
+versioned state, and a comparison is always between a specific
+`(annotator_state, model_state)` pair.
+
+```
+                       ┌─────────────────────────┐
+                       │  LATENT TRUE LABELING   │   never observed;
+                       │     T (per paper)        │   target both sides
+                       │                         │   are trying to
+                       │   p(label | abstract)   │   estimate
+                       └────────┬──────┬─────────┘
+                                │      │
+                    emission ↙         ↘ emission
+
+      ┌──────────────────────┐         ┌──────────────────────┐
+      │ ANNOTATOR TIMELINE   │         │ MODEL TIMELINE       │
+      │ (human estimator)    │         │ (LLM estimator)      │
+      └──────────────────────┘         └──────────────────────┘
+
+      ╔════════════════════╗           ╔════════════════════╗
+      ║   ann_state_v1     ║           ║   model_state_v1   ║
+      ║   ─────────────    ║           ║   ─────────────    ║
+      ║   hash, n_papers,  ║           ║   hash, cat_v,     ║
+      ║   n_tags, τ₁       ║           ║   prompt_v,        ║
+      ║                    ║           ║   strategy, τ₁     ║
+      ╚══════════╤═════════╝           ╚═════════╤══════════╝
+                 │                               │
+                 │       ┌────────────────┐      │
+                 │       │ compare(       │      │
+                 ├──────►│  ann_v1,       │◄─────┤
+                 │       │  model_v1)     │      │
+                 │       │ → metrics      │      │
+                 │       │ → per-label    │      │
+                 │       │   diff         │      │
+                 │       └────────┬───────┘      │
+                 │                │              │
+                 │       loop diagnoses          │
+                 │       ┌────────┴──────────┐   │
+                 │       │                   │   │
+                 │       ▼                   ▼   │
+                 │     step 4:           step 5–7:│
+                 │     model-side         annotator-
+                 │     intervention       side    │
+                 │     (prompt / cat /    revision│
+                 │      examples /        (re-tag │
+                 │      strategy)         flagged │
+                 │                        papers) │
+                 │                │              │
+                 ▼                ▼              ▼
+
+      ╔════════════════════╗           ╔════════════════════╗
+      ║   ann_state_v2     ║           ║   model_state_v2   ║
+      ║   ─────────────    ║           ║   ─────────────    ║
+      ║   hash, τ₂         ║           ║   hash, τ₂         ║
+      ║   Δ vs v1:         ║           ║   Δ vs v1:         ║
+      ║    + papers,       ║           ║    + cat versions, ║
+      ║    ± retags        ║           ║    ± tie-breakers  ║
+      ╚══════════╤═════════╝           ╚═════════╤══════════╝
+                 │                               │
+                 ▼                               ▼
+                ...                             ...
+```
+
+Key properties of this state space:
+
+- **Neither side observes truth directly.** Each emission — annotator
+  tags for a paper, model predictions for a paper — is a noisy estimate of
+  the latent label set. The "is the annotator wrong?" question dissolves
+  into the empirically decidable "does `ann_vX` or `model_vY` better
+  estimate the latent label on this specific paper?", which is what the
+  loop's step 5 adjudicates.
+- **Versions advance independently.** Annotator state advances when the
+  annotator commits revisions (re-tagging, adding papers, expanding a
+  definition's working scope). Model state advances when a new config
+  ships (category CSV, prompt template, examples block, input strategy).
+  Each timeline can in principle roll back or branch without invalidating
+  the other.
+- **Comparisons are pair-labeled.** Metrics from `compare(ann_v1, model_v1)`
+  are not the same as `compare(ann_v2, model_v1)`, even though the model
+  is identical. We saw this concretely during one iteration: a label's F1
+  jumped from 0.00 to 0.86 on the same model snapshot, driven entirely by
+  the annotator side committing six paper reclassifications after the
+  loop's step 6. The model didn't change; the *coupling* between the two
+  timelines did.
+- **The current system has asymmetric versioning.** Model state is fully
+  versioned via YAML configs, timestamped snapshot directories, and the
+  metrics bundle. Annotator state is at present a single "latest" pointer
+  (`most-recent-wins` GT loader). The asymmetry can cause silent score
+  drift on re-validated runs. A planned fix is to stamp `metrics.json`
+  with `(ann_hash, model_hash)` and provide a `gt_diff` utility between
+  two snapshots' frozen GTs; under that scheme every comparison becomes
+  explicitly addressable as a `(vX, vY)` pair and the `ann_state_v_t`
+  column gives the same provenance to the human side that snapshot ids
+  already give to the model side.
+
 ## Reproducibility
 
 All experiments are described by YAML configs under `classify/experiments/`.
