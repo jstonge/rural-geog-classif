@@ -1,0 +1,17 @@
+# V3 topic classifier — cat13: NARROW tie-breaker for place-based study.
+# cat12's tie-breaker over-fired catastrophically (pred 12 → 53, F1 0.44 → 0.41,
+# headline F1 dropped to 0.72). Diagnosis: "named community AND analyzed
+# experiences/dynamics" was too loose — gemma read it as default-include.
+# cat13 retries with two changes: (1) tighten the trigger to require a
+# distinctive ethnonym + identity-formation/diasporic/homeland framing;
+# (2) add explicit negative examples ("naming a country/town does NOT
+# qualify") + emphasize "THIS RULE IS NARROW".
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "13"
+ex_variant: "off"
+name: v3_abstract_cat13
+all_papers: false
+thinking: true
+max_tokens: 4096
