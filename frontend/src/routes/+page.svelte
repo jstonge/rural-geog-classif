@@ -1,9 +1,10 @@
 <script lang="ts">
   import { scaleLinear, scaleOrdinal, scaleBand } from 'd3-scale';
-  import { schemeTableau10 } from 'd3-scale-chromatic';
+  import { schemeTableau10, schemeSet3 } from 'd3-scale-chromatic';
   import { SvelteMap } from 'svelte/reactivity';
   import data from '$lib/data/methods_viz.json';
   import locationsData from '$lib/data/locations_viz.json';
+  import topicsData from '$lib/data/topics_viz.json';
 
   type Paper = {
     doi: string;
@@ -389,6 +390,647 @@
       return { decade, total, segments };
     })
   );
+
+  // ---------------------------------------------------------------
+  // Topics section (multi-label)
+  // ---------------------------------------------------------------
+
+  type TopicPaper = {
+    doi: string;
+    title: string;
+    authors: string;
+    pub_year: string;
+    source: string;
+    keywords: string;
+    abstract: string;
+    topics: string[];
+  };
+
+  const topicPapers: TopicPaper[] = topicsData as TopicPaper[];
+
+  // Ordered by gemma's empirical frequency on the 346-paper corpus, so the
+  // highest-count topics get the most distinct colors first.
+  const topicCategories = [
+    'social power',
+    'identity',
+    'governance',
+    'scale/location',
+    'built environment',
+    'human-environment',
+    'place-based study',
+    'mobility',
+    'agriculture/food',
+    'methods',
+    'climate and natural hazards',
+    'emotion',
+    'technology',
+    'natural environment',
+    'recreation',
+    'energy',
+    'weather'
+  ] as const;
+
+  // From classify/schemas/prompts/v3/categories/topic_14.csv (shortened).
+  const topicDescriptions: Record<string, string> = {
+    'social power': 'inequality, justice, poverty, economic livelihoods, community development, critique of power structures and policy responses',
+    'identity': 'demographic / economic / politico-legal / class / rural identities as analytical lens; co-occurs with social power',
+    'governance': 'policy / institutions / collective action as object of analysis; movements analyzed as collective action — NOT generalizability claims',
+    'scale/location': 'analysis of scale, distance, multi-scale dynamics, rural-urban continuum, comparative analysis across sites — NOT mere named-location framing',
+    'built environment': 'infrastructure systems and material world: irrigation, electrification, plumbing, drainage, transportation, housing, gentrification, urban/rural built form',
+    'human-environment': 'nature-society theory, political ecology, environmental history, human-nonhuman relations as analytical frame',
+    'place-based study': 'single specific site treated as substantive subject: ethnography, place-attachment, single-site landscape perception, heritage study (with narrow tie-breaker for diasporic/ethnic group studies)',
+    'mobility': 'human movement and population dynamics: migration, displacement, urbanization, climate migration, demographic change',
+    'agriculture/food': 'farming systems, food production / distribution, food security, food sovereignty, agricultural markets, agroecology as theoretical contribution',
+    'methods': 'central purpose is a new method or new dimension of existing method (narrow tie-breaker: title foregrounds method AND abstract evaluates method properties)',
+    'climate and natural hazards': 'climate change (science, impacts, mitigation, adaptation), discrete hazard events (flooding, drought, hurricanes, earthquakes)',
+    'emotion': 'affect / emotion / psychological dimensions: place attachment, nostalgia, care, fear, wellbeing, heritage',
+    'technology': 'digital / communications / information technology: internet access, broadband, AI, smart systems, precision agriculture, remote sensing',
+    'natural environment': 'physical environment as finding: land cover, hydrology, ecosystems, vegetation, forests, wildlife — empirically documented',
+    'recreation': 'tourism, recreational land use, second homes, outdoor recreation economies',
+    'energy': 'energy systems, sources, or infrastructure as central subject: oil, gas, electricity, solar, wind, biofuels, geothermal, mining, transitions',
+    'weather': 'meteorological systems, weather events, weather prediction, short-term atmospheric phenomena',
+  };
+
+  // 17 topics → combine schemeTableau10 (10) + first 7 of schemeSet3 (pastel)
+  const topicColorRange = [...schemeTableau10, ...schemeSet3.slice(0, 7)];
+  const topicColor = scaleOrdinal<string, string>()
+    .domain(topicCategories as unknown as string[])
+    .range(topicColorRange);
+
+  // For each decade, segments stack the SHARE of all topic-instances assigned
+  // to each topic. (Sums to 1.0 across topics in that decade.)
+  // For facets, the per-decade y-value is the share of PAPERS in that decade
+  // tagged with the topic — intuitive trend interpretation.
+
+  type TopicDecadeData = {
+    decade: string;
+    n_papers: number;
+    n_topic_instances: number;
+    segments: {
+      topic: string;
+      y0: number;
+      y1: number;
+      proportion: number;
+      count: number;
+    }[];
+  };
+
+  const decadeTopicProportions: TopicDecadeData[] = decades.map((decade) => {
+    const decadePapers = topicPapers.filter((d) => getDecade(d.pub_year) === decade);
+    const counts = new Map<string, number>();
+    for (const p of decadePapers) {
+      for (const t of p.topics) counts.set(t, (counts.get(t) ?? 0) + 1);
+    }
+    const total_instances = [...counts.values()].reduce((a, b) => a + b, 0);
+    let cumulative = 0;
+    const segments = topicCategories.map((topic) => {
+      const count = counts.get(topic) ?? 0;
+      const proportion = total_instances > 0 ? count / total_instances : 0;
+      const y0 = cumulative;
+      cumulative += proportion;
+      return { topic, y0, y1: cumulative, proportion, count };
+    });
+    return {
+      decade,
+      n_papers: decadePapers.length,
+      n_topic_instances: total_instances,
+      segments
+    };
+  });
+
+  let selectedTopic: string | null = $state(null);
+
+  const filteredTopicPapers = $derived(
+    selectedTopic !== null
+      ? topicPapers.filter((d) => d.topics.includes(selectedTopic as string))
+      : []
+  );
+
+  function toggleTopic(topic: string) {
+    selectedTopic = selectedTopic === topic ? null : topic;
+  }
+
+  type TopicSeries = {
+    topic: string;
+    max: number;
+    points: { decade: string; proportion: number; count: number; n_papers: number }[];
+  };
+
+  // Per-paper proportion (= papers tagged with this topic in this decade /
+  // total papers in this decade). Used for the facet trend lines.
+  const topicSeries: TopicSeries[] = $derived.by(() => {
+    return topicCategories.map((topic) => {
+      const points = decades.map((decade) => {
+        const decadePapers = topicPapers.filter((d) => getDecade(d.pub_year) === decade);
+        const count = decadePapers.filter((d) => d.topics.includes(topic)).length;
+        const n_papers = decadePapers.length;
+        const proportion = n_papers > 0 ? count / n_papers : 0;
+        return { decade, proportion, count, n_papers };
+      });
+      const max = points.reduce((m, p) => (p.proportion > m ? p.proportion : m), 0);
+      return { topic, max, points };
+    });
+  });
+
+  const topicFacetYMax = $derived(
+    Math.min(1, Math.ceil(topicSeries.reduce((m, s) => (s.max > m ? s.max : m), 0) * 10) / 10)
+  );
+  const topicFacetY = $derived(
+    scaleLinear().domain([0, topicFacetYMax]).range([facetInnerHeight, 0])
+  );
+  const topicFacetYTicks = $derived([0, topicFacetYMax / 2, topicFacetYMax]);
+
+  // Toggle: when false, each topic facet auto-scales to its own max so small
+  // labels (energy, weather, recreation) become readable. When true, all
+  // facets share a global y-axis so cross-topic magnitudes are comparable.
+  let topicSharedY: boolean = $state(true);
+
+  function localYMax(seriesMax: number): number {
+    // Round up to nearest 0.1 with a 0.1 floor so empty/near-empty series
+    // don't render a 0-height plot.
+    return Math.max(0.1, Math.min(1, Math.ceil(seriesMax * 10) / 10));
+  }
+  function localY(seriesMax: number) {
+    return scaleLinear().domain([0, localYMax(seriesMax)]).range([facetInnerHeight, 0]);
+  }
+  function localYTicks(seriesMax: number): number[] {
+    const m = localYMax(seriesMax);
+    return [0, m / 2, m];
+  }
+
+  // UpSet plot: which topic combinations (sets) recur most often.
+  // Each paper has a unique topic-set (sorted, deduplicated); we count
+  // occurrences of each unique set and rank by frequency.
+  type IntersectionRow = {
+    setKey: string;
+    members: Set<string>;
+    count: number;
+  };
+
+  const topicIntersections: IntersectionRow[] = $derived.by(() => {
+    const buckets = new Map<string, { members: Set<string>; count: number }>();
+    for (const p of topicPapers) {
+      const validTopics = p.topics.filter(
+        (t): t is (typeof topicCategories)[number] =>
+          (topicCategories as readonly string[]).includes(t)
+      );
+      if (validTopics.length === 0) continue;
+      const sorted = [...validTopics].sort();
+      const key = sorted.join('|');
+      const entry = buckets.get(key);
+      if (entry) entry.count += 1;
+      else buckets.set(key, { members: new Set(sorted), count: 1 });
+    }
+    return [...buckets.entries()]
+      .map(([setKey, v]) => ({ setKey, members: v.members, count: v.count }))
+      .sort((a, b) => b.count - a.count);
+  });
+
+  // Top 25 intersections (hardcoded)
+  const UPSET_TOP_N = 25;
+  const topIntersections = $derived(
+    topicIntersections.slice(0, Math.min(UPSET_TOP_N, topicIntersections.length))
+  );
+
+  const upsetMaxCount = $derived(
+    topIntersections.length > 0 ? topIntersections[0].count : 1
+  );
+
+  // Topic totals (set sizes): how many papers have each topic at all
+  const topicSetTotals = $derived.by(() => {
+    const m = new Map<string, number>();
+    for (const p of topicPapers) {
+      for (const t of p.topics) m.set(t, (m.get(t) ?? 0) + 1);
+    }
+    return m;
+  });
+
+  const setTotalMax = $derived(
+    Math.max(...topicCategories.map((t) => topicSetTotals.get(t) ?? 0), 1)
+  );
+
+  // Click an intersection bar → filter papers to that exact topic set
+  let upsetSelected: string | null = $state(null);
+
+  const upsetSelectedPapers = $derived(
+    upsetSelected !== null
+      ? topicPapers.filter((p) => {
+          const validTopics = p.topics.filter((t) =>
+            (topicCategories as readonly string[]).includes(t)
+          );
+          return [...validTopics].sort().join('|') === upsetSelected;
+        })
+      : []
+  );
+
+  const upsetSelectedMembers = $derived(
+    upsetSelected !== null
+      ? topicIntersections.find((r) => r.setKey === upsetSelected)?.members
+      : null
+  );
+
+  function toggleUpset(setKey: string) {
+    upsetSelected = upsetSelected === setKey ? null : setKey;
+  }
+
+  // UpSet geometry
+  const upsetCellSize = 22;
+  const upsetIntersectionBarHeight = 120;
+  const upsetSetBarWidth = 80;
+  const upsetTopicLabelWidth = 160;
+  const upsetMargin = { top: 12, right: 16, bottom: 20, left: 8 };
+  const upsetMatrixWidth = $derived(upsetCellSize * topIntersections.length);
+  const upsetMatrixHeight = upsetCellSize * topicCategories.length;
+  const upsetWidth = $derived(
+    upsetMargin.left + upsetTopicLabelWidth + upsetSetBarWidth + upsetMatrixWidth + upsetMargin.right
+  );
+  const upsetHeight = $derived(
+    upsetMargin.top + upsetIntersectionBarHeight + 8 + upsetMatrixHeight + upsetMargin.bottom
+  );
+  const upsetMatrixLeft = $derived(upsetMargin.left + upsetTopicLabelWidth + upsetSetBarWidth);
+  const upsetMatrixTop = upsetMargin.top + upsetIntersectionBarHeight + 8;
+
+  function upsetBarHeight(count: number): number {
+    return (count / upsetMaxCount) * upsetIntersectionBarHeight;
+  }
+  function upsetSetBarWidthScale(count: number): number {
+    return (count / setTotalMax) * upsetSetBarWidth;
+  }
+
+  // Pairwise co-occurrence matrix: cell (i, j) = papers tagged with BOTH
+  // topicCategories[i] AND topicCategories[j]. Diagonal = topic frequency.
+  type CoocCell = {
+    rowTopic: string;
+    colTopic: string;
+    count: number;
+  };
+
+  const topicCooccurrence: CoocCell[][] = $derived.by(() => {
+    const idx = new Map<string, number>(
+      topicCategories.map((t, i) => [t as string, i])
+    );
+    const n = topicCategories.length;
+    const grid: number[][] = Array.from({ length: n }, () => Array(n).fill(0));
+    for (const p of topicPapers) {
+      const validIdxs = p.topics
+        .map((t) => idx.get(t))
+        .filter((i): i is number => typeof i === 'number');
+      for (const i of validIdxs) for (const j of validIdxs) grid[i][j] += 1;
+    }
+    const out: CoocCell[][] = [];
+    for (let i = 0; i < n; i++) {
+      const row: CoocCell[] = [];
+      for (let j = 0; j < n; j++) {
+        row.push({
+          rowTopic: topicCategories[i],
+          colTopic: topicCategories[j],
+          count: grid[i][j]
+        });
+      }
+      out.push(row);
+    }
+    return out;
+  });
+
+  // Heatmap intensity is driven by off-diagonal max so the diagonal
+  // (which equals total topic frequency) doesn't compress the off-diagonal
+  // color range.
+  const coocOffDiagMax: number = $derived.by(() => {
+    let m = 0;
+    for (let i = 0; i < topicCategories.length; i++) {
+      for (let j = 0; j < topicCategories.length; j++) {
+        if (i === j) continue;
+        if (topicCooccurrence[i][j].count > m) m = topicCooccurrence[i][j].count;
+      }
+    }
+    return m === 0 ? 1 : m;
+  });
+
+  // Phi coefficient (Pearson correlation for binary variables).
+  // For 2×2 contingency: φ = (ad - bc) / √((a+b)(c+d)(a+c)(b+d))
+  // where a = both, b = i only, c = j only, d = neither.
+  // Range [-1, 1]. Positive = tags appear together more than chance;
+  // negative = tags appear together less than chance.
+  const topicPhi: number[][] = $derived.by(() => {
+    const n = topicCategories.length;
+    const N = topicPapers.length;
+    const totals = topicCategories.map((t) => topicSetTotals.get(t) ?? 0);
+    const m: number[][] = Array.from({ length: n }, () => Array(n).fill(0));
+    for (let i = 0; i < n; i++) {
+      m[i][i] = 1;
+      for (let j = 0; j < n; j++) {
+        if (i === j) continue;
+        const a = topicCooccurrence[i][j].count;
+        const ni = totals[i];
+        const nj = totals[j];
+        const b = ni - a;
+        const c = nj - a;
+        const d = N - a - b - c;
+        const denom = Math.sqrt((a + b) * (c + d) * (a + c) * (b + d));
+        m[i][j] = denom === 0 ? 0 : (a * d - b * c) / denom;
+      }
+    }
+    return m;
+  });
+
+  let coocMode: 'count' | 'phi' = $state('count');
+
+  // Heatmap row/column ordering — only affects the cooc heatmap, not the
+  // other charts. "cluster" runs agglomerative hierarchical clustering on
+  // (1 − phi) with average linkage and uses the resulting leaf order so
+  // strongly-associated topics land adjacent — surfaces block structure.
+  let coocSort: 'frequency' | 'alphabetical' | 'cluster' = $state('frequency');
+
+  const heatmapOrder: number[] = $derived.by(() => {
+    const n = topicCategories.length;
+    if (coocSort === 'frequency') return topicCategories.map((_, i) => i);
+    if (coocSort === 'alphabetical') {
+      return topicCategories
+        .map((t, i) => ({ t, i }))
+        .sort((a, b) => a.t.localeCompare(b.t))
+        .map((x) => x.i);
+    }
+    // cluster: agglomerative hierarchical (average linkage) on 1 − φ
+    const distance: number[][] = topicPhi.map((row) => row.map((v) => 1 - v));
+    let clusters: number[][] = topicCategories.map((_, i) => [i]);
+    while (clusters.length > 1) {
+      let bestD = Infinity;
+      let bestA = 0;
+      let bestB = 1;
+      for (let a = 0; a < clusters.length; a++) {
+        for (let b = a + 1; b < clusters.length; b++) {
+          let total = 0;
+          let pairs = 0;
+          for (const i of clusters[a]) {
+            for (const j of clusters[b]) {
+              total += distance[i][j];
+              pairs += 1;
+            }
+          }
+          const d = pairs > 0 ? total / pairs : Infinity;
+          if (d < bestD) {
+            bestD = d;
+            bestA = a;
+            bestB = b;
+          }
+        }
+      }
+      const merged = [...clusters[bestA], ...clusters[bestB]];
+      clusters = [
+        ...clusters.filter((_, k) => k !== bestA && k !== bestB),
+        merged
+      ];
+    }
+    return clusters[0] ?? topicCategories.map((_, i) => i);
+  });
+
+  type CoocSelection = { rowTopic: string; colTopic: string };
+  let coocSelected: CoocSelection | null = $state(null);
+
+  const coocSelectedPapers = $derived(
+    coocSelected !== null
+      ? topicPapers.filter(
+          (d) =>
+            d.topics.includes(coocSelected!.rowTopic) &&
+            d.topics.includes(coocSelected!.colTopic)
+        )
+      : []
+  );
+
+  function toggleCooc(rowTopic: string, colTopic: string, count: number) {
+    if (count === 0) return;
+    if (
+      coocSelected &&
+      coocSelected.rowTopic === rowTopic &&
+      coocSelected.colTopic === colTopic
+    ) {
+      coocSelected = null;
+      return;
+    }
+    coocSelected = { rowTopic, colTopic };
+  }
+
+  // Stats for the selected cell: contingency (a/b/c/d), point φ, χ² with 1 df,
+  // two-sided p-value, and a 95% bootstrap CI for φ. Bootstrap resamples paper
+  // indices with replacement and recomputes φ each draw, then takes the
+  // 2.5/97.5 percentiles. Chi-square with 1 df has p = 2·Φ̄(√χ²), where Φ̄ is
+  // the standard normal survival function (Abramowitz & Stegun 26.2.17).
+  type CoocStats = {
+    n: number;
+    a: number; b: number; c: number; d: number;
+    phi: number;
+    chi2: number;
+    pValue: number;
+    ciLow: number;
+    ciHigh: number;
+  };
+
+  function phiFromCounts(a: number, b: number, c: number, d: number): number {
+    const denom = Math.sqrt((a + b) * (c + d) * (a + c) * (b + d));
+    return denom === 0 ? 0 : (a * d - b * c) / denom;
+  }
+
+  function normalSF(z: number): number {
+    if (z < 0) return 1 - normalSF(-z);
+    const t = 1 / (1 + 0.2316419 * z);
+    const d = 0.3989422804 * Math.exp(-0.5 * z * z);
+    return (
+      d *
+      t *
+      (0.319381530 +
+        t *
+          (-0.356563782 +
+            t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))))
+    );
+  }
+
+  function chi2pValue1df(chi2: number): number {
+    if (chi2 <= 0) return 1;
+    return 2 * normalSF(Math.sqrt(chi2));
+  }
+
+  const BOOTSTRAP_N = 1000;
+
+  const coocSelectedStats: CoocStats | null = $derived.by(() => {
+    if (coocSelected === null) return null;
+    const row = coocSelected.rowTopic;
+    const col = coocSelected.colTopic;
+    const N = topicPapers.length;
+    const inRow = new Uint8Array(N);
+    const inCol = new Uint8Array(N);
+    for (let i = 0; i < N; i++) {
+      const t = topicPapers[i].topics;
+      inRow[i] = t.includes(row) ? 1 : 0;
+      inCol[i] = t.includes(col) ? 1 : 0;
+    }
+    let a = 0, b = 0, c = 0, d = 0;
+    for (let i = 0; i < N; i++) {
+      if (inRow[i] && inCol[i]) a++;
+      else if (inRow[i]) b++;
+      else if (inCol[i]) c++;
+      else d++;
+    }
+    const phi = phiFromCounts(a, b, c, d);
+    const chi2 = N * phi * phi;
+    const pValue = chi2pValue1df(chi2);
+    const phis = new Float64Array(BOOTSTRAP_N);
+    for (let it = 0; it < BOOTSTRAP_N; it++) {
+      let ba = 0, bb = 0, bc = 0, bd = 0;
+      for (let i = 0; i < N; i++) {
+        const idx = (Math.random() * N) | 0;
+        if (inRow[idx] && inCol[idx]) ba++;
+        else if (inRow[idx]) bb++;
+        else if (inCol[idx]) bc++;
+        else bd++;
+      }
+      phis[it] = phiFromCounts(ba, bb, bc, bd);
+    }
+    phis.sort();
+    const ciLow = phis[Math.floor(BOOTSTRAP_N * 0.025)];
+    const ciHigh = phis[Math.floor(BOOTSTRAP_N * 0.975)];
+    return { n: N, a, b, c, d, phi, chi2, pValue, ciLow, ciHigh };
+  });
+
+  function fmtP(p: number): string {
+    if (p < 1e-7) return '< 10⁻⁷';
+    if (p < 1e-4) return p.toExponential(1);
+    if (p < 0.001) return '< 0.001';
+    if (p < 0.01) return p.toFixed(3);
+    return p.toFixed(3);
+  }
+
+  function coocCellFill(i: number, j: number, count: number): string {
+    if (i === j) return '#e8e8e8'; // diagonal de-emphasized
+    if (coocMode === 'count') {
+      if (count === 0) return '#fafafa';
+      const opacity = Math.max(0.08, Math.min(1, count / coocOffDiagMax));
+      return `rgba(46, 92, 158, ${opacity})`;
+    }
+    // phi mode — diverging colour: blue for positive, red for negative
+    const phi = topicPhi[i][j];
+    if (phi === 0) return '#fafafa';
+    // amplify since |phi| is usually < 0.5 even for strong associations
+    const opacity = Math.max(0.08, Math.min(1, Math.abs(phi) * 2.5));
+    return phi >= 0
+      ? `rgba(46, 92, 158, ${opacity})`
+      : `rgba(190, 70, 70, ${opacity})`;
+  }
+
+  function coocCellLabel(i: number, j: number, count: number): string {
+    if (i === j) return String(count);
+    if (coocMode === 'count') return count > 0 ? String(count) : '';
+    const phi = topicPhi[i][j];
+    return Math.abs(phi) >= 0.05 ? phi.toFixed(2) : '';
+  }
+
+  function coocCellTextFill(i: number, j: number, count: number): string {
+    if (i === j) return '#666';
+    if (coocMode === 'count') {
+      return count / coocOffDiagMax > 0.55 ? 'white' : '#222';
+    }
+    const phi = topicPhi[i][j];
+    return Math.abs(phi) * 2.5 > 0.55 ? 'white' : '#222';
+  }
+
+  // Heatmap geometry
+  const coocCellSize = 34;
+  const coocMargin = { top: 140, right: 16, bottom: 16, left: 160 };
+  const coocInnerSize = coocCellSize * topicCategories.length;
+  const coocWidth = coocMargin.left + coocInnerSize + coocMargin.right;
+  const coocHeight = coocMargin.top + coocInnerSize + coocMargin.bottom;
+
+  // ---------------------------------------------------------------
+  // Anchor-topic co-occurrence over time
+  // ---------------------------------------------------------------
+  // Pick an anchor topic; for each other topic, show the fraction of
+  // anchor papers (in each decade) that ALSO had that co-topic. Same
+  // facet idiom as the topic-trends section so visual conventions carry.
+
+  let anchorTopic: string = $state('social power');
+
+  type AnchorSeries = {
+    coTopic: string;
+    max: number;
+    overall: number;
+    phi: number;
+    points: { decade: string; proportion: number; numerator: number; denominator: number }[];
+  };
+
+  let anchorSort = $state<'overall' | 'phi' | 'absphi'>('overall');
+
+  const anchorSeries: AnchorSeries[] = $derived.by(() => {
+    const anchor = anchorTopic;
+    const cats = topicCategories as readonly string[];
+    const anchorIdx = cats.indexOf(anchor);
+    const decadeBuckets = new Map<string, TopicPaper[]>();
+    for (const p of topicPapers) {
+      if (!p.topics.includes(anchor)) continue;
+      const d = getDecade(p.pub_year);
+      const arr = decadeBuckets.get(d);
+      if (arr) arr.push(p);
+      else decadeBuckets.set(d, [p]);
+    }
+    const totalAnchorPapers = [...decadeBuckets.values()].reduce(
+      (a, arr) => a + arr.length,
+      0
+    );
+    const series = topicCategories
+      .filter((t) => t !== anchor)
+      .map((coTopic) => {
+        let overallCo = 0;
+        const points = decades.map((d) => {
+          const inBucket = decadeBuckets.get(d) ?? [];
+          const denominator = inBucket.length;
+          const numerator = inBucket.filter((p) => p.topics.includes(coTopic)).length;
+          overallCo += numerator;
+          const proportion = denominator > 0 ? numerator / denominator : 0;
+          return { decade: d, proportion, numerator, denominator };
+        });
+        const max = points.reduce((m, p) => (p.proportion > m ? p.proportion : m), 0);
+        const overall = totalAnchorPapers > 0 ? overallCo / totalAnchorPapers : 0;
+        const coIdx = cats.indexOf(coTopic);
+        const phi = anchorIdx >= 0 && coIdx >= 0 ? topicPhi[anchorIdx][coIdx] : 0;
+        return { coTopic, max, overall, phi, points };
+      });
+    if (anchorSort === 'phi') {
+      series.sort((a, b) => b.phi - a.phi);
+    } else if (anchorSort === 'absphi') {
+      series.sort((a, b) => Math.abs(b.phi) - Math.abs(a.phi));
+    } else {
+      series.sort((a, b) => b.overall - a.overall);
+    }
+    return series;
+  });
+
+  const anchorTotalPapers = $derived(
+    topicPapers.filter((p) => p.topics.includes(anchorTopic)).length
+  );
+
+  let anchorSharedY: boolean = $state(true);
+
+  const anchorFacetYMax = $derived(
+    Math.min(1, Math.ceil(anchorSeries.reduce((m, s) => (s.max > m ? s.max : m), 0) * 10) / 10)
+  );
+  const anchorFacetY = $derived(
+    scaleLinear().domain([0, anchorFacetYMax]).range([facetInnerHeight, 0])
+  );
+  const anchorFacetYTicks = $derived([0, anchorFacetYMax / 2, anchorFacetYMax]);
+
+  function peakAnchorBucket(points: { decade: string; proportion: number }[]): string {
+    let best = points[0];
+    for (const p of points) {
+      if (p.proportion > best.proportion) best = p;
+    }
+    return bucketLabel(best.decade);
+  }
+
+  function peakTopicBucket(points: { decade: string; proportion: number }[]): string {
+    let best = points[0];
+    for (const p of points) {
+      if (p.proportion > best.proportion) best = p;
+    }
+    return bucketLabel(best.decade);
+  }
 </script>
 
 <h1>Methods classification across rural geography (1992–2026)</h1>
@@ -965,6 +1607,854 @@
 </section>
 </div>
 
+<h2 class="section-h2">Topics across rural geography (1992–2026)</h2>
+<p class="caption">
+  Multi-label topics predicted on {topicPapers.length} papers (snapshot: 2026-05-29_1719_topic_v3_abstract_cat14_all). Avg 3.23 topics per paper. Validated F1 = 0.82 (exact set match = 34%, Jaccard = 0.74) on 90 annotated papers. The stacked bar shows each topic's share of all topic-instances in each 5-year bucket; the small multiples show the proportion of papers tagged with each topic over time.
+</p>
+
+<div class="facet-controls">
+  <span class="control-label">Small multiples y-axis:</span>
+  <button
+    type="button"
+    class="toggle-btn"
+    class:active={topicSharedY}
+    onclick={() => (topicSharedY = true)}
+  >shared</button>
+  <button
+    type="button"
+    class="toggle-btn"
+    class:active={!topicSharedY}
+    onclick={() => (topicSharedY = false)}
+  >free (per-facet)</button>
+</div>
+
+<div class="legend">
+  {#each topicCategories as topic (topic)}
+    <div class="legend-cell">
+      <button
+        type="button"
+        class="legend-item"
+        class:dimmed={selectedTopic !== null && selectedTopic !== topic}
+        onclick={() => toggleTopic(topic)}
+      >
+        <span class="swatch" style="background: {topicColor(topic)};"></span>
+        <span class="label">{topic}</span>
+      </button>
+      <div class="legend-desc" role="tooltip">{topicDescriptions[topic]}</div>
+    </div>
+  {/each}
+</div>
+
+<div class="charts-row">
+<svg width={barWidth} height={barHeight} class="bar-chart">
+  <text
+    x={-(barHeight / 2)}
+    y={16}
+    transform="rotate(-90)"
+    text-anchor="middle"
+    font-size="12"
+    fill="#666"
+  >Share of topic-instances</text>
+
+  {#each [0, 0.25, 0.5, 0.75, 1.0] as tick (tick)}
+    <line
+      x1={barMargin.left}
+      x2={barWidth - barMargin.right}
+      y1={yBar(tick)}
+      y2={yBar(tick)}
+      stroke="#e0e0e0"
+      stroke-width="1"
+    />
+    <text
+      x={barMargin.left - 8}
+      y={yBar(tick) + 4}
+      text-anchor="end"
+      font-size="11"
+      fill="#666"
+    >{tick}</text>
+  {/each}
+
+  {#each decadeTopicProportions as { decade, segments } (decade)}
+    {#each segments as seg (seg.topic)}
+      {#if seg.proportion > 0}
+        {@const x = xBand(decade) ?? 0}
+        {@const bw = xBand.bandwidth()}
+        {@const yTop = yBar(seg.y1)}
+        {@const h = yBar(seg.y0) - yBar(seg.y1)}
+        <rect
+          x={x}
+          y={yTop}
+          width={bw}
+          height={h}
+          fill={topicColor(seg.topic)}
+          opacity={selectedTopic !== null && seg.topic !== selectedTopic ? 0.15 : 0.85}
+          role="button"
+          tabindex="-1"
+          aria-label="{seg.topic}, {decade}"
+          onclick={() => toggleTopic(seg.topic)}
+          onkeydown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') toggleTopic(seg.topic);
+          }}
+          style="cursor: pointer;"
+        />
+        {#if seg.proportion > 0.06}
+          <text
+            x={x + bw / 2}
+            y={yTop + h / 2 + 4}
+            text-anchor="middle"
+            font-size="11"
+            fill="white"
+            pointer-events="none"
+          >n={seg.count}</text>
+        {/if}
+      {/if}
+    {/each}
+  {/each}
+
+  {#each decades as decade (decade)}
+    <text
+      x={(xBand(decade) ?? 0) + xBand.bandwidth() / 2}
+      y={barHeight - barMargin.bottom + 20}
+      text-anchor="middle"
+      font-size="12"
+      fill="#333"
+    >{decade}</text>
+  {/each}
+
+  <text
+    x={(barMargin.left + barWidth - barMargin.right) / 2}
+    y={barHeight - 8}
+    text-anchor="middle"
+    font-size="12"
+    fill="#666"
+  >Year (5-year buckets)</text>
+</svg>
+
+<section class="facets" aria-label="Topic proportion over time">
+  {#each topicSeries as series (series.topic)}
+    {@const dimmed = selectedTopic !== null && selectedTopic !== series.topic}
+    {@const maxPct = (series.max * 100).toFixed(0)}
+    {@const yScale = topicSharedY ? topicFacetY : localY(series.max)}
+    {@const yTicks = topicSharedY ? topicFacetYTicks : localYTicks(series.max)}
+    <button
+      type="button"
+      class="facet"
+      class:dimmed
+      onclick={() => toggleTopic(series.topic)}
+      aria-label="{series.topic} proportion over time: peak {maxPct}% in {peakTopicBucket(series.points)}"
+    >
+      <div class="facet-header">
+        <span class="swatch small" style="background: {topicColor(series.topic)};"></span>
+        <span class="facet-name">{series.topic}</span>
+        <span class="facet-max">· peak {maxPct}%</span>
+      </div>
+      <svg width={facetWidth} height={facetHeight} class="facet-svg">
+        <g transform="translate({facetMargin.left},{facetMargin.top})">
+          {#each yTicks as t (t)}
+            <line
+              x1={0}
+              x2={facetInnerWidth}
+              y1={yScale(t)}
+              y2={yScale(t)}
+              stroke="#eee"
+              stroke-width="1"
+            />
+            <text
+              x={-4}
+              y={yScale(t) + 3}
+              text-anchor="end"
+              font-size="9"
+              fill="#888"
+            >{(t * 100).toFixed(0)}%</text>
+          {/each}
+          {#if series.max > 0}
+            {@const pathD = series.points
+              .map((p, i) => `${i === 0 ? 'M' : 'L'} ${facetCx(p.decade)} ${yScale(p.proportion)}`)
+              .join(' ')}
+            <path
+              d={pathD}
+              fill="none"
+              stroke={topicColor(series.topic)}
+              stroke-width="1.5"
+              opacity={dimmed ? 0.15 : 0.9}
+            />
+            {#each series.points as p (p.decade)}
+              <circle
+                cx={facetCx(p.decade)}
+                cy={yScale(p.proportion)}
+                r="2.5"
+                fill={topicColor(series.topic)}
+                opacity={dimmed ? 0.15 : 0.9}
+              />
+            {/each}
+          {/if}
+        </g>
+        <g transform="translate({facetMargin.left},{facetMargin.top + facetInnerHeight})">
+          <text
+            x={facetCx(decades[0])}
+            y={12}
+            text-anchor="middle"
+            font-size="9"
+            fill="#888"
+          >{decades[0]}</text>
+          <text
+            x={facetCx(decades[decades.length - 1])}
+            y={12}
+            text-anchor="middle"
+            font-size="9"
+            fill="#888"
+          >{decades[decades.length - 1]}</text>
+        </g>
+      </svg>
+    </button>
+  {/each}
+</section>
+</div>
+
+<h3 class="section-h3">Topic combinations: UpSet (left) + pairwise co-occurrence (right)</h3>
+<p class="caption">
+  <strong>Left — UpSet (exact-set view):</strong> the {UPSET_TOP_N} most-recurring <em>exact</em> topic combinations across {topicPapers.length} papers ({topicIntersections.length} distinct combinations total). Each vertical bar counts papers whose <em>full topic set</em> matches the dotted pattern — a "social power + identity" bar counts only papers tagged with those two and <em>nothing else</em>. <strong>Right — pairwise heatmap (at-least-both view):</strong> cell (row, column) counts papers tagged with <em>both</em> topics regardless of what else they have, so the same pair will always show a larger number here than in the UpSet view (the heatmap value equals the sum of every UpSet bar whose dot pattern contains both topics). Diagonal cells are each topic's own paper count, shown in grey. Click any UpSet bar or heatmap cell to filter the table below.
+</p>
+
+<div class="facet-controls">
+  <span class="control-label">Heatmap intensity:</span>
+  <button
+    type="button"
+    class="toggle-btn"
+    class:active={coocMode === 'count'}
+    onclick={() => (coocMode = 'count')}
+  >raw count</button>
+  <button
+    type="button"
+    class="toggle-btn"
+    class:active={coocMode === 'phi'}
+    onclick={() => (coocMode = 'phi')}
+  >phi correlation</button>
+  {#if coocMode === 'phi'}
+    <span class="control-label" style="margin-left: 12px;">
+      <span style="color: rgba(46, 92, 158, 0.85); font-weight: 600;">blue</span> = positive association,
+      <span style="color: rgba(190, 70, 70, 0.85); font-weight: 600;">red</span> = negative.
+      φ ∈ [−1, 1]; cells with |φ| &lt; 0.05 are blanked.
+    </span>
+  {/if}
+</div>
+
+<div class="facet-controls">
+  <span class="control-label">Row/column order:</span>
+  <button
+    type="button"
+    class="toggle-btn"
+    class:active={coocSort === 'frequency'}
+    onclick={() => (coocSort = 'frequency')}
+  >by frequency</button>
+  <button
+    type="button"
+    class="toggle-btn"
+    class:active={coocSort === 'alphabetical'}
+    onclick={() => (coocSort = 'alphabetical')}
+  >alphabetical</button>
+  <button
+    type="button"
+    class="toggle-btn"
+    class:active={coocSort === 'cluster'}
+    onclick={() => (coocSort = 'cluster')}
+  >cluster (hierarchical on 1−φ)</button>
+</div>
+
+<div class="cooc-row">
+<div class="upset-wrap">
+<svg width={upsetWidth} height={upsetHeight} class="upset">
+  <!-- Intersection bars (top) -->
+  <g transform="translate({upsetMatrixLeft},{upsetMargin.top})">
+    {#each topIntersections as inter, i (inter.setKey)}
+      {@const x = i * upsetCellSize}
+      {@const h = upsetBarHeight(inter.count)}
+      {@const active = upsetSelected === inter.setKey}
+      <rect
+        x={x + 3}
+        y={upsetIntersectionBarHeight - h}
+        width={upsetCellSize - 6}
+        height={h}
+        fill={active ? '#1a4a8a' : '#444'}
+        opacity={upsetSelected !== null && !active ? 0.25 : 0.85}
+        style="cursor: pointer;"
+        role="button"
+        tabindex="-1"
+        aria-label="{inter.count} papers with topics: {[...inter.members].join(', ')}"
+        onclick={() => toggleUpset(inter.setKey)}
+      />
+      {#if inter.count >= 2}
+        <text
+          x={x + upsetCellSize / 2}
+          y={upsetIntersectionBarHeight - h - 4}
+          text-anchor="middle"
+          font-size="10"
+          fill="#444"
+          pointer-events="none"
+        >{inter.count}</text>
+      {/if}
+    {/each}
+  </g>
+
+  <!-- Topic labels + set-size bars (left column, aligned with matrix rows) -->
+  <g transform="translate({upsetMargin.left},{upsetMatrixTop})">
+    {#each topicCategories as topic, ti (topic)}
+      {@const y = ti * upsetCellSize}
+      {@const total = topicSetTotals.get(topic) ?? 0}
+      {@const w = upsetSetBarWidthScale(total)}
+      <text
+        x={upsetTopicLabelWidth - 6}
+        y={y + upsetCellSize / 2 + 4}
+        text-anchor="end"
+        font-size="11"
+        fill="#333"
+      >{topic}</text>
+      <rect
+        x={upsetTopicLabelWidth}
+        y={y + 4}
+        width={w}
+        height={upsetCellSize - 8}
+        fill="#999"
+        opacity="0.6"
+      />
+      <text
+        x={upsetTopicLabelWidth + w + 4}
+        y={y + upsetCellSize / 2 + 4}
+        font-size="10"
+        fill="#666"
+      >{total}</text>
+    {/each}
+  </g>
+
+  <!-- Intersection dot matrix (bottom-right) -->
+  <g transform="translate({upsetMatrixLeft},{upsetMatrixTop})">
+    {#each topicCategories as topic, ti (topic)}
+      <line
+        x1={upsetCellSize / 2}
+        x2={topIntersections.length * upsetCellSize - upsetCellSize / 2}
+        y1={ti * upsetCellSize + upsetCellSize / 2}
+        y2={ti * upsetCellSize + upsetCellSize / 2}
+        stroke="#f0f0f0"
+        stroke-width="1"
+      />
+    {/each}
+    {#each topIntersections as inter, ii (inter.setKey)}
+      {@const x = ii * upsetCellSize}
+      {@const active = upsetSelected === inter.setKey}
+      {@const memberIdxs = topicCategories
+        .map((t, ti) => (inter.members.has(t) ? ti : -1))
+        .filter((ti) => ti >= 0)}
+      {#if memberIdxs.length >= 2}
+        {@const minI = Math.min(...memberIdxs)}
+        {@const maxI = Math.max(...memberIdxs)}
+        <line
+          x1={x + upsetCellSize / 2}
+          x2={x + upsetCellSize / 2}
+          y1={minI * upsetCellSize + upsetCellSize / 2}
+          y2={maxI * upsetCellSize + upsetCellSize / 2}
+          stroke={active ? '#1a4a8a' : '#444'}
+          stroke-width="1.5"
+          opacity={upsetSelected !== null && !active ? 0.2 : 0.7}
+        />
+      {/if}
+      {#each topicCategories as topic, ti (topic)}
+        {@const inSet = inter.members.has(topic)}
+        <circle
+          cx={x + upsetCellSize / 2}
+          cy={ti * upsetCellSize + upsetCellSize / 2}
+          r={inSet ? 4 : 2}
+          fill={inSet ? (active ? '#1a4a8a' : '#333') : '#ddd'}
+          opacity={inSet
+            ? upsetSelected !== null && !active ? 0.25 : 0.9
+            : 0.45}
+          style="cursor: pointer;"
+          role="button"
+          tabindex="-1"
+          aria-label="{inSet ? 'in' : 'not in'} combination {ii + 1}: {topic}"
+          onclick={() => toggleUpset(inter.setKey)}
+        />
+      {/each}
+    {/each}
+  </g>
+</svg>
+</div>
+
+<div class="cooc-wrap">
+<svg width={coocWidth} height={coocHeight} class="cooc">
+  <!-- Column labels (rotated -45° above grid) — uses ordered indices -->
+  <g transform="translate({coocMargin.left},{coocMargin.top})">
+    {#each heatmapOrder as origJ, displayJ (origJ)}
+      {@const topic = topicCategories[origJ]}
+      <text
+        x={displayJ * coocCellSize + coocCellSize / 2}
+        y={-6}
+        text-anchor="start"
+        font-size="11"
+        fill="#333"
+        transform="rotate(-45, {displayJ * coocCellSize + coocCellSize / 2}, -6)"
+      >{topic}</text>
+    {/each}
+  </g>
+
+  <!-- Row labels — uses ordered indices -->
+  <g transform="translate({coocMargin.left},{coocMargin.top})">
+    {#each heatmapOrder as origI, displayI (origI)}
+      {@const topic = topicCategories[origI]}
+      <text
+        x={-6}
+        y={displayI * coocCellSize + coocCellSize / 2 + 4}
+        text-anchor="end"
+        font-size="11"
+        fill="#333"
+      >{topic}</text>
+    {/each}
+  </g>
+
+  <!-- Cells — render in display order; look up cell by original i/j -->
+  <g transform="translate({coocMargin.left},{coocMargin.top})">
+    {#each heatmapOrder as origI, displayI (origI)}
+      {#each heatmapOrder as origJ, displayJ (origJ)}
+        {@const rowTopic = topicCategories[origI]}
+        {@const colTopic = topicCategories[origJ]}
+        {@const cell = topicCooccurrence[origI][origJ]}
+        {@const active =
+          coocSelected !== null &&
+          coocSelected.rowTopic === rowTopic &&
+          coocSelected.colTopic === colTopic}
+        <rect
+          x={displayJ * coocCellSize}
+          y={displayI * coocCellSize}
+          width={coocCellSize - 1}
+          height={coocCellSize - 1}
+          fill={coocCellFill(origI, origJ, cell.count)}
+          stroke={active ? '#1a4a8a' : 'transparent'}
+          stroke-width={active ? 2 : 0}
+          style="cursor: {cell.count > 0 ? 'pointer' : 'default'};"
+          role="button"
+          tabindex="-1"
+          aria-label="{rowTopic} × {colTopic}: {cell.count} papers"
+          onclick={() => toggleCooc(rowTopic, colTopic, cell.count)}
+        />
+        {@const label = coocCellLabel(origI, origJ, cell.count)}
+        {#if label}
+          <text
+            x={displayJ * coocCellSize + coocCellSize / 2}
+            y={displayI * coocCellSize + coocCellSize / 2 + 4}
+            text-anchor="middle"
+            font-size="11"
+            fill={coocCellTextFill(origI, origJ, cell.count)}
+            pointer-events="none"
+          >{label}</text>
+        {/if}
+      {/each}
+    {/each}
+  </g>
+</svg>
+</div>
+</div>
+
+<details class="interpretation">
+  <summary>Reading the two views</summary>
+  <ul>
+    <li>
+      <strong>UpSet bar ≠ heatmap cell.</strong> The UpSet bar for "A + B" counts papers whose <em>exact</em> topic set is {`{A, B}`} and nothing else (e.g. <code>social power + identity</code> ≈ 15 papers). The heatmap cell counts every paper with <em>at least</em> both tags, regardless of what else they carry (e.g. ≈ 131 papers). The heatmap value equals the sum of every UpSet bar whose dot pattern contains both topics.
+    </li>
+    <li>
+      <strong>Raw count vs phi.</strong> Raw count is volume; phi is association above chance. Two common labels (like <code>social power</code> and <code>identity</code>) will co-occur a lot in absolute terms even if they're only modestly associated — their phi may be only ~0.20–0.30 even when their co-occurrence count is the corpus maximum. Rare labels that nonetheless travel together (like <code>emotion + place-based study</code>) can be invisible in raw count but jump out in phi.
+    </li>
+    <li>
+      <strong>Cluster ordering surfaces block structure.</strong> Switching to <code>cluster (hierarchical on 1−φ)</code> reorders rows and columns so positively-associated labels land adjacent. Expect roughly three blocks on the diagonal: a social-political cluster (<code>social power</code>, <code>identity</code>, <code>governance</code>, <code>mobility</code>), a place/space-form cluster (<code>place-based study</code>, <code>built environment</code>, <code>scale/location</code>), and a nature-society cluster (<code>human-environment</code>, <code>natural environment</code>, <code>climate and natural hazards</code>, perhaps <code>agriculture/food</code>). The long-tail labels (<code>methods</code>, <code>technology</code>, <code>energy</code>, <code>weather</code>, <code>recreation</code>) typically sit at the edges and their clustering position is noisy because of small support.
+    </li>
+    <li>
+      <strong>What strong negative phi (red) means.</strong> Red cells flag tag pairs that papers <em>avoid</em> combining — distinct analytical commitments. Expect mild red between method-of-paper-explanation labels (<code>methods</code>, <code>technology</code>) and affective labels (<code>emotion</code>), and between purely-physical labels (<code>weather</code>, <code>climate and natural hazards</code>) and identity/power labels.
+    </li>
+    <li>
+      <strong>Sample-size caveat.</strong> <code>weather</code> (n=2), <code>recreation</code> (n=13), <code>energy</code> (n=12), <code>natural environment</code> (n=14) have low support, so their phi values are noisy and their clustered position can shift on minor data changes. Treat their positions as suggestive at best.
+    </li>
+  </ul>
+</details>
+
+<details class="interpretation">
+  <summary>How phi is computed (and why it differs from raw count)</summary>
+  <p>
+    Pairs like <code>social power</code> and <code>identity</code> are the most common co-occurring tags, but that's not particularly meaningful — they're also the two most common individual tags. We instead want to examine the <em>correlation</em> between tags: how often they appear together relative to how often they appear separately. The phi coefficient does exactly this. Its focus is <em>how much more likely it is that either both topics X and Y appear on a paper, or neither does, than that one appears without the other.</em>
+  </p>
+
+  <p class="phi-formula">
+    <span class="phi-frac">
+      <span class="phi-num">
+        φ &nbsp;=&nbsp;
+      </span>
+      <span class="phi-stack">
+        <span class="phi-numerator">n<sub>11</sub>·n<sub>00</sub> − n<sub>10</sub>·n<sub>01</sub></span>
+        <span class="phi-bar"></span>
+        <span class="phi-denominator">√(n<sub>1·</sub>·n<sub>0·</sub>·n<sub>·0</sub>·n<sub>·1</sub>)</span>
+      </span>
+    </span>
+  </p>
+
+  <p>
+    The four counts come from a 2×2 contingency table for any pair of topics X and Y across the corpus:
+  </p>
+
+  <table class="contingency">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Has tag Y</th>
+        <th>No tag Y</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th>Has tag X</th>
+        <td>n<sub>11</sub></td>
+        <td>n<sub>10</sub></td>
+        <td>n<sub>1·</sub></td>
+      </tr>
+      <tr>
+        <th>No tag X</th>
+        <td>n<sub>01</sub></td>
+        <td>n<sub>00</sub></td>
+        <td>n<sub>0·</sub></td>
+      </tr>
+      <tr>
+        <th>Total</th>
+        <td>n<sub>·1</sub></td>
+        <td>n<sub>·0</sub></td>
+        <td>n</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    Concretely, for X = <code>social power</code> and Y = <code>identity</code> on our 346 papers:
+    n<sub>11</sub> ≈ papers with both, n<sub>10</sub> ≈ social-power-only, n<sub>01</sub> ≈ identity-only, n<sub>00</sub> ≈ neither. The numerator (n<sub>11</sub>·n<sub>00</sub> − n<sub>10</sub>·n<sub>01</sub>) is positive when "both-or-neither" dominates "one-without-the-other", and negative in the reverse case. The denominator is a geometric mean of the marginal totals; dividing by it normalizes φ into [−1, 1] regardless of corpus size or how lopsided the individual labels are.
+  </p>
+
+  <p>
+    Properties worth knowing:
+  </p>
+  <ul>
+    <li>φ is symmetric: φ(X, Y) = φ(Y, X). The heatmap is therefore symmetric across the diagonal.</li>
+    <li>φ = 0 means topics co-occur exactly at chance frequency, given their marginals.</li>
+    <li>For two binary variables, φ equals the Pearson correlation coefficient; both have the same meaning in this setting.</li>
+    <li>In practice |φ| rarely exceeds ~0.5 even for strong associations in document-tagging data, because each tag has a wide range of papers it could appear on — the diverging colour scale on the heatmap amplifies the |φ| × 2.5 mapping so that mid-range associations are still visible.</li>
+    <li>φ is sensitive to the marginal frequencies. A pair with low individual support that always co-occurs can show a very high φ on a small sample (the <code>weather</code>/<code>climate-and-natural-hazards</code> pair would be a candidate here). The sample-size caveat above applies.</li>
+  </ul>
+
+  <h5 class="phi-subhead">Is |φ| = 0.3 surprising? Significance and bootstrap</h5>
+
+  <p>
+    A useful intuition for our 346-paper corpus: under the null hypothesis that two tags are independent, the standard error of φ is roughly 1/√n ≈ 0.054. So an observed φ = 0.3 sits about 5–6 standard errors away from zero — extremely unlikely under independence.
+  </p>
+
+  <p>
+    More precisely: the chi-square test statistic for a 2×2 contingency table is χ² = n · φ², with 1 degree of freedom. So:
+  </p>
+  <ul>
+    <li>|φ| ≥ 0.10  →  χ² ≥ 3.46,  p ≈ 0.06  (marginal)</li>
+    <li>|φ| ≥ 0.15  →  χ² ≥ 7.79,  p &lt; 0.01</li>
+    <li>|φ| ≥ 0.20  →  χ² ≥ 13.8,  p &lt; 0.001</li>
+    <li>|φ| ≥ 0.30  →  χ² ≥ 31.1,  p &lt; 10⁻⁷</li>
+  </ul>
+  <p>
+    These thresholds are asymptotic and assume both tags have reasonable marginal support. They break down when one tag is rare. <strong>Click any heatmap cell to see its 95% bootstrap CI and its chi-square p-value</strong> — bootstrap (resampling papers with replacement, 1000 iterations) is the more honest measure when marginal support is small, because it captures the actual sampling variability of φ rather than assuming the asymptotic Normal approximation.
+  </p>
+</details>
+
+{#if coocSelected !== null}
+  <div class="table-section">
+    <h2>
+      Co-occurrence: <span class="upset-set">{coocSelected.rowTopic} + {coocSelected.colTopic}</span>
+      <span class="count">({coocSelectedPapers.length} papers)</span>
+      <button onclick={() => (coocSelected = null)}>Clear</button>
+    </h2>
+    {#if coocSelectedStats}
+      <div class="cooc-stats">
+        <div class="cooc-stats-row">
+          <div class="cooc-contingency">
+            <div class="cooc-cont-title">Contingency (n = {coocSelectedStats.n})</div>
+            <table class="cont-tbl">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>{coocSelected.colTopic} ✓</th>
+                  <th>{coocSelected.colTopic} ✗</th>
+                  <th>row total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>{coocSelected.rowTopic} ✓</th>
+                  <td class="hi">n<sub>11</sub> = {coocSelectedStats.a}</td>
+                  <td>n<sub>10</sub> = {coocSelectedStats.b}</td>
+                  <td class="marg">{coocSelectedStats.a + coocSelectedStats.b}</td>
+                </tr>
+                <tr>
+                  <th>{coocSelected.rowTopic} ✗</th>
+                  <td>n<sub>01</sub> = {coocSelectedStats.c}</td>
+                  <td>n<sub>00</sub> = {coocSelectedStats.d}</td>
+                  <td class="marg">{coocSelectedStats.c + coocSelectedStats.d}</td>
+                </tr>
+                <tr class="marg-row">
+                  <th>col total</th>
+                  <td class="marg">{coocSelectedStats.a + coocSelectedStats.c}</td>
+                  <td class="marg">{coocSelectedStats.b + coocSelectedStats.d}</td>
+                  <td class="marg">{coocSelectedStats.n}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="cooc-numbers">
+            <div class="cooc-stat-row">
+              <span class="cooc-stat-label">φ̂</span>
+              <span class="cooc-stat-val">{coocSelectedStats.phi.toFixed(3)}</span>
+            </div>
+            <div class="cooc-stat-row">
+              <span class="cooc-stat-label">95% bootstrap CI</span>
+              <span class="cooc-stat-val">[{coocSelectedStats.ciLow.toFixed(3)}, {coocSelectedStats.ciHigh.toFixed(3)}]</span>
+            </div>
+            <div class="cooc-stat-row">
+              <span class="cooc-stat-label">χ² (1 df)</span>
+              <span class="cooc-stat-val">{coocSelectedStats.chi2.toFixed(2)}</span>
+            </div>
+            <div class="cooc-stat-row">
+              <span class="cooc-stat-label">p</span>
+              <span class="cooc-stat-val">{fmtP(coocSelectedStats.pValue)}</span>
+            </div>
+            <div class="cooc-stat-note">
+              Bootstrap: {BOOTSTRAP_N} resamples of papers with replacement.
+              {#if coocSelectedStats.ciLow > 0 || coocSelectedStats.ciHigh < 0}
+                CI excludes 0 — association is reliable at the 5% level.
+              {:else}
+                CI includes 0 — direction not reliable; treat as noise.
+              {/if}
+            </div>
+          </div>
+        </div>
+      </div>
+    {/if}
+    <table>
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th>Title</th>
+          <th>Authors</th>
+          <th>Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        {#each coocSelectedPapers as p (p.doi)}
+          <tr>
+            <td>{p.pub_year}</td>
+            <td>{p.title || p.doi}</td>
+            <td>{p.authors}</td>
+            <td>{p.source}</td>
+          </tr>
+        {/each}
+      </tbody>
+    </table>
+  </div>
+{/if}
+
+<h3 class="section-h3">Anchor topic — co-occurrence over time</h3>
+<p class="caption">
+  Pick an anchor topic. Each facet shows the fraction of <em>anchor-tagged
+  papers</em> in each decade that <em>also</em> had the co-topic. Sort by
+  <strong>overall %</strong> for the loudest trajectories, by <strong>signed φ</strong>
+  to put true positive associations first and avoidance pairs last, or by
+  <strong>|φ|</strong> to surface the most structurally informative pairs
+  regardless of direction.
+</p>
+
+<div class="facet-controls">
+  <span class="control-label">Anchor:</span>
+  <select bind:value={anchorTopic} class="upset-topn">
+    {#each topicCategories as t (t)}
+      <option value={t}>{t} (n={topicSetTotals.get(t) ?? 0})</option>
+    {/each}
+  </select>
+  <span class="control-label">sort:</span>
+  <button
+    type="button"
+    class="toggle-btn"
+    class:active={anchorSort === 'overall'}
+    onclick={() => (anchorSort = 'overall')}
+  >overall %</button>
+  <button
+    type="button"
+    class="toggle-btn"
+    class:active={anchorSort === 'phi'}
+    onclick={() => (anchorSort = 'phi')}
+  >signed φ</button>
+  <button
+    type="button"
+    class="toggle-btn"
+    class:active={anchorSort === 'absphi'}
+    onclick={() => (anchorSort = 'absphi')}
+  >|φ|</button>
+  <span class="control-label">y-axis:</span>
+  <button
+    type="button"
+    class="toggle-btn"
+    class:active={anchorSharedY}
+    onclick={() => (anchorSharedY = true)}
+  >shared</button>
+  <button
+    type="button"
+    class="toggle-btn"
+    class:active={!anchorSharedY}
+    onclick={() => (anchorSharedY = false)}
+  >free</button>
+  <span class="control-label" style="margin-left: 12px;">n papers tagged <em>{anchorTopic}</em>: {anchorTotalPapers}</span>
+</div>
+
+<section class="facets" aria-label="Co-occurrence with anchor topic over time">
+  {#each anchorSeries as series (series.coTopic)}
+    {@const maxPct = (series.max * 100).toFixed(0)}
+    {@const overallPct = (series.overall * 100).toFixed(0)}
+    {@const yScale = anchorSharedY ? anchorFacetY : localY(series.max)}
+    {@const yTicks = anchorSharedY ? anchorFacetYTicks : localYTicks(series.max)}
+    <div class="facet" style="cursor: default;">
+      <div class="facet-header">
+        <span class="swatch small" style="background: {topicColor(series.coTopic)};"></span>
+        <span class="facet-name">{series.coTopic}</span>
+        <span class="facet-max">· overall {overallPct}% · peak {maxPct}% ({peakAnchorBucket(series.points)}) · </span>
+        <span
+          class="facet-phi"
+          style="color: {series.phi >= 0 ? 'rgb(46, 92, 158)' : 'rgb(190, 70, 70)'};"
+          title="phi correlation of {series.coTopic} with anchor {anchorTopic}"
+        >φ = {series.phi.toFixed(2)}</span>
+      </div>
+      <svg width={facetWidth} height={facetHeight} class="facet-svg">
+        <g transform="translate({facetMargin.left},{facetMargin.top})">
+          {#each yTicks as t (t)}
+            <line
+              x1={0}
+              x2={facetInnerWidth}
+              y1={yScale(t)}
+              y2={yScale(t)}
+              stroke="#eee"
+              stroke-width="1"
+            />
+            <text
+              x={-4}
+              y={yScale(t) + 3}
+              text-anchor="end"
+              font-size="9"
+              fill="#888"
+            >{(t * 100).toFixed(0)}%</text>
+          {/each}
+          {#if series.max > 0}
+            {@const pathD = series.points
+              .map((p, i) => `${i === 0 ? 'M' : 'L'} ${facetCx(p.decade)} ${yScale(p.proportion)}`)
+              .join(' ')}
+            <path
+              d={pathD}
+              fill="none"
+              stroke={topicColor(series.coTopic)}
+              stroke-width="1.5"
+              opacity="0.9"
+            />
+            {#each series.points as p (p.decade)}
+              <circle
+                cx={facetCx(p.decade)}
+                cy={yScale(p.proportion)}
+                r="2.5"
+                fill={topicColor(series.coTopic)}
+                opacity="0.9"
+              >
+                <title>{p.decade}: {p.numerator}/{p.denominator} anchor papers</title>
+              </circle>
+            {/each}
+          {/if}
+        </g>
+        <g transform="translate({facetMargin.left},{facetMargin.top + facetInnerHeight})">
+          <text
+            x={facetCx(decades[0])}
+            y={12}
+            text-anchor="middle"
+            font-size="9"
+            fill="#888"
+          >{decades[0]}</text>
+          <text
+            x={facetCx(decades[decades.length - 1])}
+            y={12}
+            text-anchor="middle"
+            font-size="9"
+            fill="#888"
+          >{decades[decades.length - 1]}</text>
+        </g>
+      </svg>
+    </div>
+  {/each}
+</section>
+
+{#if upsetSelected !== null && upsetSelectedMembers}
+  <div class="table-section">
+    <h2>
+      Topic combination:
+      <span class="upset-set">{[...upsetSelectedMembers].join(' + ')}</span>
+      <span class="count">({upsetSelectedPapers.length} papers)</span>
+      <button onclick={() => (upsetSelected = null)}>Clear</button>
+    </h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th>Title</th>
+          <th>Authors</th>
+          <th>Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        {#each upsetSelectedPapers as p (p.doi)}
+          <tr>
+            <td>{p.pub_year}</td>
+            <td>{p.title || p.doi}</td>
+            <td>{p.authors}</td>
+            <td>{p.source}</td>
+          </tr>
+        {/each}
+      </tbody>
+    </table>
+  </div>
+{/if}
+
+{#if selectedTopic !== null}
+  <div class="table-section">
+    <h2>
+      Topic: {selectedTopic}
+      <span class="count">({filteredTopicPapers.length} papers)</span>
+      <button onclick={() => (selectedTopic = null)}>Clear</button>
+    </h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th>Title</th>
+          <th>Authors</th>
+          <th>Source</th>
+          <th>Co-tagged topics</th>
+        </tr>
+      </thead>
+      <tbody>
+        {#each filteredTopicPapers as p (p.doi)}
+          <tr>
+            <td>{p.pub_year}</td>
+            <td>{p.title || p.doi}</td>
+            <td>{p.authors}</td>
+            <td>{p.source}</td>
+            <td>{p.topics.filter((t) => t !== selectedTopic).join(', ')}</td>
+          </tr>
+        {/each}
+      </tbody>
+    </table>
+  </div>
+{/if}
+
 {#if selectedRegion !== null}
   <div class="table-section">
     <h2>
@@ -1174,6 +2664,216 @@
     font-size: 11px;
   }
 
+  .facet-phi {
+    font-size: 11px;
+    font-weight: 600;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  .section-h3 {
+    font-size: 15px;
+    margin: 28px 0 4px;
+    font-family: system-ui, sans-serif;
+    color: #333;
+  }
+
+  .cooc-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+
+  .interpretation {
+    margin: 12px 0 24px;
+    padding: 14px 18px;
+    background: #fafafa;
+    border-left: 3px solid #d0d7de;
+    border-radius: 4px;
+    font-family: system-ui, sans-serif;
+    max-width: 1100px;
+  }
+
+  .interpretation > summary {
+    margin: 0 0 6px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #555;
+    font-weight: 600;
+    cursor: pointer;
+    list-style-position: outside;
+    user-select: none;
+  }
+
+  .interpretation > summary:hover {
+    color: #222;
+  }
+
+  .interpretation[open] > summary {
+    margin-bottom: 10px;
+  }
+
+  .interpretation ul {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #333;
+  }
+
+  .interpretation li {
+    margin-bottom: 6px;
+  }
+
+  .interpretation code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    padding: 1px 4px;
+    background: #eee;
+    border-radius: 3px;
+    color: #1a4a8a;
+  }
+
+  .interpretation p {
+    margin: 8px 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #333;
+  }
+
+  .phi-formula {
+    display: flex;
+    justify-content: center;
+    margin: 18px 0 !important;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: #1a4a8a;
+  }
+
+  .phi-frac {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .phi-num {
+    font-size: 18px;
+  }
+
+  .phi-stack {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.25;
+  }
+
+  .phi-numerator,
+  .phi-denominator {
+    padding: 0 4px;
+  }
+
+  .phi-bar {
+    height: 1px;
+    background: #1a4a8a;
+    width: 100%;
+    margin: 2px 0;
+  }
+
+  table.contingency {
+    margin: 6px auto 14px;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  table.contingency th,
+  table.contingency td {
+    border: 1px solid #d8d8d8;
+    padding: 4px 12px;
+    text-align: center;
+    color: #333;
+  }
+
+  table.contingency thead th,
+  table.contingency tbody th {
+    background: #f0f0f0;
+    color: #555;
+    font-weight: 500;
+  }
+
+  .upset-wrap {
+    overflow-x: auto;
+  }
+
+  .cooc-wrap {
+    overflow-x: auto;
+  }
+
+  .upset {
+    display: block;
+    background: white;
+  }
+
+  .cooc {
+    display: block;
+    background: white;
+  }
+
+  .upset-topn {
+    font-family: inherit;
+    font-size: 12px;
+    padding: 1px 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+    color: #333;
+  }
+
+  .upset-set {
+    font-weight: normal;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+    color: #1a4a8a;
+  }
+
+  .facet-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-family: system-ui, sans-serif;
+    font-size: 12px;
+  }
+
+  .control-label {
+    color: #666;
+  }
+
+  .toggle-btn {
+    padding: 3px 10px;
+    border: 1px solid #ccc;
+    border-radius: 999px;
+    background: white;
+    color: #333;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+
+  .toggle-btn:hover {
+    background: #f4f4f4;
+  }
+
+  .toggle-btn.active {
+    background: #222;
+    color: white;
+    border-color: #222;
+  }
+
   .legend-item.static {
     cursor: default;
   }
@@ -1203,6 +2903,99 @@
     font-size: 12px;
     padding: 2px 8px;
     cursor: pointer;
+  }
+
+  .cooc-stats {
+    margin: 8px 0 16px;
+    padding: 12px 14px;
+    border: 1px solid #e3e3e3;
+    background: #fafafa;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+
+  .cooc-stats-row {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .cooc-contingency {
+    flex: 0 0 auto;
+  }
+
+  .cooc-cont-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-size: 12px;
+    color: #555;
+  }
+
+  .cont-tbl {
+    width: auto;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .cont-tbl th,
+  .cont-tbl td {
+    padding: 3px 8px;
+    border: 1px solid #ddd;
+    text-align: center;
+  }
+
+  .cont-tbl thead th {
+    background: #f0f0f0;
+    font-weight: 600;
+  }
+
+  .cont-tbl tbody th {
+    background: #f0f0f0;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .cont-tbl td.hi {
+    background: rgba(46, 92, 158, 0.12);
+    font-weight: 600;
+  }
+
+  .cont-tbl td.marg,
+  .cont-tbl tr.marg-row th,
+  .cont-tbl tr.marg-row td {
+    color: #777;
+    font-style: italic;
+  }
+
+  .cooc-numbers {
+    flex: 1 1 240px;
+    min-width: 220px;
+  }
+
+  .cooc-stat-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 3px 0;
+    border-bottom: 1px dotted #e0e0e0;
+  }
+
+  .cooc-stat-label {
+    color: #555;
+  }
+
+  .cooc-stat-val {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 600;
+    color: #222;
+  }
+
+  .cooc-stat-note {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #666;
+    line-height: 1.35;
   }
 
   table {

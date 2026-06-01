@@ -1,0 +1,15 @@
+# V3 topic classifier — cat14 on ALL papers (production deployment).
+# Runs the validated cat14 config (F1=0.82, exact=0.344, jaccard=0.736 on
+# the 90-paper annotated set) against the full WoS corpus.
+# Predictions for unannotated papers will not be scored against GT but
+# carry the same model + categories that were tuned and validated on the
+# in-sample set.
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "14"
+ex_variant: "off"
+name: v3_abstract_cat14_all
+all_papers: true
+thinking: true
+max_tokens: 4096
