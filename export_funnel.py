@@ -47,24 +47,14 @@ def main():
     wos_dois.discard("")
     n_with_doi = len(wos_dois)
 
-    # 2) PDFs on disk (keyed by DOI-with-slash-replaced)
-    pdf_stems = {p.stem for p in PDF_DIR.glob("*.pdf")} if PDF_DIR.exists() else set()
-    dois_with_pdf = {d for d in wos_dois if doi_to_key(d) in pdf_stems}
-    n_with_pdf = len(dois_with_pdf)
+    # Has WoS abstract — this is the actual gate for the topic classifier,
+    # which runs on abstracts (run id contains "_abstract_").
+    dois_with_abs = {(r.get("DOI") or "").strip() for r in wos_rows
+                     if (r.get("DOI") or "").strip()
+                     and (r.get("Abstract") or "").strip()}
+    n_with_abs = len(dois_with_abs)
 
-    # 3) Parsed by docling OR dots (matches status.py's any_parsed semantics)
-    docling_stems = {p.stem for p in DOCLING_DIR.glob("*.md")} if DOCLING_DIR.exists() else set()
-    dots_stems = set()
-    if DOTS_DIR.exists():
-        dots_stems = {p.stem for p in DOTS_DIR.glob("*.md")}
-        dots_stems |= {d.name for d in DOTS_DIR.iterdir()
-                       if d.is_dir() and d.name != "jsonl"
-                       and any(d.glob("*_page_*_nohf.md"))}
-    parsed_stems = docling_stems | dots_stems
-    dois_parsed = {d for d in dois_with_pdf if doi_to_key(d) in parsed_stems}
-    n_parsed = len(dois_parsed)
-
-    # 4) Topic predictions
+    # Topic predictions (non-empty topics_pred list, joined back to WoS)
     pred_path = RUNS_DIR / args.topic_run / "predictions.parquet"
     preds = pd.read_parquet(pred_path)
 
@@ -76,7 +66,23 @@ def main():
     dois_with_pred = wos_dois & pred_dois  # final join in export_topics_viz.py
     n_final = len(dois_with_pred)
 
-    # 5) Stages (linear funnel, parent → child)
+    # Parallel branch: PDF / parse coverage (feeds full-text summarization,
+    # not the abstract-based topic classifier). Reported as a side note so
+    # the linear funnel above isn't confused with this independent path.
+    pdf_stems = {p.stem for p in PDF_DIR.glob("*.pdf")} if PDF_DIR.exists() else set()
+    n_with_pdf = sum(1 for d in wos_dois if doi_to_key(d) in pdf_stems)
+
+    docling_stems = {p.stem for p in DOCLING_DIR.glob("*.md")} if DOCLING_DIR.exists() else set()
+    dots_stems = set()
+    if DOTS_DIR.exists():
+        dots_stems = {p.stem for p in DOTS_DIR.glob("*.md")}
+        dots_stems |= {d.name for d in DOTS_DIR.iterdir()
+                       if d.is_dir() and d.name != "jsonl"
+                       and any(d.glob("*_page_*_nohf.md"))}
+    parsed_stems = docling_stems | dots_stems
+    n_parsed = sum(1 for d in wos_dois if doi_to_key(d) in parsed_stems)
+
+    # Stages (linear funnel — each row's `count` is what enters the next stage)
     stages = [
         {
             "key": "wos_input",
@@ -91,33 +97,29 @@ def main():
             "label": "Has DOI",
             "count": n_with_doi,
             "dropped": n_wos - n_with_doi,
-            "reason": "WoS row has no DOI; pipeline keys everything on DOI (status.py skips these)",
+            "reason": "WoS row has no DOI; pipeline keys everything on DOI",
             "source": "status.py",
         },
         {
-            "key": "has_pdf",
-            "label": "PDF fetched",
-            "count": n_with_pdf,
-            "dropped": n_with_doi - n_with_pdf,
-            "reason": "PDF fetch failed (paywall, broken DOI, network)",
-            "source": "extract/output/pdfs/",
-        },
-        {
-            "key": "parsed",
-            "label": "Parsed to markdown (docling or dots.ocr)",
-            "count": n_parsed,
-            "dropped": n_with_pdf - n_parsed,
-            "reason": "PDF on disk but no parser produced output",
-            "source": "parse/output/{docling,dots}/",
+            "key": "has_abstract",
+            "label": "Has WoS abstract",
+            "count": n_with_abs,
+            "dropped": n_with_doi - n_with_abs,
+            "reason": (
+                "WoS row has no Abstract field — common for pre-2002 papers "
+                "(Professional Geographer, Annals AAG, Geographical Review). "
+                "The abstract-based topic classifier has no input for these."
+            ),
+            "source": "WoS Abstract column",
         },
         {
             "key": "topic_pred",
             "label": "Topic prediction produced",
             "count": n_final,
-            "dropped": n_parsed - n_final,
+            "dropped": n_with_abs - n_final,
             "reason": (
-                "Parsed but classifier produced no topics (cat14 uses the WoS "
-                "abstract — old papers without abstracts get dropped here)"
+                "Classifier ran but returned an empty topics_pred list "
+                "(model declined to assign any topic)"
             ),
             "source": f"classify/output/runs/{args.topic_run}/predictions.parquet",
         },
@@ -127,6 +129,12 @@ def main():
         "computed_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "topic_run": args.topic_run,
         "stages": stages,
+        "side_branch": {
+            "label": "Full-text branch (parallel — feeds summarization, not the abstract classifier)",
+            "with_pdf": n_with_pdf,
+            "parsed": n_parsed,
+            "of_total": n_with_doi,
+        },
     }
 
     args.out.parent.mkdir(parents=True, exist_ok=True)

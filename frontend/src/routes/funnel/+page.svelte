@@ -12,10 +12,18 @@
     source: string;
   };
 
+  type SideBranch = {
+    label: string;
+    with_pdf: number;
+    parsed: number;
+    of_total: number;
+  };
+
   type FunnelData = {
     computed_at: string;
     topic_run: string;
     stages: Stage[];
+    side_branch?: SideBranch;
   };
 
   const d = data as unknown as FunnelData;
@@ -188,6 +196,27 @@
       </svg>
     </div>
   </section>
+
+  {#if d.side_branch}
+    <section class="block">
+      <h2>side branch &middot; full-text coverage</h2>
+      <p class="side-note">{d.side_branch.label}</p>
+      <table class="side-table">
+        <tbody>
+          <tr>
+            <td>PDF fetched</td>
+            <td class="num mono">{d.side_branch.with_pdf}</td>
+            <td class="muted mono">/ {d.side_branch.of_total} with DOI</td>
+          </tr>
+          <tr>
+            <td>Parsed to markdown</td>
+            <td class="num mono">{d.side_branch.parsed}</td>
+            <td class="muted mono">/ {d.side_branch.of_total} with DOI</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  {/if}
 </div>
 
 <style>
@@ -255,5 +284,30 @@
 
   svg {
     display: block;
+  }
+
+  .side-note {
+    color: #777;
+    font-size: 12px;
+    margin: 0 0 10px;
+  }
+
+  .side-table {
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .side-table td {
+    padding: 4px 14px 4px 0;
+  }
+
+  .side-table td.num {
+    text-align: right;
+    color: #222;
+  }
+
+  .muted {
+    color: #999;
+    font-size: 12px;
   }
 </style>
