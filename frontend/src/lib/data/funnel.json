@@ -1,0 +1,46 @@
+{
+  "computed_at": "2026-06-02T18:32:45+00:00",
+  "topic_run": "2026-05-29_1719_topic_v3_abstract_cat14_all",
+  "stages": [
+    {
+      "key": "wos_input",
+      "label": "WoS input CSV",
+      "count": 370,
+      "dropped": 0,
+      "reason": null,
+      "source": "extract/input/Full Dataset Rur Geog WoS 1986-2025 4-28-2026.csv"
+    },
+    {
+      "key": "has_doi",
+      "label": "Has DOI",
+      "count": 357,
+      "dropped": 13,
+      "reason": "WoS row has no DOI; pipeline keys everything on DOI (status.py skips these)",
+      "source": "status.py"
+    },
+    {
+      "key": "has_pdf",
+      "label": "PDF fetched",
+      "count": 354,
+      "dropped": 3,
+      "reason": "PDF fetch failed (paywall, broken DOI, network)",
+      "source": "extract/output/pdfs/"
+    },
+    {
+      "key": "parsed",
+      "label": "Parsed to markdown (docling or dots.ocr)",
+      "count": 354,
+      "dropped": 0,
+      "reason": "PDF on disk but no parser produced output",
+      "source": "parse/output/{docling,dots}/"
+    },
+    {
+      "key": "topic_pred",
+      "label": "Topic prediction produced",
+      "count": 346,
+      "dropped": 8,
+      "reason": "Parsed but classifier produced no topics (cat14 uses the WoS abstract \u2014 old papers without abstracts get dropped here)",
+      "source": "classify/output/runs/2026-05-29_1719_topic_v3_abstract_cat14_all/predictions.parquet"
+    }
+  ]
+}
