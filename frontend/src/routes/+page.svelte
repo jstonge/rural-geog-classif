@@ -5,6 +5,7 @@
   import data from '$lib/data/methods_viz.json';
   import locationsData from '$lib/data/locations_viz.json';
   import topicsData from '$lib/data/topics_viz.json';
+  import topicCompare from '$lib/data/topic_compare.json';
 
   type Paper = {
     doi: string;
@@ -1031,6 +1032,33 @@
     }
     return bucketLabel(best.decade);
   }
+
+  // Per-label F1 delta: cat14 (granular preds collapsed via parent map) vs cat16
+  // scored against the same n_shared papers in the cat16 12-bucket label space.
+  type CompareRow = {
+    label: string;
+    support_gt: number;
+    base: { p: number; r: number; f1: number; support_pred: number };
+    new: { p: number; r: number; f1: number; support_pred: number };
+    delta_f1: number;
+  };
+  const compareRows: CompareRow[] = [...(topicCompare.per_label as CompareRow[])]
+    .sort((a, b) => a.delta_f1 - b.delta_f1);
+
+  const compareChartWidth = 520;
+  const compareLabelGutter = 180;
+  const compareRowHeight = 22;
+  const compareChartHeight = compareRows.length * compareRowHeight + 28;
+  const compareMaxAbsDelta = Math.max(
+    0.05,
+    ...compareRows.map((r) => Math.abs(r.delta_f1))
+  );
+  const compareBarWidth = compareChartWidth - compareLabelGutter - 70;
+  const compareZeroX = compareLabelGutter + compareBarWidth / 2;
+  const compareDeltaScale = scaleLinear()
+    .domain([-compareMaxAbsDelta, compareMaxAbsDelta])
+    .range([compareLabelGutter, compareLabelGutter + compareBarWidth]);
+  const compareJaccardDelta = topicCompare.new_jaccard - topicCompare.base_jaccard;
 </script>
 
 <h1>Methods classification across rural geography (1992–2026)</h1>

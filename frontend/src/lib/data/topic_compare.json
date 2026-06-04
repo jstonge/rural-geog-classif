@@ -1,0 +1,216 @@
+{
+  "base_run": "2026-05-29_1447_topic_v3_abstract_cat14",
+  "new_run": "2026-06-04_0926_topic_v3_abstract_cat16",
+  "n_shared": 90,
+  "base_jaccard": 0.7446,
+  "new_jaccard": 0.7167,
+  "base_exact_match": 0.3667,
+  "new_exact_match": 0.3,
+  "collapsed_label_space": true,
+  "per_label": [
+    {
+      "label": "agriculture/food",
+      "support_gt": 12,
+      "base": {
+        "p": 0.8333,
+        "r": 0.8333,
+        "f1": 0.8333,
+        "support_pred": 12
+      },
+      "new": {
+        "p": 0.8462,
+        "r": 0.9167,
+        "f1": 0.88,
+        "support_pred": 13
+      },
+      "delta_f1": 0.0467
+    },
+    {
+      "label": "built environment",
+      "support_gt": 31,
+      "base": {
+        "p": 0.8929,
+        "r": 0.8065,
+        "f1": 0.8475,
+        "support_pred": 28
+      },
+      "new": {
+        "p": 0.8571,
+        "r": 0.7742,
+        "f1": 0.8136,
+        "support_pred": 28
+      },
+      "delta_f1": -0.0339
+    },
+    {
+      "label": "emotion",
+      "support_gt": 11,
+      "base": {
+        "p": 1.0,
+        "r": 0.9091,
+        "f1": 0.9524,
+        "support_pred": 10
+      },
+      "new": {
+        "p": 1.0,
+        "r": 0.9091,
+        "f1": 0.9524,
+        "support_pred": 10
+      },
+      "delta_f1": 0.0
+    },
+    {
+      "label": "governance",
+      "support_gt": 31,
+      "base": {
+        "p": 0.7931,
+        "r": 0.7419,
+        "f1": 0.7667,
+        "support_pred": 29
+      },
+      "new": {
+        "p": 0.7586,
+        "r": 0.7097,
+        "f1": 0.7333,
+        "support_pred": 29
+      },
+      "delta_f1": -0.0334
+    },
+    {
+      "label": "human-environment",
+      "support_gt": 19,
+      "base": {
+        "p": 0.6957,
+        "r": 0.8421,
+        "f1": 0.7619,
+        "support_pred": 23
+      },
+      "new": {
+        "p": 0.7778,
+        "r": 0.7368,
+        "f1": 0.7568,
+        "support_pred": 18
+      },
+      "delta_f1": -0.0051
+    },
+    {
+      "label": "identity",
+      "support_gt": 43,
+      "base": {
+        "p": 0.8261,
+        "r": 0.8837,
+        "f1": 0.8539,
+        "support_pred": 46
+      },
+      "new": {
+        "p": 0.814,
+        "r": 0.814,
+        "f1": 0.814,
+        "support_pred": 43
+      },
+      "delta_f1": -0.0399
+    },
+    {
+      "label": "methods",
+      "support_gt": 10,
+      "base": {
+        "p": 0.8333,
+        "r": 1.0,
+        "f1": 0.9091,
+        "support_pred": 12
+      },
+      "new": {
+        "p": 0.8333,
+        "r": 1.0,
+        "f1": 0.9091,
+        "support_pred": 12
+      },
+      "delta_f1": 0.0
+    },
+    {
+      "label": "mobility",
+      "support_gt": 15,
+      "base": {
+        "p": 0.7059,
+        "r": 0.8,
+        "f1": 0.75,
+        "support_pred": 17
+      },
+      "new": {
+        "p": 0.7222,
+        "r": 0.8667,
+        "f1": 0.7879,
+        "support_pred": 18
+      },
+      "delta_f1": 0.0379
+    },
+    {
+      "label": "physical geography",
+      "support_gt": 11,
+      "base": {
+        "p": 0.9,
+        "r": 0.8182,
+        "f1": 0.8571,
+        "support_pred": 10
+      },
+      "new": {
+        "p": 0.8,
+        "r": 0.7273,
+        "f1": 0.7619,
+        "support_pred": 10
+      },
+      "delta_f1": -0.0952
+    },
+    {
+      "label": "place-based study",
+      "support_gt": 17,
+      "base": {
+        "p": 1.0,
+        "r": 0.8235,
+        "f1": 0.9032,
+        "support_pred": 14
+      },
+      "new": {
+        "p": 0.7222,
+        "r": 0.7647,
+        "f1": 0.7429,
+        "support_pred": 18
+      },
+      "delta_f1": -0.1603
+    },
+    {
+      "label": "scale/location",
+      "support_gt": 25,
+      "base": {
+        "p": 0.7083,
+        "r": 0.68,
+        "f1": 0.6939,
+        "support_pred": 24
+      },
+      "new": {
+        "p": 0.6667,
+        "r": 0.56,
+        "f1": 0.6087,
+        "support_pred": 21
+      },
+      "delta_f1": -0.0852
+    },
+    {
+      "label": "social power",
+      "support_gt": 66,
+      "base": {
+        "p": 0.8889,
+        "r": 0.8485,
+        "f1": 0.8682,
+        "support_pred": 63
+      },
+      "new": {
+        "p": 0.9355,
+        "r": 0.8788,
+        "f1": 0.9062,
+        "support_pred": 62
+      },
+      "delta_f1": 0.038
+    }
+  ]
+}

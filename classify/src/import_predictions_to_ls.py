@@ -43,7 +43,7 @@ from label_studio_sdk.core.api_error import ApiError
 
 from lib.snapshots import load_snapshot
 from lib.tasks import get_task
-from lib.wos import WOS_CSV
+from lib.wos import load_wos_dict_rows
 from push_sections_to_ls import build_sections_html
 
 PROJECT_ID = 113
@@ -97,10 +97,10 @@ def main():
     print(f"Snapshot {snap['path'].name}: task={task_spec.name}, pred_col={pred_col}, "
           f"{len(preds)} rows; model_version={model_version}")
 
-    # Load WoS once, index by DOI
-    wos = pd.read_csv(WOS_CSV, encoding="latin-1")
-    wos_by_doi = {str(d).strip(): r for d, r in zip(wos["DOI"], wos.to_dict("records"))
-                  if isinstance(d, str) and d.strip()}
+    # Load WoS once (with DOI/abstract backfill applied), index by DOI
+    wos_rows = load_wos_dict_rows()
+    wos_by_doi = {(r.get("DOI") or "").strip(): r for r in wos_rows
+                  if (r.get("DOI") or "").strip()}
     print(f"WoS: {len(wos_by_doi)} rows with DOI")
 
     # Existing LS tasks

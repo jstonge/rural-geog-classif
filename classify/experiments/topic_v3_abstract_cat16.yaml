@@ -1,0 +1,24 @@
+# V3 topic classifier — cat16: tighten human-environment after cat15 over-fired.
+# Under cat15, human-environment fired 31 times against GT=20 (precision 0.61).
+# 12 false positives clustered into recognizable classes that cat14's anti-pattern
+# had named but the cat15 merge diluted:
+#   - governance/power papers with "environment" as backdrop (NGO legitimacy,
+#     oil/gas opinion, state green-development logic, gendered property rights)
+#   - settler-irrigation / race papers (Mead/Deakin — cat14 explicitly excluded these)
+#   - agroecology / agrarian-populism (about food movements, not nature-society)
+#   - "human-environment models" in a methods/literature description
+#   - climate-as-backdrop (photojournalism of climate displacement)
+#   - vandalism/conservation/perception studies that are about policing/visual representation
+# Cat16 demotes recreation to a NARROW TIE-BREAKER (cat14's place-based and methods
+# pattern) and expands the anti-pattern list to name each FP class explicitly.
+# Eleven other labels carry cat15 definitions verbatim.
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "16"
+ex_variant: "off"
+name: v3_abstract_cat16
+all_papers: false
+thinking: true
+max_tokens: 4096
+collapse_gt: true

@@ -11,13 +11,12 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 from collections import Counter
 from pathlib import Path
 
 from lib.snapshots import load_snapshot
-from lib.wos import WOS_CSV
+from lib.wos import load_wos_dict_rows
 
 OUT_JSON = Path("/gpfs1/home/j/s/jstonge1/rural-geog-classif/frontend/src/lib/data/locations_viz.json")
 
@@ -39,8 +38,7 @@ def main():
         if isinstance(regions, list) and regions:
             doi_to_regions[doi] = [str(x) for x in regions if x]
 
-    with open(WOS_CSV, encoding="latin-1") as f:
-        wos_rows = list(csv.DictReader(f))
+    wos_rows = load_wos_dict_rows()
 
     out = []
     for r in wos_rows:

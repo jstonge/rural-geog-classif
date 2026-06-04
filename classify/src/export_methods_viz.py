@@ -10,12 +10,11 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 from pathlib import Path
 
 from lib.snapshots import load_snapshot
-from lib.wos import WOS_CSV
+from lib.wos import load_wos_dict_rows
 
 OUT_JSON = Path("/gpfs1/home/j/s/jstonge1/rural-geog-classif/frontend/src/lib/data/methods_viz.json")
 
@@ -42,8 +41,7 @@ def main():
             doi_to_method[doi] = m
 
     # Load WoS for metadata, joined by DOI
-    with open(WOS_CSV, encoding="latin-1") as f:
-        wos_rows = list(csv.DictReader(f))
+    wos_rows = load_wos_dict_rows()
 
     out = []
     for r in wos_rows:

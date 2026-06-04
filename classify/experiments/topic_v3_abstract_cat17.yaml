@@ -1,0 +1,27 @@
+# V3 topic classifier — cat17: restore human-environment recall after cat16.
+# cat16 hit the precision target (HE precision 0.61 -> 0.78) but cost recall
+# (0.95 -> 0.70) — net F1 flat at 0.74. Diagnosis: the broad anti-pattern list
+# over-pruned legitimate HE papers and the model fell back to place-based study
+# for the same papers, inflating place-based FPs (0 -> 5, F1 0.90 -> 0.76).
+# The 5 lost HE TPs and 3-4 new place-based FPs are largely the SAME papers:
+#   - forest-dependent Honduras livelihoods (community-resource dependence)
+#   - West Virginia flood resilience (climate resilience as nature-society)
+#   - biodiversity vs land-use in American Mountain West (livelihood-biodiversity tradeoff)
+#   - China family farming households' environmental effects
+#   - Canadian cottage / urban-field recreation paper
+# cat17 keeps cat16's anti-patterns (they killed the right FPs) and ADDS three
+# restorative narrow tie-breakers — same cat14 pattern that worked for
+# place-based-study (ethnonym tie-breaker) and methods (title-foregrounding tie-breaker):
+#   #1 community-resource dependence (forests/fisheries/water/biodiversity-livelihood)
+#   #2 climate / hazard resilience and community-engaged research
+#   #3 recreation/leisure — broadened to mention cottages and second-homes explicitly
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "17"
+ex_variant: "off"
+name: v3_abstract_cat17
+all_papers: false
+thinking: true
+max_tokens: 4096
+collapse_gt: true

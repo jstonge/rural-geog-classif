@@ -5,28 +5,24 @@ fetched. Use --rebuild to force a full re-fetch.
 """
 
 import argparse
-import csv
 import json
 import time
 import urllib.parse
 import urllib.request
 from pathlib import Path
 
-INPUT_CSV = Path(__file__).parent.parent / "input" / "Coded Rural Geog All 1986-2025 WoS List 4-7-2026(savedrecs).csv"
+from load_wos import WOS_CSV, load_wos_rows
+
 OUTPUT_FILE = Path(__file__).parent.parent / "output" / "openalex_works.json"
 BATCH_SIZE = 50  # keep URL length manageable
 MAILTO = "jstonge1@uvm.edu"  # polite pool
 
 
-def read_dois(path: Path) -> list[str]:
-    dois = []
-    with open(path, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            doi = row.get("DOI", "").strip()
-            if doi:
-                dois.append(doi)
-    return dois
+def read_dois() -> list[str]:
+    """Read DOIs from the canonical WoS extract with backfill applied."""
+    rows = load_wos_rows()
+    return [d for r in rows
+            if (d := (r.get("DOI") or "").strip())]
 
 
 def load_existing(path: Path) -> dict[str, dict]:
@@ -62,8 +58,8 @@ def main():
                     help="Ignore existing output and re-fetch every DOI from OpenAlex.")
     args = ap.parse_args()
 
-    dois = read_dois(INPUT_CSV)
-    print(f"Found {len(dois)} DOIs in {INPUT_CSV.name}")
+    dois = read_dois()
+    print(f"Found {len(dois)} DOIs in {WOS_CSV.name} (with backfill applied)")
 
     existing = {} if args.rebuild else load_existing(OUTPUT_FILE)
     if existing:

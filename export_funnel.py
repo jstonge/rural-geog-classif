@@ -9,15 +9,17 @@ Usage:
     uv run python export_funnel.py --topic-run 2026-05-29_1719_topic_v3_abstract_cat14_all
 """
 import argparse
-import csv
 import json
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent
-WOS_CSV = ROOT / "extract" / "input" / "Full Dataset Rur Geog WoS 1986-2025 4-28-2026.csv"
+sys.path.insert(0, str(ROOT))
+from extract.src.load_wos import load_wos_rows, WOS_CSV  # noqa: E402
+
 PDF_DIR = ROOT / "extract" / "output" / "pdfs"
 DOCLING_DIR = ROOT / "parse" / "output" / "docling"
 DOTS_DIR = ROOT / "parse" / "output" / "dots"
@@ -36,11 +38,12 @@ def main():
     ap.add_argument("--topic-run", default=DEFAULT_TOPIC_RUN,
                     help="Classify run dir whose predictions feed topics_viz.json")
     ap.add_argument("--out", type=Path, default=OUT)
+    ap.add_argument("--no-backfill", action="store_true",
+                    help="Ignore extract/input/wos_backfill.csv")
     args = ap.parse_args()
 
-    # 1) WoS rows
-    with open(WOS_CSV, newline="", encoding="latin-1") as f:
-        wos_rows = list(csv.DictReader(f))
+    # 1) WoS rows (with backfilled DOIs / abstracts merged in)
+    wos_rows = load_wos_rows(apply_backfill=not args.no_backfill)
     n_wos = len(wos_rows)
 
     wos_dois = {(r.get("DOI") or "").strip() for r in wos_rows}
@@ -84,18 +87,36 @@ def main():
     dropped_no_doi = [paper(r) for r in wos_rows if not (r.get("DOI") or "").strip()]
     dropped_no_abs = [paper(by_doi[d]) for d in sorted(wos_dois - dois_with_abs)]
 
-    # Empty-topics drop: classifier ran but topics_pred came back empty.
-    empty_pred_dois = sorted(dois_with_abs - pred_dois)
+    # Drop at topic_pred stage = (has abstract) − (in final).
+    # Split into:
+    #   (a) "not yet classified" — DOI absent from this classify run entirely
+    #       (typical after a backfill that added papers post-run)
+    #   (b) "classifier returned empty" — DOI present in predictions parquet
+    #       but topics_pred is empty
+    all_pred_dois = {d for d in preds["doi"].dropna().tolist()
+                     if isinstance(d, str) and d}
+    not_yet_classified = sorted(dois_with_abs - all_pred_dois)
+    classifier_empty   = sorted(dois_with_abs - pred_dois - set(not_yet_classified))
+
     preds_by_doi = {r["doi"]: r for _, r in preds.iterrows()
                     if isinstance(r["doi"], str)}
-    dropped_empty_topics = []
-    for d in empty_pred_dois:
+    dropped_topic_pred = []
+    for d in not_yet_classified:
+        wos = by_doi.get(d)
+        if wos is None:
+            continue
+        dropped_topic_pred.append(paper(wos, {
+            "drop_reason": "not_in_classify_run",
+            "topics_reasoning": None,
+        }))
+    for d in classifier_empty:
         wos = by_doi.get(d)
         if wos is None:
             continue
         p = preds_by_doi.get(d, {})
         reasoning = p.get("topics_reasoning") if hasattr(p, "get") else None
-        dropped_empty_topics.append(paper(wos, {
+        dropped_topic_pred.append(paper(wos, {
+            "drop_reason": "classifier_returned_empty",
             "topics_reasoning": (reasoning if isinstance(reasoning, str) else None),
         }))
 
@@ -154,11 +175,12 @@ def main():
             "count": n_final,
             "dropped": n_with_abs - n_final,
             "reason": (
-                "Classifier ran but returned an empty topics_pred list "
-                "(model declined to assign any topic)"
+                f"{len(not_yet_classified)} not in the classify run "
+                f"(typically backfilled DOIs/abstracts added after the run); "
+                f"{len(classifier_empty)} classifier returned an empty topics_pred"
             ),
             "source": f"classify/output/runs/{args.topic_run}/predictions.parquet",
-            "dropped_papers": dropped_empty_topics,
+            "dropped_papers": dropped_topic_pred,
         },
     ]
 

@@ -15,8 +15,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-
-WOS_CSV = ROOT / "extract" / "input" / "Full Dataset Rur Geog WoS 1986-2025 4-28-2026.csv"
+sys.path.insert(0, str(ROOT))
+from extract.src.load_wos import load_wos_rows, WOS_CSV  # noqa: E402
 PDF_DIR = ROOT / "extract" / "output" / "pdfs"
 DOCLING_DIR = ROOT / "parse" / "output" / "docling"
 OLMOCR_DIR = ROOT / "parse" / "output" / "olmocr"
@@ -68,9 +68,8 @@ def main():
                        and any(d.glob("*_page_*_nohf.md"))}
     summary_stems = {p.stem for p in SUMMARY_DIR.glob("*.md")} if SUMMARY_DIR.exists() else set()
 
-    # Read WoS CSV
-    with open(WOS_CSV, newline="", encoding="latin-1") as f:
-        rows = list(csv.DictReader(f))
+    # Read WoS CSV (with DOI/abstract backfill applied)
+    rows = load_wos_rows()
 
     # Build output
     fieldnames = ["doi", "has_pdf", "docling_parsed", "olmocr_parsed",

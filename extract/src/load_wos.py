@@ -1,20 +1,21 @@
-"""WoS CSV loader.
+"""Read the WoS CSV with backfilled DOIs/abstracts applied.
 
-Reads the canonical WoS CSV and merges in DOIs/abstracts from
-extract/input/wos_backfill.csv (papers where the WoS extract was missing a
-DOI or an abstract that we looked up externally). The WoS file itself is
-treated as immutable; corrections live in the backfill.
+The canonical WoS extract (Full Dataset Rur Geog WoS 1986-2025 ...csv) is
+treated as immutable. Corrections — DOIs we found by title search,
+abstracts we pulled from OpenAlex — live in extract/input/wos_backfill.csv
+and are merged in here at read time.
 
-Regenerate the backfill with:
-    uv run python extract/src/build_backfill.py
+Usage:
+    from extract.src.load_wos import load_wos_rows
+    rows = load_wos_rows()  # list[dict] same shape as csv.DictReader on the WoS file
 """
+from __future__ import annotations
+
 import csv
 import re
 from pathlib import Path
 
-import pandas as pd
-
-ROOT = Path("/gpfs1/home/j/s/jstonge1/rural-geog-classif")
+ROOT = Path(__file__).resolve().parents[2]
 WOS_CSV = ROOT / "extract" / "input" / "Full Dataset Rur Geog WoS 1986-2025 4-28-2026.csv"
 BACKFILL_CSV = ROOT / "extract" / "input" / "wos_backfill.csv"
 
@@ -24,11 +25,13 @@ def _norm(s: str) -> str:
 
 
 def _read_backfill(path: Path) -> tuple[dict[tuple[str, str], dict], dict[str, dict]]:
+    """Return (by_title_year, by_doi) lookup maps."""
     by_title: dict[tuple[str, str], dict] = {}
     by_doi: dict[str, dict] = {}
     if not path.exists():
         return by_title, by_doi
     with open(path, encoding="utf-8") as f:
+        # Skip leading provenance comment lines (lines starting with '#')
         lines = [ln for ln in f if not ln.startswith("#")]
     reader = csv.DictReader(lines)
     for r in reader:
@@ -42,38 +45,43 @@ def _read_backfill(path: Path) -> tuple[dict[tuple[str, str], dict], dict[str, d
     return by_title, by_doi
 
 
-def load_wos_dict_rows(apply_backfill: bool = True) -> list[dict]:
-    """Read WoS as dict rows (same shape as csv.DictReader) with backfill merged in."""
-    with open(WOS_CSV, newline="", encoding="latin-1") as f:
+def load_wos_rows(
+    wos_csv: Path = WOS_CSV,
+    backfill_csv: Path = BACKFILL_CSV,
+    apply_backfill: bool = True,
+) -> list[dict]:
+    """Read WoS rows and merge in DOIs/abstracts from the backfill file."""
+    with open(wos_csv, newline="", encoding="latin-1") as f:
         rows = list(csv.DictReader(f))
+
     if not apply_backfill:
         return rows
-    by_title, by_doi = _read_backfill(BACKFILL_CSV)
+
+    by_title, by_doi = _read_backfill(backfill_csv)
+
     for r in rows:
         title = (r.get("Article Title") or "").strip()
         year = (r.get("Pub Year") or "").strip()
         doi = (r.get("DOI") or "").strip()
+
         if not doi:
             bf = by_title.get((_norm(title), year))
             if bf and bf.get("doi"):
                 r["DOI"] = bf["doi"]
                 doi = bf["doi"]
+
         if doi and not (r.get("Abstract") or "").strip():
             bf = by_doi.get(doi)
             if bf and bf.get("abstract"):
                 r["Abstract"] = bf["abstract"]
+
     return rows
 
 
-def load_wos() -> pd.DataFrame:
-    """Return DataFrame with [doi, title, abstract] for every paper with a non-empty abstract."""
-    rows = load_wos_dict_rows(apply_backfill=True)
-    df = pd.DataFrame(rows).rename(
-        columns={"Abstract": "abstract", "Article Title": "title", "DOI": "doi"}
-    )
-    return (
-        df[df["abstract"].notna() & df["abstract"].astype(str).str.strip().astype(bool)]
-        [["doi", "title", "abstract"]]
-        .copy()
-        .reset_index(drop=True)
-    )
+if __name__ == "__main__":
+    rows = load_wos_rows()
+    n_doi = sum(1 for r in rows if (r.get("DOI") or "").strip())
+    n_abs = sum(1 for r in rows if (r.get("Abstract") or "").strip())
+    print(f"WoS rows: {len(rows)}")
+    print(f"  with DOI:      {n_doi}")
+    print(f"  with abstract: {n_abs}")
