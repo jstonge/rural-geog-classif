@@ -335,13 +335,25 @@
         else counts[l].onlyB++;
       }
     }
-    const rows = Object.entries(counts).map(([label, c]) => ({
-      label,
-      both: c.both,
-      onlyA: c.onlyA,
-      onlyB: c.onlyB,
-      total: c.both + c.onlyA + c.onlyB
-    }));
+    const rows = Object.entries(counts).map(([label, c]) => {
+      // Treating A as "reference" and B as "test": A's picks are positives,
+      // so both = TP, onlyA = FN (A picked, B missed), onlyB = FP (B picked, A didn't).
+      // Precision = TP/(TP+FP), Recall = TP/(TP+FN), F1 = 2PR/(P+R).
+      const tp = c.both;
+      const fp = c.onlyB;
+      const fn = c.onlyA;
+      const p = tp + fp > 0 ? tp / (tp + fp) : null;
+      const r = tp + fn > 0 ? tp / (tp + fn) : null;
+      const f1 = p !== null && r !== null && p + r > 0 ? (2 * p * r) / (p + r) : null;
+      return {
+        label,
+        both: c.both,
+        onlyA: c.onlyA,
+        onlyB: c.onlyB,
+        total: c.both + c.onlyA + c.onlyB,
+        p, r, f1,
+      };
+    });
     rows.sort((x, y) => y.total - x.total || x.label.localeCompare(y.label));
     let max = 0;
     for (const row of rows) {
@@ -382,6 +394,17 @@
     const ratio = count / max;
     const opacity = Math.max(0.15, ratio);
     const color = isDiag ? `rgba(46, 139, 87, ${opacity})` : `rgba(214, 69, 69, ${opacity})`;
+    return `background: ${color};`;
+  }
+
+  function fmtScore(x: number | null): string {
+    return x === null ? '—' : x.toFixed(2);
+  }
+  function f1Style(f1: number | null): string {
+    if (f1 === null) return '';
+    // gentle green/red tint: 1.0 -> strong green, 0.0 -> strong red
+    const opacity = 0.10 + Math.abs(f1 - 0.5) * 0.30;
+    const color = f1 >= 0.5 ? `rgba(46, 139, 87, ${opacity})` : `rgba(214, 69, 69, ${opacity})`;
     return `background: ${color};`;
   }
 
@@ -606,6 +629,9 @@
               <th scope="col" class="pl-num">both</th>
               <th scope="col" class="pl-num">only A</th>
               <th scope="col" class="pl-num">only B</th>
+              <th scope="col" class="pl-num" title="precision = both/(both+only B)">P</th>
+              <th scope="col" class="pl-num" title="recall = both/(both+only A)">R</th>
+              <th scope="col" class="pl-num" title="F1 (treating A as reference, B as test)">F1</th>
             </tr>
           </thead>
           <tbody>
@@ -678,6 +704,9 @@
                     </button>
                   {/if}
                 </td>
+                <td class="pl-num pl-score" class:pl-score-null={row.p === null}>{fmtScore(row.p)}</td>
+                <td class="pl-num pl-score" class:pl-score-null={row.r === null}>{fmtScore(row.r)}</td>
+                <td class="pl-num pl-score pl-f1" style={f1Style(row.f1)}>{fmtScore(row.f1)}</td>
               </tr>
             {/each}
           </tbody>
@@ -1271,6 +1300,19 @@
   table.cm.pl th.pl-num {
     text-align: right;
     padding-right: 10px;
+  }
+
+  table.cm.pl td.pl-score {
+    font-variant-numeric: tabular-nums;
+    color: #444;
+    padding: 4px 10px;
+  }
+  table.cm.pl td.pl-score-null {
+    color: #b0b0b0;
+  }
+  table.cm.pl td.pl-f1 {
+    font-weight: 600;
+    color: #222;
   }
 
   .picked {

@@ -26,6 +26,7 @@ from pathlib import Path
 import httpx
 from dotenv import load_dotenv
 
+from lib.annotations import apply_collapse_map, load_topic_collapse_map
 from lib.snapshots import load_snapshot
 from lib.tasks import get_task
 from lib.wos import load_wos
@@ -88,7 +89,8 @@ def _ls_doi_to_task(project_id: int) -> dict[str, int]:
 
 
 def _build_schema_bundle(schema: str, snaps: list[dict],
-                         title_map: dict, abstract_map: dict) -> dict:
+                         title_map: dict, abstract_map: dict,
+                         *, topic_collapse: bool = False) -> dict:
     """Build {multi_label, records: [...]} for one schema's worth of snapshots."""
     # Multi-label flag for the task (drives chip rendering / set-equality
     # agreement / per-label agreement table on /compare). All snapshots in this
@@ -117,8 +119,14 @@ def _build_schema_bundle(schema: str, snaps: list[dict],
     if gt_df is None:
         return {"multi_label": multi_label, "records": []}
     gt_col = next((c for c in gt_df.columns if c.endswith("_gt")), None)
+    # Topic GT is annotated in the granular cat14 taxonomy. When --topic-collapse
+    # is set, map every GT label to its cat15+ parent so cat14 (granular preds)
+    # and cat15+ (already-collapsed preds) compare on the same label space.
+    cmap = load_topic_collapse_map() if topic_collapse else {}
     gt_by_doi = {
-        row["doi"]: (list(row[gt_col]) if row[gt_col] is not None else [])
+        row["doi"]: apply_collapse_map(
+            (list(row[gt_col]) if row[gt_col] is not None else []), cmap
+        )
         for _, row in gt_df.iterrows()
     }
 
@@ -141,7 +149,10 @@ def _build_schema_bundle(schema: str, snaps: list[dict],
             row = s["predictions"][s["predictions"]["doi"] == doi]
             if row.empty:
                 continue
-            preds[run_id] = _pred_entry(row.iloc[0])
+            entry = _pred_entry(row.iloc[0])
+            if cmap:
+                entry["labels"] = apply_collapse_map(entry.get("labels", []) or [], cmap)
+            preds[run_id] = entry
 
         task_id = doi_to_task.get(doi)
         ls_url = (f"{base_url}/projects/{ls_project}/data?task={task_id}&tab={LS_TAB}"
@@ -168,6 +179,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("snapshots", nargs="+", help="Snapshot names or paths (any schemas).")
     ap.add_argument("--out", type=Path, default=COMPARE_JSON)
+    ap.add_argument("--no-topic-collapse", action="store_true",
+                    help="Force-disable topic granular->cat15+ collapse even when one of the "
+                         "topic snapshots was configured with collapse_gt=true. By default the "
+                         "collapse is auto-enabled in that case so cat14 and cat15+ runs compare "
+                         "on the same 12-bucket label space.")
     args = ap.parse_args()
 
     snaps = [load_snapshot(s) for s in args.snapshots]
@@ -184,10 +200,26 @@ def main():
     title_map = dict(zip(papers["doi"], papers["title"]))
     abstract_map = dict(zip(papers["doi"], papers["abstract"]))
 
+    # Auto-enable topic collapse if any topic snapshot ran with collapse_gt=true
+    # (so cat14 granular and cat15+ collapsed runs share a label space).
+    topic_collapse_global = (
+        not args.no_topic_collapse
+        and any(
+            (s["config"].get("task") or s["config"].get("control")) == "topic"
+            and s["config"].get("collapse_gt")
+            for s in snaps
+        )
+    )
+
     # Two-level dict: {task: {schema: bundle}}
     out_payload: dict[str, dict[str, dict]] = defaultdict(dict)
     for (task, schema), group in by_ts.items():
-        out_payload[task][schema] = _build_schema_bundle(schema, group, title_map, abstract_map)
+        out_payload[task][schema] = _build_schema_bundle(
+            schema, group, title_map, abstract_map,
+            topic_collapse=(task == "topic" and topic_collapse_global),
+        )
+    if topic_collapse_global:
+        print("Topic collapse: applied granular -> cat15+ parent map to GT and cat14 preds.")
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(out_payload, indent=2, ensure_ascii=False))
