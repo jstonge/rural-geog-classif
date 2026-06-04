@@ -1,0 +1,26 @@
+# V3 topic classifier — cat15: collapse to the collaborators' 12-bucket taxonomy.
+# Merges granular cat14 labels into broader buckets:
+#   {natural environment, weather, climate and natural hazards} -> physical geography
+#   {human-environment, recreation}                              -> human-environment
+#   {built environment, technology, energy}                      -> built environment
+# Nine unchanged labels carry cat14 definitions verbatim. The three new merged
+# definitions are written in cat14 style (positive cases + "be selective" +
+# anti-patterns + transferability test) so the tie-breaker discipline that
+# got F1 0.70 -> 0.82 carries over.
+# Annotators keep tagging in the granular cat14 taxonomy in Label Studio.
+# At validate-time, GT is collapsed via the `parent` column on topic_14.csv
+# before scoring (see classify/src/validate.py + lib/annotations.py).
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "15"
+ex_variant: "off"
+name: v3_abstract_cat15
+all_papers: false
+thinking: true
+max_tokens: 4096
+# Annotators tag in the granular cat14 set; we collapse GT -> cat15 buckets
+# (via the `parent` column on topic_14.csv) at validate time. Without this
+# flag, predictions on {physical geography, ...} would never match GT
+# labels like {natural environment, weather, ...}.
+collapse_gt: true

@@ -11,6 +11,7 @@ parquet path, v1-vs-v3 schema dispatch).
 """
 from __future__ import annotations
 
+import csv
 from pathlib import Path
 
 import pandas as pd
@@ -18,6 +19,13 @@ import pandas as pd
 from lib.labelstudio import load_gt, make_client
 
 ANNOTATIONS_PARQUET = Path("/gpfs1/home/j/s/jstonge1/rural-geog-classif/transform/output/annotations.parquet")
+
+# Annotators tag in the granular cat14 taxonomy. When scoring against a
+# collapsed cat (cat15+), we map granular GT labels to their parent before
+# comparison. Single source of truth: the `parent` column on topic_14.csv.
+TOPIC_GRANULAR_CSV = Path(
+    "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/topic_14.csv"
+)
 
 
 def load_gt_parquet(control: str, *, parquet_path: Path = ANNOTATIONS_PARQUET) -> pd.DataFrame:
@@ -44,6 +52,33 @@ def load_gt_ls(project_id: int, control: str, *, ls_client=None) -> pd.DataFrame
     client = ls_client or make_client()
     df = load_gt(client, project_id, control, key_field="DOI")
     return df.rename(columns={"DOI": "doi"})
+
+
+def load_topic_collapse_map(csv_path: Path = TOPIC_GRANULAR_CSV) -> dict[str, str]:
+    """Granular cat14 label -> collapsed cat15+ bucket, from the `parent` column.
+
+    Returns identity for unchanged labels (rows with empty `parent`).
+    If the CSV has no `parent` column, returns an empty dict (no-op collapse).
+    """
+    with open(csv_path, newline="") as f:
+        reader = csv.DictReader(f)
+        if "parent" not in (reader.fieldnames or []):
+            return {}
+        return {row["Value"]: (row["parent"] or row["Value"]) for row in reader}
+
+
+def apply_collapse_map(labels: list[str], mapping: dict[str, str]) -> list[str]:
+    """Map each granular label to its parent (or itself), dedup, preserve order."""
+    if not mapping:
+        return list(labels)
+    out: list[str] = []
+    seen: set[str] = set()
+    for lbl in labels:
+        m = mapping.get(lbl, lbl)
+        if m not in seen:
+            seen.add(m)
+            out.append(m)
+    return out
 
 
 def load_methods_gt(schema: str) -> pd.DataFrame:

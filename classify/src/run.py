@@ -55,6 +55,10 @@ def main():
                     help="Override task default for thinking mode.")
     ap.add_argument("--max-tokens", type=int, default=None,
                     help="Override task default for max output tokens.")
+    ap.add_argument("--collapse-gt", action="store_true",
+                    help="Topic only: collapse granular cat14 GT labels into their cat15 "
+                         "parent buckets at validate time (uses the `parent` column on topic_14.csv). "
+                         "Required when the prompt label set is broader than the annotators' label set.")
     ap.add_argument("--config", type=Path, default=None,
                     help="YAML config; keys override CLI defaults.")
     args = ap.parse_args()
@@ -143,6 +147,7 @@ def main():
         "max_tokens":       max_tokens,
         "thinking":         thinking,
         "all_papers":       args.all_papers,
+        "collapse_gt":      args.collapse_gt,
         "model":            "google/gemma-4-31B-it",
         "temperature":      0.0,
     }

@@ -66,6 +66,39 @@ def main():
     dois_with_pred = wos_dois & pred_dois  # final join in export_topics_viz.py
     n_final = len(dois_with_pred)
 
+    # Per-stage drop lists for the clickable detail panel
+    def paper(r, extra: dict | None = None) -> dict:
+        out = {
+            "doi":      (r.get("DOI") or "").strip() or None,
+            "title":    (r.get("Article Title") or "").strip(),
+            "pub_year": (r.get("Pub Year") or "").strip(),
+            "source":   (r.get("Source Title") or "").strip(),
+        }
+        if extra:
+            out.update(extra)
+        return out
+
+    by_doi = {(r.get("DOI") or "").strip(): r for r in wos_rows
+              if (r.get("DOI") or "").strip()}
+
+    dropped_no_doi = [paper(r) for r in wos_rows if not (r.get("DOI") or "").strip()]
+    dropped_no_abs = [paper(by_doi[d]) for d in sorted(wos_dois - dois_with_abs)]
+
+    # Empty-topics drop: classifier ran but topics_pred came back empty.
+    empty_pred_dois = sorted(dois_with_abs - pred_dois)
+    preds_by_doi = {r["doi"]: r for _, r in preds.iterrows()
+                    if isinstance(r["doi"], str)}
+    dropped_empty_topics = []
+    for d in empty_pred_dois:
+        wos = by_doi.get(d)
+        if wos is None:
+            continue
+        p = preds_by_doi.get(d, {})
+        reasoning = p.get("topics_reasoning") if hasattr(p, "get") else None
+        dropped_empty_topics.append(paper(wos, {
+            "topics_reasoning": (reasoning if isinstance(reasoning, str) else None),
+        }))
+
     # Parallel branch: PDF / parse coverage (feeds full-text summarization,
     # not the abstract-based topic classifier). Reported as a side note so
     # the linear funnel above isn't confused with this independent path.
@@ -91,6 +124,7 @@ def main():
             "dropped": 0,
             "reason": None,
             "source": str(WOS_CSV.relative_to(ROOT)),
+            "dropped_papers": [],
         },
         {
             "key": "has_doi",
@@ -99,6 +133,7 @@ def main():
             "dropped": n_wos - n_with_doi,
             "reason": "WoS row has no DOI; pipeline keys everything on DOI",
             "source": "status.py",
+            "dropped_papers": dropped_no_doi,
         },
         {
             "key": "has_abstract",
@@ -111,6 +146,7 @@ def main():
                 "The abstract-based topic classifier has no input for these."
             ),
             "source": "WoS Abstract column",
+            "dropped_papers": dropped_no_abs,
         },
         {
             "key": "topic_pred",
@@ -122,6 +158,7 @@ def main():
                 "(model declined to assign any topic)"
             ),
             "source": f"classify/output/runs/{args.topic_run}/predictions.parquet",
+            "dropped_papers": dropped_empty_topics,
         },
     ]
 

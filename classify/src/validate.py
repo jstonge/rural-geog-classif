@@ -13,6 +13,7 @@ import argparse
 
 import rebuild_runs_index
 import score as score_mod
+from lib.annotations import apply_collapse_map, load_topic_collapse_map
 from lib.snapshots import load_snapshot, save_validation
 from lib.tasks import get_task
 
@@ -33,6 +34,17 @@ def main():
 
     gt = task.gt_loader(schema)
     print(f"GT: {len(gt)} annotations")
+
+    # Annotators tag in the granular cat14 topic taxonomy. When the run was
+    # configured with `collapse_gt: true`, map granular GT labels to their
+    # parent bucket (per the `parent` column on topic_14.csv) before scoring
+    # so predictions on the collapsed label set compare against a collapsed GT.
+    if task.name == "topic" and cfg.get("collapse_gt"):
+        cmap = load_topic_collapse_map()
+        if cmap:
+            gt[task.gt_col] = gt[task.gt_col].apply(lambda labs: apply_collapse_map(labs or [], cmap))
+            n_collapsed = sum(1 for labs in gt[task.gt_col] if labs)
+            print(f"Collapsed topic GT via parent map ({n_collapsed} rows non-empty after dedup)")
 
     pred_col = f"{task.response_key}_pred"
     metrics = score_mod.score(snap["predictions"], gt,

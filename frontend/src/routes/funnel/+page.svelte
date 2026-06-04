@@ -3,6 +3,14 @@
   import { scaleLinear } from 'd3-scale';
   import data from '$lib/data/funnel.json';
 
+  type Paper = {
+    doi: string | null;
+    title: string;
+    pub_year: string;
+    source: string;
+    topics_reasoning?: string | null;
+  };
+
   type Stage = {
     key: string;
     label: string;
@@ -10,6 +18,7 @@
     dropped: number;
     reason: string | null;
     source: string;
+    dropped_papers: Paper[];
   };
 
   type SideBranch = {
@@ -41,6 +50,8 @@
     pctOfInput: number;
     dropY: number | null;
   };
+
+  let activeKey: string | null = $state(null);
 
   const maxCount: number = $derived.by(() => {
     let m = 0;
@@ -87,6 +98,12 @@
     return h;
   });
 
+  const activeStage: Stage | null = $derived(
+    activeKey === null
+      ? null
+      : (d.stages.find((s) => s.key === activeKey) ?? null)
+  );
+
   function formatComputed(iso: string): string {
     const i = iso.indexOf('T');
     return i === -1 ? iso : iso.slice(0, i);
@@ -94,6 +111,19 @@
 
   function formatPct(p: number): string {
     return `${p.toFixed(1)}% of WoS`;
+  }
+
+  function toggleStage(stage: Stage): void {
+    if (stage.dropped <= 0) return;
+    activeKey = activeKey === stage.key ? null : stage.key;
+  }
+
+  function onRowKeydown(e: KeyboardEvent, stage: Stage): void {
+    if (stage.dropped <= 0) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleStage(stage);
+    }
   }
 </script>
 
@@ -124,38 +154,83 @@
       <svg width={svgWidth} height={svgHeight}>
         <g transform="translate({margin.left},{margin.top})">
           {#each rows as row (row.stage.key)}
-            <g transform="translate(0,{row.y})">
-              <rect
-                x={0}
-                y={8}
-                width={row.barWidth}
-                height={rowHeight - 22}
-                fill="#3b6fa8"
-                opacity="0.82"
-                rx="2"
-              />
-              <text
-                x={6}
-                y={4}
-                font-size="12"
-                fill="#222"
-                font-weight="600"
+            {@const clickable = row.stage.dropped > 0}
+            {@const isActive = activeKey === row.stage.key}
+            {#if clickable}
+              <g
+                transform="translate(0,{row.y})"
+                class="row-clickable"
+                class:row-active={isActive}
+                role="button"
+                tabindex="0"
+                aria-pressed={isActive}
+                aria-label={`${row.stage.label}, ${row.stage.dropped} dropped, toggle details`}
+                onclick={() => toggleStage(row.stage)}
+                onkeydown={(e) => onRowKeydown(e, row.stage)}
               >
-                {row.stage.label}
-                <tspan fill="#666" font-weight="400"
-                  >&middot; {row.stage.count}</tspan
+                <rect
+                  x={-margin.left}
+                  y={0}
+                  width={barAreaWidth + margin.left + margin.right}
+                  height={rowHeight}
+                  fill={isActive ? '#eaf1fa' : 'transparent'}
+                />
+                <rect
+                  x={0}
+                  y={8}
+                  width={row.barWidth}
+                  height={rowHeight - 22}
+                  fill={isActive ? '#1a4a8a' : '#3b6fa8'}
+                  opacity={isActive ? 0.95 : 0.82}
+                  rx="2"
+                />
+                <text x={6} y={4} font-size="12" fill="#222" font-weight="600">
+                  <tspan class="chevron" class:chevron-open={isActive}
+                    >&#9656;</tspan
+                  >
+                  {row.stage.label}
+                  <tspan fill="#666" font-weight="400"
+                    >&middot; {row.stage.count}</tspan
+                  >
+                </text>
+                <text
+                  x={row.barWidth + 8}
+                  y={rowHeight / 2 + 4}
+                  font-size="11"
+                  fill="#666"
+                  class="mono"
                 >
-              </text>
-              <text
-                x={row.barWidth + 8}
-                y={rowHeight / 2 + 4}
-                font-size="11"
-                fill="#666"
-                class="mono"
-              >
-                {formatPct(row.pctOfInput)}
-              </text>
-            </g>
+                  {formatPct(row.pctOfInput)}
+                </text>
+              </g>
+            {:else}
+              <g transform="translate(0,{row.y})">
+                <rect
+                  x={0}
+                  y={8}
+                  width={row.barWidth}
+                  height={rowHeight - 22}
+                  fill="#3b6fa8"
+                  opacity="0.82"
+                  rx="2"
+                />
+                <text x={6} y={4} font-size="12" fill="#222" font-weight="600">
+                  {row.stage.label}
+                  <tspan fill="#666" font-weight="400"
+                    >&middot; {row.stage.count}</tspan
+                  >
+                </text>
+                <text
+                  x={row.barWidth + 8}
+                  y={rowHeight / 2 + 4}
+                  font-size="11"
+                  fill="#666"
+                  class="mono"
+                >
+                  {formatPct(row.pctOfInput)}
+                </text>
+              </g>
+            {/if}
 
             {#if row.dropY !== null}
               {@const nextStage = d.stages[d.stages.indexOf(row.stage) + 1]}
@@ -195,6 +270,49 @@
         </g>
       </svg>
     </div>
+
+    {#if activeStage && activeStage.dropped_papers.length > 0}
+      <div class="detail-panel">
+        <div class="detail-header">
+          <span class="detail-title"
+            >{activeStage.label} &middot; {activeStage.dropped_papers.length} dropped
+            papers</span
+          >
+          {#if activeStage.reason}
+            <span class="muted">{activeStage.reason}</span>
+          {/if}
+        </div>
+        <ul class="paper-list">
+          {#each activeStage.dropped_papers as paper, i (paper.doi ?? `${activeStage.key}-${i}`)}
+            <li class="paper">
+              <div class="paper-title">{paper.title}</div>
+              <div class="paper-meta mono">
+                <span>{paper.pub_year}</span>
+                <span class="sep">&middot;</span>
+                <span>{paper.source}</span>
+                <span class="sep">&middot;</span>
+                {#if paper.doi}
+                  <a
+                    class="doi-link"
+                    href={`https://doi.org/${paper.doi}`}
+                    target="_blank"
+                    rel="noopener noreferrer">{paper.doi}</a
+                  >
+                {:else}
+                  <span class="muted">no DOI</span>
+                {/if}
+              </div>
+              {#if paper.topics_reasoning}
+                <details class="reasoning">
+                  <summary>model reasoning</summary>
+                  <pre>{paper.topics_reasoning}</pre>
+                </details>
+              {/if}
+            </li>
+          {/each}
+        </ul>
+      </div>
+    {/if}
   </section>
 
   {#if d.side_branch}
@@ -284,6 +402,125 @@
 
   svg {
     display: block;
+  }
+
+  .row-clickable {
+    cursor: pointer;
+  }
+
+  .row-clickable:focus {
+    outline: none;
+  }
+
+  .row-clickable:focus-visible :global(rect:first-of-type) {
+    stroke: #1a4a8a;
+    stroke-width: 1.5;
+  }
+
+  .chevron {
+    fill: #888;
+    font-size: 10px;
+  }
+
+  .chevron-open {
+    fill: #1a4a8a;
+  }
+
+  .detail-panel {
+    margin-top: 18px;
+    border-top: 1px solid #eee;
+    padding-top: 14px;
+  }
+
+  .detail-header {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 10px;
+  }
+
+  .detail-title {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .paper-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .paper {
+    padding: 10px 0;
+    border-top: 1px solid #eee;
+    font-size: 13px;
+  }
+
+  .paper:first-child {
+    border-top: none;
+  }
+
+  .paper-title {
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 4px;
+  }
+
+  .paper-meta {
+    color: #777;
+    font-size: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: baseline;
+  }
+
+  .paper-meta .sep {
+    color: #bbb;
+  }
+
+  .doi-link {
+    color: #777;
+    text-decoration: none;
+  }
+
+  .doi-link:hover {
+    color: #1a4a8a;
+    text-decoration: underline;
+  }
+
+  .reasoning {
+    margin-top: 8px;
+    font-size: 12px;
+  }
+
+  .reasoning summary {
+    cursor: pointer;
+    color: #777;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    user-select: none;
+  }
+
+  .reasoning summary:hover {
+    color: #1a4a8a;
+  }
+
+  .reasoning pre {
+    margin: 8px 0 0;
+    padding: 10px 12px;
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 400px;
+    overflow-y: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    color: #333;
+    line-height: 1.5;
   }
 
   .side-note {
