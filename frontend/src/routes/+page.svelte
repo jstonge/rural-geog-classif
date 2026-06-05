@@ -1230,12 +1230,79 @@
     .domain([-compareMaxAbsDelta, compareMaxAbsDelta])
     .range([compareLabelGutter, compareLabelGutter + compareBarWidth]);
   const compareJaccardDelta = topicCompare.new_jaccard - topicCompare.base_jaccard;
+
+  const totalByDecade = decades.map((decade) => ({
+    decade,
+    count: papers.filter((p) => getDecade(p.pub_year) === decade).length
+  }));
+  const totalByDecadeMax = Math.max(...totalByDecade.map((d) => d.count), 1);
+  const overviewWidth = 620;
+  const overviewHeight = 180;
+  const overviewMargin = { top: 20, right: 20, bottom: 32, left: 48 };
+  const overviewX = scaleBand<string>()
+    .domain([...decades])
+    .range([overviewMargin.left, overviewWidth - overviewMargin.right])
+    .padding(0.2);
+  const overviewY = scaleLinear()
+    .domain([0, totalByDecadeMax])
+    .range([overviewHeight - overviewMargin.bottom, overviewMargin.top]);
 </script>
 
 <h1>Methods classification across rural geography (1992–2026)</h1>
 <p class="caption">
   Predicted by Gemma 4 31B on {papers.length} papers (snapshot: 2026-05-20_1458_methods_v3_sections_full). The 2022–2026 bucket includes partial 2026.
 </p>
+
+<svg width={overviewWidth} height={overviewHeight} class="overview-chart" aria-label="Total papers per 5-year bucket">
+  <text
+    x={-(overviewHeight / 2)}
+    y={14}
+    transform="rotate(-90)"
+    text-anchor="middle"
+    font-size="11"
+    fill="#666"
+  >Papers</text>
+
+  {#each overviewY.ticks(4) as tick (tick)}
+    <line
+      x1={overviewMargin.left}
+      x2={overviewWidth - overviewMargin.right}
+      y1={overviewY(tick)}
+      y2={overviewY(tick)}
+      stroke="#eee"
+      stroke-width="1"
+    />
+    <text
+      x={overviewMargin.left - 6}
+      y={overviewY(tick) + 3}
+      text-anchor="end"
+      font-size="10"
+      fill="#888"
+    >{tick}</text>
+  {/each}
+
+  {#each totalByDecade as { decade, count } (decade)}
+    {@const x = overviewX(decade) ?? 0}
+    {@const bw = overviewX.bandwidth()}
+    {@const yTop = overviewY(count)}
+    {@const h = overviewY(0) - yTop}
+    <rect x={x} y={yTop} width={bw} height={h} fill="#888" opacity="0.85" />
+    <text
+      x={x + bw / 2}
+      y={yTop - 4}
+      text-anchor="middle"
+      font-size="10"
+      fill="#333"
+    >{count}</text>
+    <text
+      x={x + bw / 2}
+      y={overviewHeight - overviewMargin.bottom + 14}
+      text-anchor="middle"
+      font-size="11"
+      fill="#333"
+    >{bucketLabel(decade)}</text>
+  {/each}
+</svg>
 
 <div class="legend">
   {#each methodCategories as method (method)}
