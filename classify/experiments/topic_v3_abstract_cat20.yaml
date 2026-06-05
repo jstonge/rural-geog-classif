@@ -1,0 +1,29 @@
+# V3 topic classifier — cat20: truly minimal cat14-style collapse to 12 buckets.
+# After 4 cat14 reruns established a noise band of 0.720 ± 0.016 jaccard (1σ),
+# every cat15-19 attempt fell inside that noise except cat18. cat16 in particular
+# confounded two things: the 12-bucket collapse + my heavy editorializing on HE
+# (a 10-item anti-pattern list and a "subject vs industry" qualifier). cat19_v2
+# showed that removing one such hedge recovered most of the apparent regression.
+# cat20 strips ALL editorializing and applies the cat19_v2 lesson to the full merge:
+#   - 9 unchanged labels: byte-identical to cat14
+#   - physical geography = cat14's natural environment + weather + climate-and-natural-hazards
+#     positive-case text, flat-trigger, appended. No new anti-patterns.
+#   - human-environment = cat14's HE verbatim + recreation positive cases appended
+#     (flat trigger, no hedge), with "recreational use of landscapes" dropped from
+#     anti-patterns and the "climate and natural hazards" pointer renamed to
+#     "physical geography". No new anti-patterns.
+#   - built environment = cat14's BE verbatim + technology + energy positive cases
+#     appended. No new anti-patterns or NOTEs.
+# Per-CSV legacy_values declares the granular->bucket map for validate-time GT collapse.
+# This is the cleanest "is the 12-bucket collapse free?" experiment — multiple runs
+# of this should land in cat14's noise band if the collapse really has no cost.
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "20"
+ex_variant: "off"
+name: v3_abstract_cat20
+all_papers: false
+thinking: true
+max_tokens: 4096
+collapse_gt: true

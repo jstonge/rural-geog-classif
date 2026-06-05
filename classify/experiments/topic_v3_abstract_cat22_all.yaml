@@ -1,0 +1,16 @@
+# V3 topic classifier — cat22 on ALL WoS papers (for the frontend visualization).
+# Same prompt + categories as cat22 (cat20's minimal-merge taxonomy paired with
+# the calibrated-cardinality prompt topic_05.md), running on all papers rather
+# than only the 93 annotated ones. Used to populate the "new model (12 categories)"
+# view on the homepage selector once it finishes.
+task: topic
+schema: v3
+strategy: abstract
+prompt_variant: "05"
+cat_variant: "20"
+ex_variant: "off"
+name: v3_abstract_cat22_all
+all_papers: true
+thinking: true
+max_tokens: 4096
+collapse_gt: true

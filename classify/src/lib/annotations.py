@@ -55,16 +55,42 @@ def load_gt_ls(project_id: int, control: str, *, ls_client=None) -> pd.DataFrame
 
 
 def load_topic_collapse_map(csv_path: Path = TOPIC_GRANULAR_CSV) -> dict[str, str]:
-    """Granular cat14 label -> collapsed cat15+ bucket, from the `parent` column.
+    """Build {granular_label -> this_row's_Value} from a cat-variant CSV.
 
-    Returns identity for unchanged labels (rows with empty `parent`).
-    If the CSV has no `parent` column, returns an empty dict (no-op collapse).
+    Two encodings supported (older CSVs use the first, newer use the second):
+
+      1. `parent` column on the GRANULAR CSV (topic_14.csv). Each granular row
+         names its cat15+ parent (or empty = identity). The cat15+ CSV does not
+         need its own collapse declaration because every cat15+ run uses the
+         same 12-bucket taxonomy.
+
+      2. `legacy_values` column on the COLLAPSED CSV (topic_19+.csv). Each
+         cat19+ row names the comma-separated granular labels it absorbs.
+         This lets each cat variant declare its own collapse independently,
+         which is what we want when iterating on a partial collapse (e.g. cat19
+         = "only fold recreation into HE, leave other granular labels alone").
+
+    The two encodings express the same fact and can't coexist on one CSV.
+    Returns an empty dict if neither column is present.
     """
     with open(csv_path, newline="") as f:
         reader = csv.DictReader(f)
-        if "parent" not in (reader.fieldnames or []):
-            return {}
-        return {row["Value"]: (row["parent"] or row["Value"]) for row in reader}
+        fields = reader.fieldnames or []
+        if "legacy_values" in fields:
+            cmap: dict[str, str] = {}
+            for row in reader:
+                v = row["Value"]
+                cmap.setdefault(v, v)
+                legacy = (row.get("legacy_values") or "").strip()
+                if not legacy:
+                    continue
+                for lbl in (s.strip() for s in legacy.split(",")):
+                    if lbl:
+                        cmap[lbl] = v
+            return cmap
+        if "parent" in fields:
+            return {row["Value"]: (row["parent"] or row["Value"]) for row in reader}
+        return {}
 
 
 def apply_collapse_map(labels: list[str], mapping: dict[str, str]) -> list[str]:

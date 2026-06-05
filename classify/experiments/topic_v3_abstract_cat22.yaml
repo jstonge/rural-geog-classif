@@ -1,0 +1,22 @@
+# V3 topic classifier — cat22: dial back cat21's cardinality overshoot.
+# cat21 r1 hit 3.74 tags/paper (target 3.22). PG was correctly fixed (F1 0.83
+# vs cat20's 0.60-0.73) but HE went over-firing (P=0.56, predicted 34 vs GT 19)
+# and place-based regressed. Diagnosis: "up to 5 when warranted" was read by
+# gemma as permission rather than calibration — same mode as cat18.
+# cat22 swaps to topic_05.md: "typically 3–4 topics, rarely fewer than 2 or
+# more than 4". No "up to 5", no "when warranted", no override clauses.
+# This matches cat14's prompt PATTERN (two-band guideline) but with the upper
+# band raised from 2-3 to 3-4 — matches the annotator distribution: 74% of
+# papers have 3 or 4 tags, mean 3.22.
+# Categories unchanged from cat20 (cat_variant=20, the minimal-merge taxonomy).
+task: topic
+schema: v3
+strategy: abstract
+prompt_variant: "05"
+cat_variant: "20"
+ex_variant: "off"
+name: v3_abstract_cat22
+all_papers: false
+thinking: true
+max_tokens: 4096
+collapse_gt: true

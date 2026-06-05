@@ -1,0 +1,25 @@
+# V3 topic classifier — cat21: cat20 categories + calibrated cardinality.
+# The annotator distribution on n=93 GT papers (in 12-bucket space):
+#   1 tag:  2 (2%)   2 tags: 19 (20%)   3 tags: 34 (37%)
+#   4 tags: 33 (35%)   5 tags:  5 (5%)
+# Mean 3.22, median 3, 72% of papers have 3 or 4 tags. cat14's prompt language
+# ("usually 2–3 topics, rarely more than 4") undertargets — annotators give 4
+# tags 35% of the time, not rarely. This nudges the cat14/cat15-20 runs to
+# 3.13-3.29 tags/paper vs annotators' 3.22.
+# cat21 swaps to topic_03.md... no wait, topic_04.md — a one-line change to the
+# count guideline ("typically 3–4 topics, up to 5 when warranted, fewer than 2
+# only for genuinely narrow papers"). NO "include when in doubt" / "multi-tag is
+# the norm" override clauses (cat18 used those and overshot to 3.94 tags/paper).
+# Just the count, calibrated to the annotator distribution.
+# Categories are cat20's minimal-merge taxonomy verbatim (cat_variant=20).
+task: topic
+schema: v3
+strategy: abstract
+prompt_variant: "04"
+cat_variant: "20"
+ex_variant: "off"
+name: v3_abstract_cat21
+all_papers: false
+thinking: true
+max_tokens: 4096
+collapse_gt: true

@@ -10,6 +10,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 import rebuild_runs_index
 import score as score_mod
@@ -35,12 +36,18 @@ def main():
     gt = task.gt_loader(schema)
     print(f"GT: {len(gt)} annotations")
 
-    # Annotators tag in the granular cat14 topic taxonomy. When the run was
-    # configured with `collapse_gt: true`, map granular GT labels to their
-    # parent bucket (per the `parent` column on topic_14.csv) before scoring
-    # so predictions on the collapsed label set compare against a collapsed GT.
+    # Annotators tag in the granular cat14 topic taxonomy. When `collapse_gt`
+    # is set, build the collapse map from the run's own cat CSV — either
+    # `legacy_values` on the collapsed CSV (newer; per-variant declaration) or
+    # the `parent` column on topic_14.csv (older; one global mapping).
     if task.name == "topic" and cfg.get("collapse_gt"):
-        cmap = load_topic_collapse_map()
+        schema_csv = cfg.get("schema_csv")
+        cmap = load_topic_collapse_map(Path(schema_csv)) if schema_csv else {}
+        if not cmap:
+            # cat variant doesn't declare its own collapse (no legacy_values / parent
+            # column on its CSV) -> fall back to topic_14.csv's parent map (the
+            # one global 17->12 collapse used by cat15-18).
+            cmap = load_topic_collapse_map()
         if cmap:
             gt[task.gt_col] = gt[task.gt_col].apply(lambda labs: apply_collapse_map(labs or [], cmap))
             n_collapsed = sum(1 for labs in gt[task.gt_col] if labs)

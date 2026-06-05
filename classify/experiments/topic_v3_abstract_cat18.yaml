@@ -1,0 +1,30 @@
+# V3 topic classifier — cat18: recalibrate cardinality at the prompt level.
+# Diagnosis: cat16 became globally MORE conservative (avg 3.13 tags/paper vs
+# cat14's 3.20 and GT's 3.23). Across 14 papers where cat14 predicted more
+# tags than cat16, cat14's "extra" tags were 12 right / 5 wrong — a 70%
+# success rate on the marginal tag. So cat16's retreat to "minimum-defensible
+# set" cost real true positives across scale/location, governance, identity,
+# place-based study, and human-environment recall.
+# cat18 keeps cat16's tight HE definition (HE precision 0.78 win) but swaps
+# the prompt (topic_03.md) which:
+#   - updates the cardinality target from "usually 2–3, rarely more than 4"
+#     to "typically 3–4, up to 5 when warranted, fewer than 2 only when
+#     genuinely narrow" — matches GT's 3.23 average;
+#   - adds an explicit "when in doubt → INCLUDE" tie-breaker with a concrete
+#     bar (one or two sentences of substantive treatment);
+#   - KEEPS the existing "central not peripheral / passing reference does NOT
+#     warrant" gate as the brake against runaway liberalism.
+# Test: cardinality should land at 3.18–3.22, HE precision should stay near
+# cat16 (0.75–0.80), and recall on scale/location, governance, identity, and
+# place-based should recover toward cat14 par.
+task: topic
+schema: v3
+strategy: abstract
+prompt_variant: "03"
+cat_variant: "18"
+ex_variant: "off"
+name: v3_abstract_cat18
+all_papers: false
+thinking: true
+max_tokens: 4096
+collapse_gt: true

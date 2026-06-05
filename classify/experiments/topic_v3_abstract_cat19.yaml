@@ -1,0 +1,26 @@
+# V3 topic classifier — cat19: minimal-surgery merge, recreation -> HE ONLY.
+# Ablation step 1 of N: test whether the "merge X into Y" surgery is harmless
+# in isolation. If cat19 matches cat14's jaccard (0.745 in 12-bucket-space, 0.736
+# in 17-label space), then the cat15+ regression is from the OTHER merges
+# (physical geography, expanded built environment), not from the act of merging
+# itself. If cat19 underperforms, the merge surgery itself is the problem.
+# Surgery (the absolute minimum to fold recreation into HE):
+#   1. Drop "recreational use of landscapes;" from HE's anti-pattern list
+#      (cat14 told gemma NOT to tag HE for recreation — now we want the opposite).
+#   2. Append recreation's cat14 positive cases to HE's positive-cases list
+#      (tourism, recreational land use, second homes, outdoor recreation, etc.).
+#   3. Drop the recreation row entirely from the prompt CSV.
+# Nothing else changed — HE's positive cases, anti-patterns, "be selective",
+# transferability test, water-access exclusion all preserved verbatim.
+# Annotators stay in cat14 granular space; topic_19.csv has `legacy_values=recreation`
+# on the HE row so validate-time collapse maps recreation->HE before scoring.
+task: topic
+schema: v3
+strategy: abstract
+cat_variant: "19"
+ex_variant: "off"
+name: v3_abstract_cat19
+all_papers: false
+thinking: true
+max_tokens: 4096
+collapse_gt: true

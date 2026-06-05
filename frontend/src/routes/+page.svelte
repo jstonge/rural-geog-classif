@@ -97,10 +97,6 @@
 
   let selectedMethod: string | null = $state(null);
 
-  const filteredPapers = $derived(
-    selectedMethod !== null ? papers.filter((d) => d.method === selectedMethod) : []
-  );
-
   function toggleMethod(method: string) {
     selectedMethod = selectedMethod === method ? null : method;
   }
@@ -224,10 +220,6 @@
   });
 
   let selectedRegion: string | null = $state(null);
-
-  const filteredLocations = $derived(
-    selectedRegion !== null ? locations.filter((d) => d.region === selectedRegion) : []
-  );
 
   function toggleRegion(region: string) {
     selectedRegion = selectedRegion === region ? null : region;
@@ -407,56 +399,69 @@
     topics: string[];
   };
 
-  const topicPapers: TopicPaper[] = topicsData as TopicPaper[];
-
-  // Ordered by gemma's empirical frequency on the 346-paper corpus, so the
-  // highest-count topics get the most distinct colors first.
-  const topicCategories = [
-    'social power',
-    'identity',
-    'governance',
-    'scale/location',
-    'built environment',
-    'human-environment',
-    'place-based study',
-    'mobility',
-    'agriculture/food',
-    'methods',
-    'climate and natural hazards',
-    'emotion',
-    'technology',
-    'natural environment',
-    'recreation',
-    'energy',
-    'weather'
-  ] as const;
-
-  // From classify/schemas/prompts/v3/categories/topic_14.csv (shortened).
-  const topicDescriptions: Record<string, string> = {
-    'social power': 'inequality, justice, poverty, economic livelihoods, community development, critique of power structures and policy responses',
-    'identity': 'demographic / economic / politico-legal / class / rural identities as analytical lens; co-occurs with social power',
-    'governance': 'policy / institutions / collective action as object of analysis; movements analyzed as collective action — NOT generalizability claims',
-    'scale/location': 'analysis of scale, distance, multi-scale dynamics, rural-urban continuum, comparative analysis across sites — NOT mere named-location framing',
-    'built environment': 'infrastructure systems and material world: irrigation, electrification, plumbing, drainage, transportation, housing, gentrification, urban/rural built form',
-    'human-environment': 'nature-society theory, political ecology, environmental history, human-nonhuman relations as analytical frame',
-    'place-based study': 'single specific site treated as substantive subject: ethnography, place-attachment, single-site landscape perception, heritage study (with narrow tie-breaker for diasporic/ethnic group studies)',
-    'mobility': 'human movement and population dynamics: migration, displacement, urbanization, climate migration, demographic change',
-    'agriculture/food': 'farming systems, food production / distribution, food security, food sovereignty, agricultural markets, agroecology as theoretical contribution',
-    'methods': 'central purpose is a new method or new dimension of existing method (narrow tie-breaker: title foregrounds method AND abstract evaluates method properties)',
-    'climate and natural hazards': 'climate change (science, impacts, mitigation, adaptation), discrete hazard events (flooding, drought, hurricanes, earthquakes)',
-    'emotion': 'affect / emotion / psychological dimensions: place attachment, nostalgia, care, fear, wellbeing, heritage',
-    'technology': 'digital / communications / information technology: internet access, broadband, AI, smart systems, precision agriculture, remote sensing',
-    'natural environment': 'physical environment as finding: land cover, hydrology, ecosystems, vegetation, forests, wildlife — empirically documented',
-    'recreation': 'tourism, recreational land use, second homes, outdoor recreation economies',
-    'energy': 'energy systems, sources, or infrastructure as central subject: oil, gas, electricity, solar, wind, biofuels, geothermal, mining, transitions',
-    'weather': 'meteorological systems, weather events, weather prediction, short-term atmospheric phenomena',
+  type ModelDef = {
+    key: string;
+    label: string;
+    description: string;
+    categories: { value: string; definition: string }[];
   };
 
-  // 17 topics → combine schemeTableau10 (10) + first 7 of schemeSet3 (pastel)
+  type RawPaper = {
+    doi: string;
+    title: string;
+    authors: string;
+    pub_year: string;
+    source: string;
+    keywords: string;
+    abstract: string;
+    topics: Record<string, string[]>;
+  };
+
+  const topicsViz = topicsData as unknown as { models: ModelDef[]; papers: RawPaper[] };
+  const topicModels = topicsViz.models;
+
+  // Selector state: which topic-model view to render. Defaults to the first
+  // model in the JSON (currently cat14_granular).
+  let topicModel: string = $state(topicModels[0].key);
+
+  const currentModel: ModelDef = $derived(
+    topicModels.find((m) => m.key === topicModel) ?? topicModels[0]
+  );
+
+  // Ordered by empirical frequency for the selected model (most common first).
+  const topicCategories: string[] = $derived(
+    currentModel.categories.map((c) => c.value)
+  );
+
+  // Per-category definitions from the model JSON.
+  const topicDescriptions: Record<string, string> = $derived(
+    Object.fromEntries(
+      currentModel.categories.map((c) => [c.value, c.definition])
+    ) as Record<string, string>
+  );
+
+  const topicPapers: TopicPaper[] = $derived(
+    topicsViz.papers
+      .filter((p) => (p.topics[topicModel] ?? []).length > 0)
+      .map((p) => ({
+        doi: p.doi,
+        title: p.title,
+        authors: p.authors,
+        pub_year: p.pub_year,
+        source: p.source,
+        keywords: p.keywords,
+        abstract: p.abstract,
+        topics: p.topics[topicModel] ?? []
+      }))
+  );
+
+  // Combine schemeTableau10 (10) + first 7 of schemeSet3 (pastel) — enough
+  // distinct colours for the 17-category model and pleasant overflow for
+  // smaller models.
   const topicColorRange = [...schemeTableau10, ...schemeSet3.slice(0, 7)];
-  const topicColor = scaleOrdinal<string, string>()
-    .domain(topicCategories as unknown as string[])
-    .range(topicColorRange);
+  const topicColor = $derived(
+    scaleOrdinal<string, string>().domain(topicCategories).range(topicColorRange)
+  );
 
   // For each decade, segments stack the SHARE of all topic-instances assigned
   // to each topic. (Sums to 1.0 across topics in that decade.)
@@ -476,40 +481,136 @@
     }[];
   };
 
-  const decadeTopicProportions: TopicDecadeData[] = decades.map((decade) => {
-    const decadePapers = topicPapers.filter((d) => getDecade(d.pub_year) === decade);
-    const counts = new Map<string, number>();
-    for (const p of decadePapers) {
-      for (const t of p.topics) counts.set(t, (counts.get(t) ?? 0) + 1);
-    }
-    const total_instances = [...counts.values()].reduce((a, b) => a + b, 0);
-    let cumulative = 0;
-    const segments = topicCategories.map((topic) => {
-      const count = counts.get(topic) ?? 0;
-      const proportion = total_instances > 0 ? count / total_instances : 0;
-      const y0 = cumulative;
-      cumulative += proportion;
-      return { topic, y0, y1: cumulative, proportion, count };
-    });
-    return {
-      decade,
-      n_papers: decadePapers.length,
-      n_topic_instances: total_instances,
-      segments
-    };
-  });
+  const decadeTopicProportions: TopicDecadeData[] = $derived(
+    decades.map((decade) => {
+      const decadePapers = topicPapers.filter((d) => getDecade(d.pub_year) === decade);
+      const counts = new Map<string, number>();
+      for (const p of decadePapers) {
+        for (const t of p.topics) counts.set(t, (counts.get(t) ?? 0) + 1);
+      }
+      const total_instances = [...counts.values()].reduce((a, b) => a + b, 0);
+      let cumulative = 0;
+      const segments = topicCategories.map((topic) => {
+        const count = counts.get(topic) ?? 0;
+        const proportion = total_instances > 0 ? count / total_instances : 0;
+        const y0 = cumulative;
+        cumulative += proportion;
+        return { topic, y0, y1: cumulative, proportion, count };
+      });
+      return {
+        decade,
+        n_papers: decadePapers.length,
+        n_topic_instances: total_instances,
+        segments
+      };
+    })
+  );
 
   let selectedTopic: string | null = $state(null);
-
-  const filteredTopicPapers = $derived(
-    selectedTopic !== null
-      ? topicPapers.filter((d) => d.topics.includes(selectedTopic as string))
-      : []
-  );
 
   function toggleTopic(topic: string) {
     selectedTopic = selectedTopic === topic ? null : topic;
   }
+
+  type CombinedPaper = {
+    doi: string;
+    title: string;
+    authors: string;
+    pub_year: string;
+    source: string;
+    abstract: string;
+    method?: string;
+    region?: string;
+    topics: string[];
+  };
+
+  const combinedPapers: CombinedPaper[] = $derived.by(() => {
+    const byDoi = new SvelteMap<string, CombinedPaper>();
+    for (const p of papers) {
+      byDoi.set(p.doi, {
+        doi: p.doi,
+        title: p.title,
+        authors: p.authors,
+        pub_year: p.pub_year,
+        source: p.source,
+        abstract: p.abstract,
+        method: p.method,
+        topics: []
+      });
+    }
+    for (const l of locations) {
+      const existing = byDoi.get(l.doi);
+      if (existing) {
+        existing.region = l.region;
+      } else {
+        byDoi.set(l.doi, {
+          doi: l.doi,
+          title: l.title,
+          authors: l.authors,
+          pub_year: l.pub_year,
+          source: l.source,
+          abstract: l.abstract,
+          region: l.region,
+          topics: []
+        });
+      }
+    }
+    for (const t of topicPapers) {
+      const existing = byDoi.get(t.doi);
+      if (existing) {
+        existing.topics = t.topics;
+      } else {
+        byDoi.set(t.doi, {
+          doi: t.doi,
+          title: t.title,
+          authors: t.authors,
+          pub_year: t.pub_year,
+          source: t.source,
+          abstract: t.abstract,
+          topics: t.topics
+        });
+      }
+    }
+    return [...byDoi.values()];
+  });
+
+  const filteredCombined: CombinedPaper[] = $derived.by(() => {
+    if (selectedMethod === null && selectedRegion === null && selectedTopic === null) {
+      return [];
+    }
+    return combinedPapers.filter((p) => {
+      if (selectedMethod !== null && p.method !== selectedMethod) return false;
+      if (selectedRegion !== null && p.region !== selectedRegion) return false;
+      if (selectedTopic !== null && !p.topics.includes(selectedTopic)) return false;
+      return true;
+    });
+  });
+
+  function clearAllFilters() {
+    selectedMethod = null;
+    selectedRegion = null;
+    selectedTopic = null;
+  }
+
+  let yearSortDir: 'asc' | 'desc' | null = $state(null);
+
+  const sortedFiltered: CombinedPaper[] = $derived.by(() => {
+    if (yearSortDir === null) return filteredCombined;
+    const sign = yearSortDir === 'asc' ? 1 : -1;
+    return [...filteredCombined].sort((a, b) => {
+      const ay = parseInt(a.pub_year, 10);
+      const by = parseInt(b.pub_year, 10);
+      return (ay - by) * sign;
+    });
+  });
+
+  function toggleYearSort() {
+    yearSortDir = yearSortDir === 'asc' ? 'desc' : 'asc';
+  }
+
+  const yearSortIndicator = $derived(
+    yearSortDir === 'asc' ? ' ▲' : yearSortDir === 'desc' ? ' ▼' : ''
+  );
 
   type TopicSeries = {
     topic: string;
@@ -571,10 +672,7 @@
   const topicIntersections: IntersectionRow[] = $derived.by(() => {
     const buckets = new Map<string, { members: Set<string>; count: number }>();
     for (const p of topicPapers) {
-      const validTopics = p.topics.filter(
-        (t): t is (typeof topicCategories)[number] =>
-          (topicCategories as readonly string[]).includes(t)
-      );
+      const validTopics = p.topics.filter((t) => topicCategories.includes(t));
       if (validTopics.length === 0) continue;
       const sorted = [...validTopics].sort();
       const key = sorted.join('|');
@@ -616,9 +714,7 @@
   const upsetSelectedPapers = $derived(
     upsetSelected !== null
       ? topicPapers.filter((p) => {
-          const validTopics = p.topics.filter((t) =>
-            (topicCategories as readonly string[]).includes(t)
-          );
+          const validTopics = p.topics.filter((t) => topicCategories.includes(t));
           return [...validTopics].sort().join('|') === upsetSelected;
         })
       : []
@@ -641,7 +737,7 @@
   const upsetTopicLabelWidth = 160;
   const upsetMargin = { top: 12, right: 16, bottom: 20, left: 8 };
   const upsetMatrixWidth = $derived(upsetCellSize * topIntersections.length);
-  const upsetMatrixHeight = upsetCellSize * topicCategories.length;
+  const upsetMatrixHeight = $derived(upsetCellSize * topicCategories.length);
   const upsetWidth = $derived(
     upsetMargin.left + upsetTopicLabelWidth + upsetSetBarWidth + upsetMatrixWidth + upsetMargin.right
   );
@@ -936,9 +1032,9 @@
   // Heatmap geometry
   const coocCellSize = 34;
   const coocMargin = { top: 140, right: 16, bottom: 16, left: 160 };
-  const coocInnerSize = coocCellSize * topicCategories.length;
-  const coocWidth = coocMargin.left + coocInnerSize + coocMargin.right;
-  const coocHeight = coocMargin.top + coocInnerSize + coocMargin.bottom;
+  const coocInnerSize = $derived(coocCellSize * topicCategories.length);
+  const coocWidth = $derived(coocMargin.left + coocInnerSize + coocMargin.right);
+  const coocHeight = $derived(coocMargin.top + coocInnerSize + coocMargin.bottom);
 
   // ---------------------------------------------------------------
   // Anchor-topic co-occurrence over time
@@ -948,6 +1044,12 @@
   // facet idiom as the topic-trends section so visual conventions carry.
 
   let anchorTopic: string = $state('social power');
+
+  // If the user switches model and the previously-anchored topic isn't in the
+  // new category list, fall back to the first category.
+  const effectiveAnchor: string = $derived(
+    topicCategories.includes(anchorTopic) ? anchorTopic : topicCategories[0]
+  );
 
   type AnchorSeries = {
     coTopic: string;
@@ -960,9 +1062,8 @@
   let anchorSort = $state<'overall' | 'phi' | 'absphi'>('overall');
 
   const anchorSeries: AnchorSeries[] = $derived.by(() => {
-    const anchor = anchorTopic;
-    const cats = topicCategories as readonly string[];
-    const anchorIdx = cats.indexOf(anchor);
+    const anchor = effectiveAnchor;
+    const anchorIdx = topicCategories.indexOf(anchor);
     const decadeBuckets = new Map<string, TopicPaper[]>();
     for (const p of topicPapers) {
       if (!p.topics.includes(anchor)) continue;
@@ -989,7 +1090,7 @@
         });
         const max = points.reduce((m, p) => (p.proportion > m ? p.proportion : m), 0);
         const overall = totalAnchorPapers > 0 ? overallCo / totalAnchorPapers : 0;
-        const coIdx = cats.indexOf(coTopic);
+        const coIdx = topicCategories.indexOf(coTopic);
         const phi = anchorIdx >= 0 && coIdx >= 0 ? topicPhi[anchorIdx][coIdx] : 0;
         return { coTopic, max, overall, phi, points };
       });
@@ -1004,7 +1105,7 @@
   });
 
   const anchorTotalPapers = $derived(
-    topicPapers.filter((p) => p.topics.includes(anchorTopic)).length
+    topicPapers.filter((p) => p.topics.includes(effectiveAnchor)).length
   );
 
   let anchorSharedY: boolean = $state(true);
@@ -1637,8 +1738,18 @@
 
 <h2 class="section-h2">Topics across rural geography (1992–2026)</h2>
 <p class="caption">
-  Multi-label topics predicted on {topicPapers.length} papers (snapshot: 2026-05-29_1719_topic_v3_abstract_cat14_all). Avg 3.23 topics per paper. Validated F1 = 0.82 (exact set match = 34%, Jaccard = 0.74) on 90 annotated papers. The stacked bar shows each topic's share of all topic-instances in each 5-year bucket; the small multiples show the proportion of papers tagged with each topic over time.
+  {topicPapers.length} papers across {topicCategories.length} categories. The stacked bar shows each topic's share of all topic-instances in each 5-year bucket; the small multiples show the proportion of papers tagged with each topic over time.
 </p>
+
+<div class="facet-controls">
+  <span class="control-label">Model:</span>
+  <select bind:value={topicModel} class="upset-topn">
+    {#each topicModels as m (m.key)}
+      <option value={m.key}>{m.label}</option>
+    {/each}
+  </select>
+</div>
+<p class="caption">{currentModel.description}</p>
 
 <div class="facet-controls">
   <span class="control-label">Small multiples y-axis:</span>
@@ -2336,7 +2447,7 @@
     class:active={!anchorSharedY}
     onclick={() => (anchorSharedY = false)}
   >free</button>
-  <span class="control-label" style="margin-left: 12px;">n papers tagged <em>{anchorTopic}</em>: {anchorTotalPapers}</span>
+  <span class="control-label" style="margin-left: 12px;">n papers tagged <em>{effectiveAnchor}</em>: {anchorTotalPapers}</span>
 </div>
 
 <section class="facets" aria-label="Co-occurrence with anchor topic over time">
@@ -2353,7 +2464,7 @@
         <span
           class="facet-phi"
           style="color: {series.phi >= 0 ? 'rgb(46, 92, 158)' : 'rgb(190, 70, 70)'};"
-          title="phi correlation of {series.coTopic} with anchor {anchorTopic}"
+          title="phi correlation of {series.coTopic} with anchor {effectiveAnchor}"
         >φ = {series.phi.toFixed(2)}</span>
       </div>
       <svg width={facetWidth} height={facetHeight} class="facet-svg">
@@ -2451,91 +2562,59 @@
   </div>
 {/if}
 
-{#if selectedTopic !== null}
+{#if selectedMethod !== null || selectedRegion !== null || selectedTopic !== null}
   <div class="table-section">
     <h2>
-      Topic: {selectedTopic}
-      <span class="count">({filteredTopicPapers.length} papers)</span>
-      <button onclick={() => (selectedTopic = null)}>Clear</button>
+      Filtered papers
+      <span class="filter-chips">
+        {#if selectedMethod !== null}
+          <span class="filter-chip">
+            Method: <span class="chip-value">{selectedMethod}</span>
+            <button class="chip-clear" aria-label="Clear method filter" onclick={() => (selectedMethod = null)}>✕</button>
+          </span>
+        {/if}
+        {#if selectedRegion !== null}
+          <span class="filter-chip">
+            Region: <span class="chip-value">{selectedRegion}</span>
+            <button class="chip-clear" aria-label="Clear region filter" onclick={() => (selectedRegion = null)}>✕</button>
+          </span>
+        {/if}
+        {#if selectedTopic !== null}
+          <span class="filter-chip">
+            Topic: <span class="chip-value">{selectedTopic}</span>
+            <button class="chip-clear" aria-label="Clear topic filter" onclick={() => (selectedTopic = null)}>✕</button>
+          </span>
+        {/if}
+      </span>
+      <span class="count">({filteredCombined.length} papers)</span>
+      <button onclick={clearAllFilters}>Clear all</button>
     </h2>
     <table>
       <thead>
         <tr>
-          <th>Year</th>
+          <th>
+            <button class="sort-btn" onclick={toggleYearSort}>Year{yearSortIndicator}</button>
+          </th>
           <th>Title</th>
           <th>Authors</th>
           <th>Source</th>
-          <th>Co-tagged topics</th>
+          <th>Method</th>
+          <th>Region</th>
+          <th>Topics</th>
+          <th>Abstract</th>
         </tr>
       </thead>
       <tbody>
-        {#each filteredTopicPapers as p (p.doi)}
+        {#each sortedFiltered as p (p.doi)}
           <tr>
             <td>{p.pub_year}</td>
             <td>{p.title || p.doi}</td>
             <td>{p.authors}</td>
             <td>{p.source}</td>
-            <td>{p.topics.filter((t) => t !== selectedTopic).join(', ')}</td>
-          </tr>
-        {/each}
-      </tbody>
-    </table>
-  </div>
-{/if}
-
-{#if selectedRegion !== null}
-  <div class="table-section">
-    <h2>
-      Region: {selectedRegion}
-      <span class="count">({filteredLocations.length} papers)</span>
-      <button onclick={() => (selectedRegion = null)}>Clear</button>
-    </h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Year</th>
-          <th>Title</th>
-          <th>Authors</th>
-          <th>Source</th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each filteredLocations as p (p.doi)}
-          <tr>
-            <td>{p.pub_year}</td>
-            <td>{p.title || p.doi}</td>
-            <td>{p.authors}</td>
-            <td>{p.source}</td>
-          </tr>
-        {/each}
-      </tbody>
-    </table>
-  </div>
-{/if}
-
-{#if selectedMethod !== null}
-  <div class="table-section">
-    <h2>
-      Methods: {selectedMethod}
-      <span class="count">({filteredPapers.length} papers)</span>
-      <button onclick={() => (selectedMethod = null)}>Clear</button>
-    </h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Year</th>
-          <th>Title</th>
-          <th>Authors</th>
-          <th>Source</th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each filteredPapers as p (p.doi)}
-          <tr>
-            <td>{p.pub_year}</td>
-            <td>{p.title || p.doi}</td>
-            <td>{p.authors}</td>
-            <td>{p.source}</td>
+            <td>{p.method ?? '—'}</td>
+            <td>{p.region ?? '—'}</td>
+            <td>{p.topics.join(', ')}</td>
+            <td class="abstract-cell">{p.abstract}</td>
           </tr>
         {/each}
       </tbody>
@@ -2865,6 +2944,67 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 13px;
     color: #1a4a8a;
+  }
+
+  .filter-chips {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border: 1px solid #ccc;
+    border-radius: 999px;
+    background: #f4f4f4;
+    font-size: 12px;
+    font-weight: normal;
+    color: #333;
+  }
+
+  .filter-chip .chip-value {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: #1a4a8a;
+  }
+
+  .filter-chip .chip-clear {
+    margin: 0 0 0 2px;
+    padding: 0 4px;
+    border: none;
+    background: transparent;
+    color: #666;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .filter-chip .chip-clear:hover {
+    color: #000;
+  }
+
+  .sort-btn {
+    border: none;
+    background: transparent;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .sort-btn:hover {
+    color: #1a4a8a;
+  }
+
+  .abstract-cell {
+    max-width: 720px;
+    font-size: 12px;
+    color: #444;
+    line-height: 1.4;
   }
 
   .facet-controls {

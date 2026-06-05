@@ -1,0 +1,29 @@
+# V3 topic classifier — cat23: strengthen HE's water-infrastructure anti-pattern.
+# Cat22 analysis surfaced a PG/HE/BE trio confusion on 27% of papers (25 of 93),
+# with the dominant pattern being HE-fired-instead-of-BE on water/aquifer/
+# irrigation papers (6 HE FPs + 4 BE FNs both swap with each other on these
+# cases). cat14's HE definition already has an anti-pattern for this — "water
+# access or water infrastructure papers (usually built environment + social
+# power)" — but it's buried in a list and gemma isn't applying it.
+# cat23 appends one emphatic sentence to HE's anti-pattern paragraph:
+#   STRONG ANTI-PATTERN — water/aquifer/irrigation/groundwater papers... belong
+#   under BE + governance + social power, NOT HE. The HE label requires the
+#   society-environment RELATIONSHIP itself as the analytical contribution.
+# Everything else inherits from cat20 (the minimal-merge taxonomy).
+# Prompt is topic_05.md (cat22's calibrated cardinality "typically 3–4 topics,
+# rarely fewer than 2 or more than 4").
+# Expected effect: HE precision climbs from 0.61 -> 0.65+, BE recall climbs
+# from 0.73 -> 0.78+, modest jaccard improvement. Risk: too-strong anti-pattern
+# could push HE recall below 1.00 by suppressing legitimate cases (as cat16's
+# anti-pattern blowout did) — watch HE F1 carefully.
+task: topic
+schema: v3
+strategy: abstract
+prompt_variant: "05"
+cat_variant: "23"
+ex_variant: "off"
+name: v3_abstract_cat23
+all_papers: false
+thinking: true
+max_tokens: 4096
+collapse_gt: true

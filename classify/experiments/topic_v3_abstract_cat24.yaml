@@ -1,0 +1,27 @@
+# V3 topic classifier — cat24: softer water-infrastructure clarification on HE.
+# cat23 used a "STRONG ANTI-PATTERN" prefix that overcorrected: HE recall dropped
+# 1.00 -> 0.84 and place-based regressed from 0.82 -> 0.76 as collateral. The
+# substance of the guidance was right (BE recall 0.74 -> 0.81 confirmed gemma
+# CAN learn the water/infrastructure distinction) but the wording was too
+# aggressive — gemma applied it more broadly than intended.
+# cat24 drops "STRONG ANTI-PATTERN" framing and rephrases as substantive guidance:
+#   "For water-related papers: when the paper analyzes water access, aquifer
+#    dynamics, irrigation systems, or groundwater management, the analytical
+#    contribution is typically about the infrastructure system (built environment)
+#    and its governance — not the nature-society relationship itself."
+# Same intent, normal weight, no "NOT" emphasis.
+# Categories: topic_24.csv (= topic_20.csv with the softer HE note).
+# Prompt: topic_05.md (cat22's calibrated cardinality "typically 3–4 topics").
+# Target: HE precision climbs slightly without HE recall crash (≥0.90), BE
+# recall holds near 0.81, place-based recovers to ≥0.80, aggregate jaccard ≥0.720.
+task: topic
+schema: v3
+strategy: abstract
+prompt_variant: "05"
+cat_variant: "24"
+ex_variant: "off"
+name: v3_abstract_cat24
+all_papers: false
+thinking: true
+max_tokens: 4096
+collapse_gt: true

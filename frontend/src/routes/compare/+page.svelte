@@ -21,7 +21,15 @@
     docling_url: string | null;
   };
 
-  type CompareBundle = { multi_label?: boolean; records?: CompareRecord[] };
+  type CompareBundle = {
+    multi_label?: boolean;
+    records?: CompareRecord[];
+    // Per-run granular -> collapsed label maps. Only populated for runs configured
+    // with collapse_gt (cat15+). Used to score (annotator vs run) and (run vs run)
+    // pairs in the most-collapsed space of the pair, so e.g. annotator's "weather"
+    // and cat20's "physical geography" register as agreement.
+    collapse_maps?: Record<string, Record<string, string>>;
+  };
   type CompareData = Record<string, Record<string, CompareBundle>>;
 
   const compareData = data as unknown as CompareData;
@@ -270,9 +278,21 @@
         if (rowVal !== cmSelected.row || colVal !== cmSelected.col) return false;
       }
       // Per-label disagree filter (multi-label).
+      // The per-label table keys cells by COLLAPSED labels (e.g. "physical
+      // geography"), while r.annotator may carry the GRANULAR label (e.g.
+      // "weather"). Project both labellers' label sets through the pair's
+      // collapse maps before testing, otherwise clicking onlyA on a collapsed
+      // label finds 0 papers because no one literally tagged that label.
       if (multiLabel && mlSelected && mlSelectedValid) {
-        const sa = new Set(resolveLabels(r, mlSelected.rowLabeller));
-        const sb = new Set(resolveLabels(r, mlSelected.colLabeller));
+        const mapA = collapseMaps?.[mlSelected.rowLabeller];
+        const mapB = collapseMaps?.[mlSelected.colLabeller];
+        const project = (labs: string[]): Set<string> => {
+          const out = new Set<string>();
+          for (const l of labs) out.add(mapA?.[l] ?? mapB?.[l] ?? l);
+          return out;
+        };
+        const sa = project(resolveLabels(r, mlSelected.rowLabeller));
+        const sb = project(resolveLabels(r, mlSelected.colLabeller));
         const inA = sa.has(mlSelected.label);
         const inB = sb.has(mlSelected.label);
         if (mlSelected.bucket === 'both' && !(inA && inB)) return false;
@@ -319,12 +339,35 @@
   //   onlyA — A picked but B didn't
   //   onlyB — B picked but A didn't
   // Rows are sorted by support (both + onlyA + onlyB) descending.
-  function buildPerLabel(la: string, lb: string, recs: CompareRecord[]) {
+  // When one labeller in the pair has a collapse map (e.g. cat20: {weather ->
+  // physical geography}), both labellers' label sets are projected through that
+  // map before counting — so annotator's "weather" lines up with cat20's
+  // "physical geography" as agreement. The chips displayed on each paper stay
+  // literal; only the scoring uses the projected view.
+  function buildPerLabel(
+    la: string,
+    lb: string,
+    recs: CompareRecord[],
+    collapseMaps: Record<string, Record<string, string>> | undefined,
+  ) {
+    const mapA = collapseMaps?.[la];
+    const mapB = collapseMaps?.[lb];
+    // Pair's projection map: union of whichever maps are present. Annotator and
+    // cat14-style runs have no map; they contribute identity. Both maps merged
+    // is robust to a future case where both labellers carry their own maps.
+    const project = (labs: Iterable<string>): Set<string> => {
+      const out = new Set<string>();
+      for (const l of labs) {
+        const v = mapA?.[l] ?? mapB?.[l] ?? l;
+        out.add(v);
+      }
+      return out;
+    };
     const counts: Record<string, { both: number; onlyA: number; onlyB: number }> = {};
     let n = 0;
     for (const r of recs) {
-      const sa = new Set(resolveLabels(r, la));
-      const sb = new Set(resolveLabels(r, lb));
+      const sa = project(resolveLabels(r, la));
+      const sb = project(resolveLabels(r, lb));
       if (sa.size === 0 && sb.size === 0) continue;
       n++;
       const all = new Set<string>([...sa, ...sb]);
@@ -362,8 +405,12 @@
     return { rows, total: n, max: max === 0 ? 1 : max };
   }
 
+  const collapseMaps = $derived(
+    compareData[activeTask]?.[activeSchema]?.collapse_maps,
+  );
+
   const mlMatrices = $derived(
-    pairs.map((p) => ({ ...p, ...buildPerLabel(p.a, p.b, records) }))
+    pairs.map((p) => ({ ...p, ...buildPerLabel(p.a, p.b, records, collapseMaps) }))
   );
 
   function toggleMlCell(
