@@ -660,6 +660,76 @@
     return [0, m / 2, m];
   }
 
+  // ---------------------------------------------------------------
+  // Topics by region: USA vs non-USA
+  // ---------------------------------------------------------------
+
+  const usTopicPapers = $derived(topicPapers.filter((p) => classifyBucket(p.doi) === 'us'));
+  const nonUsTopicPapers = $derived(topicPapers.filter((p) => classifyBucket(p.doi) === 'nonUs'));
+
+  function computeTopicSeriesFor(subset: TopicPaper[]): TopicSeries[] {
+    return topicCategories.map((topic) => {
+      const points = decades.map((decade) => {
+        const decadePapers = subset.filter((d) => getDecade(d.pub_year) === decade);
+        const count = decadePapers.filter((d) => d.topics.includes(topic)).length;
+        const n_papers = decadePapers.length;
+        const proportion = n_papers > 0 ? count / n_papers : 0;
+        return { decade, proportion, count, n_papers };
+      });
+      const max = points.reduce((m, p) => (p.proportion > m ? p.proportion : m), 0);
+      return { topic, max, points };
+    });
+  }
+
+  const usTopicSeries: TopicSeries[] = $derived(computeTopicSeriesFor(usTopicPapers));
+  const nonUsTopicSeries: TopicSeries[] = $derived(computeTopicSeriesFor(nonUsTopicPapers));
+
+  type CombinedTopicSeries = {
+    topic: string;
+    us: TopicSeries;
+    nonUs: TopicSeries;
+  };
+
+  const combinedTopicSeries: CombinedTopicSeries[] = $derived(
+    topicCategories.map((topic) => ({
+      topic,
+      us: usTopicSeries.find((s) => s.topic === topic) as TopicSeries,
+      nonUs: nonUsTopicSeries.find((s) => s.topic === topic) as TopicSeries
+    }))
+  );
+
+  const compareTopicYMax = $derived(
+    Math.min(
+      1,
+      Math.ceil(
+        Math.max(
+          usTopicSeries.reduce((m, s) => (s.max > m ? s.max : m), 0),
+          nonUsTopicSeries.reduce((m, s) => (s.max > m ? s.max : m), 0)
+        ) * 10
+      ) / 10
+    )
+  );
+  const compareTopicY = $derived(
+    scaleLinear().domain([0, compareTopicYMax]).range([facetInnerHeight, 0])
+  );
+  const compareTopicYTicks = $derived([0, compareTopicYMax / 2, compareTopicYMax]);
+  const compareTopicTotal = $derived(usTopicPapers.length + nonUsTopicPapers.length);
+
+  const decadeUsNonUsTopicProportions: DecadeUsNonUs[] = $derived(
+    decades.map((decade) => {
+      const usCount = usTopicPapers.filter((d) => getDecade(d.pub_year) === decade).length;
+      const nonUsCount = nonUsTopicPapers.filter((d) => getDecade(d.pub_year) === decade).length;
+      const total = usCount + nonUsCount;
+      const usProp = total > 0 ? usCount / total : 0;
+      const nonUsProp = total > 0 ? nonUsCount / total : 0;
+      const segments: DecadeUsNonUs['segments'] = [
+        { bucket: 'USA', y0: 0, y1: usProp, proportion: usProp, count: usCount },
+        { bucket: 'Non-USA', y0: usProp, y1: usProp + nonUsProp, proportion: nonUsProp, count: nonUsCount }
+      ];
+      return { decade, total, segments };
+    })
+  );
+
   // UpSet plot: which topic combinations (sets) recur most often.
   // Each paper has a unique topic-set (sorted, deduplicated); we count
   // occurrences of each unique set and rank by frequency.
@@ -1950,6 +2020,201 @@
 </section>
 </div>
 
+<h2 class="section-h2">Topics by region: USA vs non-USA (1992–2026)</h2>
+<p class="caption">
+  Topic prevalence over time, <span style="color: {usColor}; font-weight: 600;">USA</span> vs <span style="color: {nonUsColor}; font-weight: 600;">Non-USA</span>. n={compareTopicTotal} (USA={usTopicPapers.length}, Non-USA={nonUsTopicPapers.length}). Papers with region <em>multiple regions</em> or <em>unclear or conceptual</em>, and papers missing from the locations dataset, are excluded.
+</p>
+
+<div class="legend">
+  <div class="legend-item static">
+    <span class="swatch" style="background: {usColor};"></span>
+    <span class="label">USA (n={usTopicPapers.length})</span>
+  </div>
+  <div class="legend-item static">
+    <span class="swatch" style="background: {nonUsColor};"></span>
+    <span class="label">Non-USA (n={nonUsTopicPapers.length})</span>
+  </div>
+</div>
+
+<div class="charts-row">
+<svg width={barWidth} height={barHeight} class="bar-chart">
+  <text
+    x={-(barHeight / 2)}
+    y={16}
+    transform="rotate(-90)"
+    text-anchor="middle"
+    font-size="12"
+    fill="#666"
+  >Proportion</text>
+
+  {#each [0, 0.25, 0.5, 0.75, 1.0] as tick (tick)}
+    <line
+      x1={barMargin.left}
+      x2={barWidth - barMargin.right}
+      y1={yBar(tick)}
+      y2={yBar(tick)}
+      stroke="#e0e0e0"
+      stroke-width="1"
+    />
+    <text
+      x={barMargin.left - 8}
+      y={yBar(tick) + 4}
+      text-anchor="end"
+      font-size="11"
+      fill="#666"
+    >{tick}</text>
+  {/each}
+
+  {#each decadeUsNonUsTopicProportions as { decade, segments } (decade)}
+    {#each segments as seg (seg.bucket)}
+      {#if seg.proportion > 0}
+        {@const x = xBand(decade) ?? 0}
+        {@const bw = xBand.bandwidth()}
+        {@const yTop = yBar(seg.y1)}
+        {@const h = yBar(seg.y0) - yBar(seg.y1)}
+        <rect
+          x={x}
+          y={yTop}
+          width={bw}
+          height={h}
+          fill={seg.bucket === 'USA' ? usColor : nonUsColor}
+          opacity={0.85}
+        />
+        {#if seg.proportion > 0.06}
+          <text
+            x={x + bw / 2}
+            y={yTop + h / 2 + 4}
+            text-anchor="middle"
+            font-size="11"
+            fill="white"
+            pointer-events="none"
+          >n={seg.count}</text>
+        {/if}
+      {/if}
+    {/each}
+  {/each}
+
+  {#each decades as decade (decade)}
+    <text
+      x={(xBand(decade) ?? 0) + xBand.bandwidth() / 2}
+      y={barHeight - barMargin.bottom + 20}
+      text-anchor="middle"
+      font-size="12"
+      fill="#333"
+    >{decade}</text>
+  {/each}
+
+  <text
+    x={(barMargin.left + barWidth - barMargin.right) / 2}
+    y={barHeight - 8}
+    text-anchor="middle"
+    font-size="12"
+    fill="#666"
+  >Year (5-year buckets)</text>
+</svg>
+
+<section class="facets" aria-label="Topics USA vs non-USA over time">
+  {#each combinedTopicSeries as { topic, us, nonUs } (topic)}
+    {@const dimmed = selectedTopic !== null && selectedTopic !== topic}
+    {@const usPct = (us.max * 100).toFixed(0)}
+    {@const nonUsPct = (nonUs.max * 100).toFixed(0)}
+    {@const usN = us.points.reduce((a, p) => a + p.count, 0)}
+    {@const nonUsN = nonUs.points.reduce((a, p) => a + p.count, 0)}
+    <button
+      type="button"
+      class="facet"
+      class:dimmed
+      onclick={() => toggleTopic(topic)}
+      aria-label="{topic} proportion over time: USA peak {usPct}%, Non-USA peak {nonUsPct}%"
+    >
+      <div class="facet-header">
+        <span class="facet-name">{topic}</span>
+        <span class="facet-max">· US peak {usPct}% · NonUS peak {nonUsPct}% (n_US={usN}, n_NonUS={nonUsN})</span>
+      </div>
+      <svg width={facetWidth} height={facetHeight} class="facet-svg">
+        <g transform="translate({facetMargin.left},{facetMargin.top})">
+          {#each compareTopicYTicks as t (t)}
+            <line
+              x1={0}
+              x2={facetInnerWidth}
+              y1={compareTopicY(t)}
+              y2={compareTopicY(t)}
+              stroke="#eee"
+              stroke-width="1"
+            />
+            <text
+              x={-4}
+              y={compareTopicY(t) + 3}
+              text-anchor="end"
+              font-size="9"
+              fill="#888"
+            >{(t * 100).toFixed(0)}%</text>
+          {/each}
+          {#if us.max > 0}
+            {@const usPath = us.points
+              .map((p, i) => `${i === 0 ? 'M' : 'L'} ${facetCx(p.decade)} ${compareTopicY(p.proportion)}`)
+              .join(' ')}
+            <path
+              d={usPath}
+              fill="none"
+              stroke={usColor}
+              stroke-width="1.5"
+              opacity={dimmed ? 0.15 : 0.9}
+            />
+            {#each us.points as p (p.decade)}
+              <circle
+                cx={facetCx(p.decade)}
+                cy={compareTopicY(p.proportion)}
+                r="2.5"
+                fill={usColor}
+                opacity={dimmed ? 0.15 : 0.9}
+              />
+            {/each}
+          {/if}
+          {#if nonUs.max > 0}
+            {@const nonUsPath = nonUs.points
+              .map((p, i) => `${i === 0 ? 'M' : 'L'} ${facetCx(p.decade)} ${compareTopicY(p.proportion)}`)
+              .join(' ')}
+            <path
+              d={nonUsPath}
+              fill="none"
+              stroke={nonUsColor}
+              stroke-width="1.5"
+              opacity={dimmed ? 0.15 : 0.9}
+            />
+            {#each nonUs.points as p (p.decade)}
+              <circle
+                cx={facetCx(p.decade)}
+                cy={compareTopicY(p.proportion)}
+                r="2.5"
+                fill={nonUsColor}
+                opacity={dimmed ? 0.15 : 0.9}
+              />
+            {/each}
+          {/if}
+        </g>
+        <g transform="translate({facetMargin.left},{facetMargin.top + facetInnerHeight})">
+          <text
+            x={facetCx(decades[0])}
+            y={12}
+            text-anchor="middle"
+            font-size="9"
+            fill="#888"
+          >{decades[0]}</text>
+          <text
+            x={facetCx(decades[decades.length - 1])}
+            y={12}
+            text-anchor="middle"
+            font-size="9"
+            fill="#888"
+          >{decades[decades.length - 1]}</text>
+        </g>
+      </svg>
+    </button>
+  {/each}
+</section>
+</div>
+
 <h3 class="section-h3">Topic combinations: UpSet (left) + pairwise co-occurrence (right)</h3>
 <p class="caption">
   <strong>Left — UpSet (exact-set view):</strong> the {UPSET_TOP_N} most-recurring <em>exact</em> topic combinations across {topicPapers.length} papers ({topicIntersections.length} distinct combinations total). Each vertical bar counts papers whose <em>full topic set</em> matches the dotted pattern — a "social power + identity" bar counts only papers tagged with those two and <em>nothing else</em>. <strong>Right — pairwise heatmap (at-least-both view):</strong> cell (row, column) counts papers tagged with <em>both</em> topics regardless of what else they have, so the same pair will always show a larger number here than in the UpSet view (the heatmap value equals the sum of every UpSet bar whose dot pattern contains both topics). Diagonal cells are each topic's own paper count, shown in grey. Click any UpSet bar or heatmap cell to filter the table below.
@@ -2450,7 +2715,7 @@
   <span class="control-label" style="margin-left: 12px;">n papers tagged <em>{effectiveAnchor}</em>: {anchorTotalPapers}</span>
 </div>
 
-<section class="facets" aria-label="Co-occurrence with anchor topic over time">
+<section class="facets anchor-facets" aria-label="Co-occurrence with anchor topic over time">
   {#each anchorSeries as series (series.coTopic)}
     {@const maxPct = (series.max * 100).toFixed(0)}
     {@const overallPct = (series.overall * 100).toFixed(0)}
@@ -2727,6 +2992,18 @@
     row-gap: 8px;
     width: 620px;
     font-family: system-ui, sans-serif;
+  }
+
+  .facets.anchor-facets {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 8px 16px;
+  }
+
+  .facets.anchor-facets .facet {
+    flex: 0 0 auto;
+    width: 300px;
   }
 
   .facet {
