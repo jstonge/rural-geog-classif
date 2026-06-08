@@ -33,7 +33,21 @@ RUNS_DIR = ROOT / "classify" / "output" / "runs"
 BACKFILL_CSV = ROOT / "extract" / "input" / "wos_backfill.csv"
 OUT = ROOT / "frontend" / "src" / "lib" / "data" / "funnel.json"
 
-DEFAULT_TOPIC_RUN = "2026-05-29_1719_topic_v3_abstract_cat14_all"
+TOPIC_RUN_GLOB = "*_topic_v3_abstract_cat14_all"
+
+
+def latest_topic_run() -> str:
+    """Most recent cat14_all topic snapshot — the one feeding topics_viz.json.
+
+    Run dir names start with a `YYYY-MM-DD_HHMM` timestamp, so lexicographic
+    sort is chronological.
+    """
+    matches = sorted(d.name for d in RUNS_DIR.glob(TOPIC_RUN_GLOB) if d.is_dir())
+    if not matches:
+        raise FileNotFoundError(
+            f"no cat14_all snapshot under {RUNS_DIR} matching {TOPIC_RUN_GLOB!r}"
+        )
+    return matches[-1]
 
 
 def doi_to_key(doi: str) -> str:
@@ -68,12 +82,17 @@ def read_backfill_sources():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--topic-run", default=DEFAULT_TOPIC_RUN,
-                    help="Classify run dir whose predictions feed topics_viz.json")
+    ap.add_argument("--topic-run", default=None,
+                    help=("Classify run dir whose predictions feed topics_viz.json. "
+                          "Defaults to the most recent cat14_all snapshot."))
     ap.add_argument("--out", type=Path, default=OUT)
     ap.add_argument("--no-backfill", action="store_true",
                     help="Ignore extract/input/wos_backfill.csv")
     args = ap.parse_args()
+
+    if args.topic_run is None:
+        args.topic_run = latest_topic_run()
+        print(f"Using latest cat14_all snapshot: {args.topic_run}")
 
     # Load WoS twice — raw (no backfill) and with backfill — so we can compute
     # at each stage both the natural drop and the backfill recovery.

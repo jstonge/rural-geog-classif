@@ -28,6 +28,22 @@ def make_run_id(control: str, name: str) -> str:
     return f"{datetime.now():%Y-%m-%d_%H%M}_{control}_{name}"
 
 
+def _count_nonempty(predictions: pd.DataFrame) -> int | None:
+    """Count rows with a non-empty value in the *_pred column (topics_pred,
+    method_pred, location_pred, etc.). Returns None if no such column exists."""
+    pred_cols = [c for c in predictions.columns if c.endswith("_pred")]
+    if not pred_cols:
+        return None
+    col = predictions[pred_cols[0]]
+
+    def ne(v):
+        if isinstance(v, (list, tuple)):
+            return len(v) > 0
+        return v is not None and v == v and str(v).strip() != ""
+
+    return int(col.apply(ne).sum())
+
+
 def save_classify_snapshot(run_id: str, *,
                            control: str,
                            config: dict,
@@ -37,7 +53,9 @@ def save_classify_snapshot(run_id: str, *,
     run_dir = RUNS_DIR / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
     cfg = {**config, "control": control,
-           "saved_at": datetime.now().isoformat(timespec="seconds")}
+           "saved_at": datetime.now().isoformat(timespec="seconds"),
+           "n_papers": len(predictions),
+           "n_with_prediction": _count_nonempty(predictions)}
     (run_dir / "config.json").write_text(json.dumps(cfg, indent=2, default=str))
     (run_dir / "prompt.md").write_text(prompt)
     predictions.to_parquet(run_dir / "predictions.parquet")

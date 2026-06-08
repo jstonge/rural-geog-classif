@@ -1,6 +1,6 @@
 {
-  "computed_at": "2026-06-04T14:06:36+00:00",
-  "topic_run": "2026-05-29_1719_topic_v3_abstract_cat14_all",
+  "computed_at": "2026-06-08T14:29:04+00:00",
+  "topic_run": "2026-06-04_1511_topic_v3_abstract_cat14_all",
   "stages": [
     {
       "key": "wos_input",
@@ -216,208 +216,15 @@
     {
       "key": "topic_pred",
       "label": "Topic prediction produced",
-      "count": 346,
-      "would_drop": 24,
+      "count": 370,
+      "would_drop": 0,
       "added": 0,
-      "dropped": 24,
-      "drop_reason": "23 not in the classify run (typically backfilled DOIs/abstracts added after the run); 1 classifier returned an empty topics_pred",
+      "dropped": 0,
+      "drop_reason": "0 not in the classify run (typically backfilled DOIs/abstracts added after the run); 0 classifier returned an empty topics_pred",
       "add_reason": null,
       "add_sources": {},
-      "source": "classify/output/runs/2026-05-29_1719_topic_v3_abstract_cat14_all/predictions.parquet",
-      "dropped_papers": [
-        {
-          "doi": "10.1080/00330124.2015.1106325",
-          "title": "Confidence and Trust in Public Institution Natural Hazards Management: Case Studies in Urban and Rural China",
-          "pub_year": "2016",
-          "source": "PROFESSIONAL GEOGRAPHER",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1080/00330124.2015.1129909",
-          "title": "An Individual Rural Geography",
-          "pub_year": "2016",
-          "source": "PROFESSIONAL GEOGRAPHER",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1080/24694452.2017.1373627",
-          "title": "Governing Dispossession: Relational Land Grabbing in Laos",
-          "pub_year": "2018",
-          "source": "ANNALS OF THE AMERICAN ASSOCIATION OF GEOGRAPHERS",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1111/0033-0124.00343",
-          "title": "The local articulation of policy conflict: Land use, environment, and Amerindian rights in Eastern Amazonia",
-          "pub_year": "2002",
-          "source": "PROFESSIONAL GEOGRAPHER",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1111/0033-0124.5502010",
-          "title": "Forest transitions in Mexico: Institutions and forests in a globalized countryside",
-          "pub_year": "2003",
-          "source": "PROFESSIONAL GEOGRAPHER",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1111/1467-8306.00142",
-          "title": "Merging local and regional analyses of land-use change: The case of livestock in the Sahel",
-          "pub_year": "1999",
-          "source": "ANNALS OF THE ASSOCIATION OF AMERICAN GEOGRAPHERS",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1111/j.0033-0124.1986.00343.x",
-          "title": "SELLERS AND NONSELLERS OF LAND FOR NEW RURAL HOUSING",
-          "pub_year": "1986",
-          "source": "PROFESSIONAL GEOGRAPHER",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1111/j.0033-0124.1987.00275.x",
-          "title": "RURAL-POPULATION LOSS AND CROPLAND CHANGE IN THE SOUTHERN PLAINS - IMPLICATIONS FOR CROPLAND RETIREMENT POLICY",
-          "pub_year": "1987",
-          "source": "PROFESSIONAL GEOGRAPHER",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1111/j.0033-0124.1988.00202.x",
-          "title": "HUMAN-RELATIONS AND PRIMARY HEALTH-CARE DELIVERY IN RURAL NEPAL - THE CASE OF DEURALI",
-          "pub_year": "1988",
-          "source": "PROFESSIONAL GEOGRAPHER",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1111/j.0033-0124.1990.00471.x",
-          "title": "RURAL ADDRESSING AND COMPUTER MAPPING IN NEW-MEXICO",
-          "pub_year": "1990",
-          "source": "PROFESSIONAL GEOGRAPHER",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1111/j.1467-8306.1989.tb00263.x",
-          "title": "RURAL ECONOMIC RESTRUCTURING AND FARM HOUSEHOLD INCOME IN JIANGSU, PEOPLES-REPUBLIC-OF-CHINA",
-          "pub_year": "1989",
-          "source": "ANNALS OF THE ASSOCIATION OF AMERICAN GEOGRAPHERS",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1111/j.1467-8306.1989.tb00273.x",
-          "title": "PREADAPTATION AND EUROPEAN COLONIZATION IN RURAL NORTH-AMERICA",
-          "pub_year": "1989",
-          "source": "ANNALS OF THE ASSOCIATION OF AMERICAN GEOGRAPHERS",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1111/j.1467-8306.1991.tb01706.x",
-          "title": "SOW WHAT YOU KNOW - THE STRUGGLE FOR SOCIAL REPRODUCTION IN RURAL SUDAN",
-          "pub_year": "1991",
-          "source": "ANNALS OF THE ASSOCIATION OF AMERICAN GEOGRAPHERS",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1111/j.1467-8306.1992.tb01970.x",
-          "title": "LANDSCAPE, SYSTEM, AND IDENTITY IN THE POSTCONQUEST ANDES",
-          "pub_year": "1992",
-          "source": "ANNALS OF THE ASSOCIATION OF AMERICAN GEOGRAPHERS",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1111/j.1467-8306.2004.00437.x",
-          "title": "Exploring the geographic consequences of public policies using evolutionary algorithms",
-          "pub_year": "2004",
-          "source": "ANNALS OF THE ASSOCIATION OF AMERICAN GEOGRAPHERS",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1111/j.1467-8306.2004.00439.x",
-          "title": "Disturbance pharmacopoeias: Medicine and myth from the humid tropics",
-          "pub_year": "2004",
-          "source": "ANNALS OF THE ASSOCIATION OF AMERICAN GEOGRAPHERS",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1111/j.1467-8306.2004.00441.x",
-          "title": "From spatial continuity to fragmentation: The case of Russian farming",
-          "pub_year": "2004",
-          "source": "ANNALS OF THE ASSOCIATION OF AMERICAN GEOGRAPHERS",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1111/j.1467-8306.2004.00442.x",
-          "title": "Place identity in a resource-dependent area of northern British Columbia",
-          "pub_year": "2004",
-          "source": "ANNALS OF THE ASSOCIATION OF AMERICAN GEOGRAPHERS",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1111/j.1467-8306.2004.00443.x",
-          "title": "A useless thing! or nectar of the gods? The cultural production of education and young men's struggles for respect in liberalizing north India",
-          "pub_year": "2004",
-          "source": "ANNALS OF THE ASSOCIATION OF AMERICAN GEOGRAPHERS",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1111/j.1467-8306.2005.00491.x",
-          "title": "Spatial convergence and spillovers in American invention",
-          "pub_year": "2005",
-          "source": "ANNALS OF THE ASSOCIATION OF AMERICAN GEOGRAPHERS",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.2307/214623",
-          "title": "RURAL URBAN CORRELATES FOR INDIAN URBANIZATION",
-          "pub_year": "1986",
-          "source": "GEOGRAPHICAL REVIEW",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.2307/3250830",
-          "title": "Which truth? Cultural politics and vodka in rural Russia",
-          "pub_year": "2001",
-          "source": "GEOGRAPHICAL REVIEW",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.2307/3250862",
-          "title": "Revisiting the rural revolution in East Carolina",
-          "pub_year": "2000",
-          "source": "GEOGRAPHICAL REVIEW",
-          "drop_reason": "not_in_classify_run",
-          "topics_reasoning": null
-        },
-        {
-          "doi": "10.1080/00045608.2011.641897",
-          "title": "Claiming Space, Claiming Water: Contested Legal Geographies of Water in South Texas",
-          "pub_year": "2012",
-          "source": "ANNALS OF THE ASSOCIATION OF AMERICAN GEOGRAPHERS",
-          "drop_reason": "classifier_returned_empty",
-          "topics_reasoning": "*   Title: \"Claiming Space, Claiming Water: Contested Legal Geographies of Water in South Texas\"\n    *   Abstract:\n        *   Focuses on water access in \"colonias\" (predominantly Mexican-American rural and periurban low-income communities) in South Texas.\n        *   Argues that \"water politics\" and \"legal geographies\" (not just poverty or policy failure) determined inadequate water access.\n        *   Analyzes two legal cases (Jimenez v. Hidalgo WCID 2 and Fonseca v. Hidalgo WCID 2).\n        *   Discusses \"farmer-controlled water control and improvement districts (WCIDs)\" and their dominance over \"regional water governance.\"\n        *   Mentions \"territorial exclusion,\" \"right to vote,\" \"political standing,\" and \"legal discourses.\"\n        *   Discusses the shift from \"voting rights to historical precedent, the market, policy failure, and prospective water rights.\"\n        *   Conclusion: The legal ruling foreclosed standing in \"regional water governance.\"\n\n    *   `agriculture/food`: The abstract mentions \"farmer-controlled water control and improvement districts\" and \"irrigation,\" but the central argument is about *water access for residents* and *legal/political governance*, not the agricultural system itself. The \"farmer-controlled\" part is a power dynamic, not a study of farming. (Exclude)\n    *   `place-based study`: The study focuses on \"South Texas\" and specifically \"colonias.\" It examines specific legal cases in a specific region. However, is the *place* the substantive subject, or is the *legal geography/governance* the subject? The abstract says \"Contested Legal Geographies of Water in South Texas.\" It uses the case of colonias to argue about water politics and legal discourses. While it's situated, it feels more like a study of governance and power. *Wait*, the tie-breaker: \"if the abstract names a SPECIFIC ETHNIC... group... AND the abstract describes their identity-formation, homeland relationship, attachment, displacement, or community-internal dynamics... lean toward INCLUDING place-based study.\" Here, \"Mexican-American rural and periurban low-income communities (colonias)\" are named. But the focus is on their *legal standing* and *water access*, not their identity-formation or homeland relationship. (Exclude)\n    *   `scale/location`: The paper discusses \"legal geographies,\" \"territorial exclusion,\" and \"political territoriality.\" It analyzes how the *territory* of the WCIDs was used to exclude people. This is a central contribution about the spatial dimension (territoriality) of power. (Include)\n    *   `natural environment`: No. (Exclude)\n    *   `weather`: No. (Exclude)\n    *   `climate and natural hazards`: No. (Exclude)\n    *   `human-environment`: The paper is about water access, but it's framed as \"water politics\" and \"legal geographies,\" not as a nature-society theory or political ecology of the environment itself. It's more about the *governance* of the resource. (Exclude)\n    *   `built environment`: It mentions \"domestic water access,\" \"water control and improvement districts,\" and \"public services.\" Water infrastructure (WCIDs, domestic water supply) is the medium through which the power struggle occurs. (Include)\n    *   `technology`: No. (Exclude)\n    *   `energy`: No. (Exclude)\n    *   `social power`: Centrally concerns \"poverty,\" \"low-income communities,\" \"inequality\" (exclusion from voting/governance), and \"power\" (farmer-controlled districts). (Include)\n    *   `recreation`: No. (Exclude)\n    *   `mobility`: No. (Exclude)\n    *   `identity`: Centrally focuses on \"Mexican-American rural and periurban low-income communities (colonias).\" The experience of this specific group is the center of the analysis. (Include)\n    *   `governance`: Centrally concerns \"water politics,\" \"regional water governance,\" \"legal cases,\" \"legislative archives,\" \"legal discourses,\" \"voting rights,\" and \"political standing.\" The entire paper is about the institutional/legal mechanisms of control. (Include)\n    *   `methods`: No. (Exclude)\n    *   `emotion`: No. (Exclude)\n\n    *   `social power`: Yes (poverty, inequality, exclusion).\n    *   `governance`: Yes (legal cases, water districts, voting rights, political standing).\n    *   `identity`: Yes (Mexican-American colonias).\n    *   `built environment`: Yes (water infrastructure/systems as the medium of the struggle).\n    *   `scale/location`: Yes (territoriality, legal geographies, territorial exclusion).\n\n    *Self-Correction on `scale/location`:* The abstract explicitly mentions \"legal geographies\" and \"political territoriality.\" This is a core part of the argument.\n    *Self-Correction on `built environment`:* The \"water control and improvement districts\" and \"domestic water supply\" are infrastructure systems. The paper is about who gets access to this built system.\n\n    *Refining the list:*\n    - `governance` (Primary)\n    - `social power` (Primary)\n    - `identity` (Primary - centering the colonias)\n    - `built environment` (Secondary/Medium - water infrastructure)\n    - `scale/location` (Primary - territoriality/legal geography)\n\n    Wait, the prompt says \"usually 2\u20133 topics, rarely more than 4.\" I have 5. Let's re-evaluate.\n    - `governance`: Absolutely.\n    - `social power`: Absolutely.\n    - `identity`: Absolutely (centering a specific marginalized group).\n    - `scale/location`: The title says \"Legal Geographies\" and the abstract discusses \"territorial exclusion\" and \"political territoriality.\" This is a strong candidate.\n    - `built environment`: While water systems are involved, is the *built form* the substantive subject? The paper is more about the *legal right* to the water than the pipes themselves. However, the guidelines say \"infrastructure serves as the medium through which other arguments (race, governance, social power, health, identity) are advanced.\" This fits perfectly.\n\n    Let's look at the most \"central\" ones.\n    1. `governance` (The legal cases and districts)\n    2. `social power` (Inequality and exclusion)\n    3. `identity` (Mexican-American colonias)\n    4. `scale/location` (Territoriality/Legal Geographies)\n\n    Is `built environment` more central than `scale/location`? The \"territoriality\" aspect is a geographic contribution. The \"water access\" is the material manifestation. Usually, \"legal geography\" papers are tagged with `scale/location` or `governance`.\n\n    Let's check `identity` again. \"predominantly Mexican-American rural and periurban low-income communities (colonias)\". The paper centers their experience of exclusion. Yes.\n\n    Let's check `social power`. \"poverty\", \"low-income\", \"exclusion\", \"dominate\". Yes.\n\n    Let's check `governance`. \"water politics\", \"regional water governance\", \"legal cases\", \"voting rights\". Yes.\n\n    Let's check `scale/location`. \"Legal Geographies\", \"territorial exclusion\", \"political territoriality\". Yes.\n\n    Let's check `built environment`. \"water control and improvement districts\", \"domestic water supply\". It's the medium.\n\n    If I have to pick 4: `governance`, `social power`, `identity`, `scale/location`.\n    Wait, `built environment` is very strong because water infrastructure is the specific object being contested. But `scale/location` is the *theoretical* frame (\"Legal Geographies\").\n\n    Actually, looking at the `built environment` definition: \"Tag when a built object, infrastructure system... is meaningfully part of the paper's analysis, including when infrastructure serves as the medium through which other arguments... are advanced.\" This is a perfect fit.\n\n    Let's re-read `scale/location`: \"Paper's central contribution is about geographic relations themselves... the spatial dimension of a phenomenon treated as the analytical contribution.\" \"Political territoriality\" and \"territorial exclusion\" fit this.\n\n    Let's re-read `identity`: \"Tag when the paper centers a group's experience... including... (c) politico-legal status identities... (d) class-based identities... (e) rural identity\". The colonias fit this.\n\n    Let's re-read `social power`: \"inequality, justice... poverty... economic livelihoods\". Fits.\n\n    Let's re-read `governance`: \"political institution, policy, or collective-action arrangement treated as an object of analysis\". Fits.\n\n    This paper is a classic \"Political Ecology/Legal Geography\" piece.\n    Most central: `governance`, `social power`, `identity`.\n    Next most central: `scale/location` (because of the \"territoriality\" focus) and `built environment` (because of the \"water infrastructure\" focus).\n\n    If I must limit to 4, I'll prioritize the ones that define the *analytical* contribution.\n    1. `governance` (The \"how\" - legal cases/districts)\n    2. `social power` (The \"why\" - inequality/power)\n    3. `identity` (The \"who\" - Mexican-American colonias)\n    4. `scale/location` (The \"where/how\" - territoriality/legal geography)\n\n    Wait, is `built environment` more central than `scale/location`? The title says \"Claiming Space, Claiming Water\". \"Space\" = `scale/location`, \"Water\" (as a utility/system) = `built environment`.\n    However, the abstract emphasizes \"legal geographies\" and \"political territoriality\" more than the physical properties of the water system.\n\n    Let's try: `governance`, `social power`, `identity`, `scale/location`.\n    Actually, looking at the `built environment` prompt again, \"water and irrigation infrastructure\" is explicitly listed as a positive case.\n\n    Let's compare `scale/location` vs `built environment`.\n    `scale/location`: \"territorial exclusion\", \"political territoriality\", \"legal geographies\".\n    `built environment`: \"water control and improvement districts\", \"domestic water supply\".\n\n    The \"territoriality\" is the *analytical* contribution. The \"water system\" is the *subject*.\n    I will go with `governance`, `social power`, `identity`, and `built environment`.\n    Wait, \"Legal Geographies\" is a very specific field that maps to `scale/location`.\n    Let's look at the `scale/location` anti-patterns: \"the geography of [phenomenon] used as a descriptor of variation\". Here, \"legal geography\" is not just a descriptor; \"territoriality\" is the *argument*.\n\n    Let's try to find the 4 most essential.\n    1. `governance` (Legal/Institutional)\n    2. `social power` (Inequality/Poverty)\n    3. `identity` (Mexican-American/Colonias)\n    4. `built environment` (Water infrastructure)\n\n    Wait, I'll check `scale/location` one more time. \"the spatial dimension of a phenomenon treated as the analytical contribution.\" The \"territorial exclusion\" is exactly that.\n\n    Let's look at the examples of `built environment` again: \"water and irrigation infrastructure (settler irrigation systems, water access systems...)\" - this is exactly what a WCID is.\n\n    I'll go with: `governance`, `social power`, `identity`, `built environment`.\n    Actually, I'll add `scale/location` if it feels essential. But the prompt says \"rarely more than 4\".\n    Let's see if `identity` is essential. Yes, the colonias are the center.\n    `social power`? Yes, poverty and exclusion.\n    `governance`? Yes, the legal cases.\n    `built environment`? Yes, water infrastructure.\n\n    Is `scale/location` more important than `built environment`?\n    The paper is about \"Claiming Space\" (scale/location) and \"Claiming Water\" (built environment).\n    The abstract mentions \"territorial exclusion\" and \"political territoriality\".\n    I'll stick with the 4 that feel most concrete: `governance`, `social power`, `identity`, `built environment`.\n    Actually, \"Legal Geographies\" is so prominent in the title and abstract that `scale/location` is hard to ignore.\n\n    Let's re-evaluate `identity`. Is it \"centering a group's experience\" or just \"using a group as a sample\"?\n    \"I examine... how emerging legal discourses rescripted narratives about colonias residents' access to water... the final legal ruling against colonias residents foreclosed any standing they had...\"\n    This is centering their experience/status.\n\n    Let's re-evaluate `social power`. \"poverty\", \"low-income\", \"dominate\", \"exclusion\". Yes.\n\n    Let's re-evaluate `governance`. \"water politics\", \"regional water governance\", \"legal cases\", \"voting rights\". Yes.\n\n    Let's re-evaluate `built environment`. \"water control and improvement districts\", \"domestic water supply\". Yes.\n\n    Let's re-evaluate `scale/location`. \"Legal Geographies\", \"territorial exclusion\", \"political territoriality\". Yes.\n\n    If I have to drop one, which one is the least \"central\"?\n    Maybe `built environment`? The water is the *thing* they are fighting for, but the *fight* is about the *law* and the *territory*.\n    But the prompt says \"water and irrigation infrastructure\" is a positive case for `built environment`.\n\n    Maybe `scale/location`? \"territoriality\" is a key part of the \"legal geography\" argument.\n\n    Let's look at the `scale/location` test: \"Could the paper's argument transfer to a non-spatial analog \u2014 a temporal change, a hierarchical level, a demographic comparison?\"\n    If the argument is about \"territorial exclusion\" (who is inside the boundary vs outside), that is inherently spatial. You can't have \"territorial exclusion\" without space. So it passes the test.\n\n    Let's look at the `built environment` test: \"Tag when a built object, infrastructure system... is meaningfully part of the paper's analysis\". The WCID is an infrastructure system.\n\n    I will go with: `governance`, `social power`, `identity`, `built environment`.\n    Wait, I'll swap `built environment` for `scale/location`? No, the water system is the core subject.\n    Actually, I'll use: `governance`, `social power`, `identity`, `built environment`.\n    Wait, the title \"Claiming Space\" strongly suggests `scale/location`.\n    Let's try: `governance`, `social power`, `identity`, `scale/location`.\n    No, the \"water\" part is too big.\n\n    Let's try: `governance`, `social power`, `identity`, `built environment`, `scale/location`. (5)\n    The prompt says \"rarely more than 4\".\n    Let's see if I can merge any.\n    `social power` and `identity` often co-occur.\n    `governance` and `scale/location` (territoriality) often co-occur.\n\n    Let's prioritize:\n    1. `governance` (The legal/political system)\n    2. `social power` (The inequality/poverty)\n    3. `identity` (The colonias)\n    4. `built environment` (The water infrastructure)\n\n    I'll leave out `scale/location` because while \"territoriality\" is mentioned, the \"built environment\" (water systems) is the actual object being contested. \"Territoriality\" in this case is the *method* of governance.\n\n    Wait, one more look at `scale/location`: \"the spatial dimension of a phenomenon treated as the analytical contribution.\"\n    The \"territorial exclusion\" is the *analytical contribution*.\n    The \"water infrastructure\" is the *phenomenon*.\n    So `scale/location` is actually more \"analytical\" than `built environment`.\n\n    Let's try: `governance`, `social power`, `identity`, `scale/location`.\n    But \"water access\" is the whole point.\n    Let's look at `built environment` again: \"infrastructure serves as the medium through which other arguments (race, governance, social power, health, identity) are advanced.\"\n    This is exactly what's happening. The water system is the medium for the governance/power/identity argument.\n\n    Final selection:\n    - `governance`\n    - `social power`\n    - `identity`\n    - `built environment`\n\n    Wait, I'll check `scale/location` one last time. \"Legal Geographies\" is in the title. \"Political territoriality\" is in the abstract.\n    If I have to choose between `built environment` and `scale/location`...\n    The paper is about \"Claiming Space\" (Scale/Location) and \"Claiming Water\" (Built Environment).\n    I'll go with `built environment` because the prompt explicitly mentions \"water and irrigation infrastructure\" as a positive case.\n\n    Actually, I'll include `scale/location` and drop `built environment`? No.\n    I'll include `scale/location` and drop `identity`? No.\n    I'll include `scale/location` and drop `social power`? No.\n    I'll include `scale/location` and drop `governance`? No.\n\n    Okay, I will use 5 if it's truly all central. But I'll try to stick to 4.\n    `governance`, `social power`, `identity`, `built environment`.\n    (The \"territoriality\" is part of the \"governance\" of the \"built environment\").\n\n    Let's double check `identity`. \"Mexican-American rural and periurban low-income communities (colonias)\". Yes, this is a specific group identity.\n\n    Final check:\n    - `governance`: Yes (legal cases, WCIDs, voting rights).\n    - `social power`: Yes (poverty, exclusion, power).\n    - `"
-        }
-      ],
+      "source": "classify/output/runs/2026-06-04_1511_topic_v3_abstract_cat14_all/predictions.parquet",
+      "dropped_papers": [],
       "added_papers": []
     }
   ],
