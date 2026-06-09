@@ -35,45 +35,89 @@
     method: string;
   };
 
-  const papers: Paper[] = data as Paper[];
-
-  const methodCategories = [
-    'qual',
-    'quant',
-    'mixed',
-    'descriptive-empirical',
-    'theoretical-conceptual',
-    'spatial',
-    'unclear'
-  ] as const;
-
-  // From classify/schemas/prompts/v3/categories/methods_01.csv
-  const methodDescriptions: Record<string, string> = {
-    'qual': 'qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)',
-    'quant': 'non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)',
-    'mixed': 'mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary',
-    'spatial': "geography is core to the methodology — GIS, cartography, remote sensing, geospatial visualization, OR spatial statistical methods (GWR, Moran's I, kriging, spatial lag/error, point-pattern analysis, remote-sensing classification)",
-    'descriptive-empirical': 'original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases',
-    'theoretical-conceptual': 'conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases',
-    'unclear': 'methodology cannot be determined from the title and abstract',
+  type MethodModelDef = {
+    key: string;
+    label: string;
+    description: string;
+    categories: { value: string; definition: string }[];
   };
 
-  const color = scaleOrdinal<string, string>()
-    .domain(methodCategories as unknown as string[])
-    .range(schemeTableau10);
+  type RawMethodPaper = {
+    doi: string;
+    title: string;
+    authors: string;
+    pub_year: string;
+    source: string;
+    keywords: string;
+    abstract: string;
+    methods: Record<string, string>;
+  };
+
+  const methodsViz = data as unknown as { models: MethodModelDef[]; papers: RawMethodPaper[] };
+  const methodModels = methodsViz.models;
+
+  // Selector state: which methods-model view to render. Defaults to the first
+  // model in the JSON (currently sections_baseline).
+  let methodModel: string = $state(
+    methodModels.find((m) => m.key === 'abstract_production')?.key ?? methodModels[0].key
+  );
+
+  const currentMethodModel: MethodModelDef = $derived(
+    methodModels.find((m) => m.key === methodModel) ?? methodModels[0]
+  );
+
+  // Ordered by empirical frequency for the selected model (most common first).
+  const methodCategories: string[] = $derived(
+    currentMethodModel.categories.map((c) => c.value)
+  );
+
+  // Per-category definitions from the model JSON.
+  const methodDescriptions: Record<string, string> = $derived(
+    Object.fromEntries(
+      currentMethodModel.categories.map((c) => [c.value, c.definition])
+    ) as Record<string, string>
+  );
+
+  const papers: Paper[] = $derived(
+    methodsViz.papers
+      .filter((p) => p.methods[methodModel] != null && p.methods[methodModel] !== '')
+      .map((p) => ({
+        doi: p.doi,
+        title: p.title,
+        authors: p.authors,
+        pub_year: p.pub_year,
+        source: p.source,
+        keywords: p.keywords,
+        abstract: p.abstract,
+        method: p.methods[methodModel]!
+      }))
+  );
+
+  const color = $derived(
+    scaleOrdinal<string, string>().domain(methodCategories).range(schemeTableau10)
+  );
 
   // Bar chart dimensions
   const barWidth = 600;
   const barHeight = 500;
   const barMargin = { top: 20, right: 20, bottom: 50, left: 60 };
 
-  // 5-year bucketing anchored at 1992 (data range 1992–2026). Labels are bucket start years.
-  const decades = ['1992', '1997', '2002', '2007', '2012', '2017', '2022'] as const;
+  // 5-year bucketing (data range ~1986–2026). 8 buckets; the first (1987) folds
+  // in the sparse 1986 papers, so it covers 1986–1991. Bucket-start years are
+  // used as keys; bucketLabel formats display ranges.
+  const decades = ['1987', '1992', '1997', '2002', '2007', '2012', '2017', '2022'] as const;
+  const bucketWidth = 5;
+  const bucketAnchor = 1987;
+  const lastBucketStart = 2022;
+  const dataMaxYear = 2026;
+  const firstBucketMinYear = 1986;
+  const lowConfidenceBuckets = new Set<string>(['1987']);
+  const lowConfidenceTitle = '1986–1991: only ~8 papers — proportions are unreliable';
 
   function getDecade(year: string): string {
     const y = parseInt(year, 10);
-    const clamped = Math.max(1992, Math.min(2026, y));
-    return String(1992 + Math.floor((clamped - 1992) / 5) * 5);
+    const clamped = Math.max(bucketAnchor, Math.min(lastBucketStart + bucketWidth - 1, y));
+    return String(bucketAnchor + Math.floor((clamped - bucketAnchor) / bucketWidth) * bucketWidth);
   }
 
   type DecadeData = {
@@ -88,19 +132,21 @@
     }[];
   };
 
-  const decadeProportions: DecadeData[] = decades.map((decade) => {
-    const decadePapers = papers.filter((d) => getDecade(d.pub_year) === decade);
-    const total = decadePapers.length;
-    let cumulative = 0;
-    const segments = methodCategories.map((method) => {
-      const count = decadePapers.filter((d) => d.method === method).length;
-      const proportion = total > 0 ? count / total : 0;
-      const y0 = cumulative;
-      cumulative += proportion;
-      return { method, y0, y1: cumulative, proportion, count };
-    });
-    return { decade, total, segments };
-  });
+  const decadeProportions: DecadeData[] = $derived(
+    decades.map((decade) => {
+      const decadePapers = papers.filter((d) => getDecade(d.pub_year) === decade);
+      const total = decadePapers.length;
+      let cumulative = 0;
+      const segments = methodCategories.map((method) => {
+        const count = decadePapers.filter((d) => d.method === method).length;
+        const proportion = total > 0 ? count / total : 0;
+        const y0 = cumulative;
+        cumulative += proportion;
+        return { method, y0, y1: cumulative, proportion, count };
+      });
+      return { decade, total, segments };
+    })
+  );
 
   // Bar chart scales
   const xBand = scaleBand<string>()
@@ -163,7 +209,9 @@
 
   function bucketLabel(decade: string): string {
     const start = parseInt(decade, 10);
-    return `${start}–${start + 4}`;
+    const displayStart = start === bucketAnchor ? firstBucketMinYear : start;
+    const end = start === lastBucketStart ? dataMaxYear : start + bucketWidth - 1;
+    return `${displayStart}–${end}`;
   }
 
   function peakBucket(points: { decade: string; proportion: number }[]): string {
@@ -1248,9 +1296,11 @@
     .range([compareLabelGutter, compareLabelGutter + compareBarWidth]);
   const compareJaccardDelta = topicCompare.new_jaccard - topicCompare.base_jaccard;
 
+  // Overview shows the raw corpus count, independent of which methods model is
+  // selected — pre-1992 papers exist even when sections_baseline has no coverage.
   const totalByDecade = decades.map((decade) => ({
     decade,
-    count: papers.filter((p) => getDecade(p.pub_year) === decade).length
+    count: methodsViz.papers.filter((p) => getDecade(p.pub_year) === decade).length
   }));
   const totalByDecadeMax = Math.max(...totalByDecade.map((d) => d.count), 1);
   const overviewWidth = 620;
@@ -1265,13 +1315,39 @@
     .range([overviewHeight - overviewMargin.bottom, overviewMargin.top]);
 </script>
 
+<svg width="0" height="0" style="position: absolute;" aria-hidden="true">
+  <defs>
+    <pattern id="lowDataHatch-shared" patternUnits="userSpaceOnUse" width="6" height="6">
+      <path d="M-1,1 l2,-2 M0,6 l6,-6 M5,7 l2,-2" stroke="#666" stroke-width="0.8" />
+    </pattern>
+  </defs>
+</svg>
+
 <h1>Methods classification across rural geography (1992–2026)</h1>
 <p class="caption">
-  Predicted by Gemma 4 31B on {papers.length} papers (snapshot: 2026-05-20_1458_methods_v3_sections_full). The 2022–2026 bucket includes partial 2026.
+  Methods predicted on {papers.length} papers across {methodCategories.length} categories using the selected model below. The 2022–2026 bucket includes partial 2026.
 </p>
+
+<div class="facet-controls">
+  <span class="control-label">Methods model:</span>
+  {#each methodModels as m (m.key)}
+    <button
+      type="button"
+      class="toggle-btn"
+      class:active={methodModel === m.key}
+      onclick={() => (methodModel = m.key)}
+    >{m.label}</button>
+  {/each}
+</div>
+<p class="caption">{currentMethodModel.description}</p>
 
 <button type="button" class="export-btn" onclick={() => exportPng(overviewRef, 'overview_total_papers')}>⬇ PNG</button>
 <svg bind:this={overviewRef} width={overviewWidth} height={overviewHeight} class="overview-chart" aria-label="Total papers per 5-year bucket">
+  <defs>
+    <pattern id="lowDataHatch-overview" patternUnits="userSpaceOnUse" width="6" height="6">
+      <path d="M-1,1 l2,-2 M0,6 l6,-6 M5,7 l2,-2" stroke="#666" stroke-width="0.8" />
+    </pattern>
+  </defs>
   <text
     x={-(overviewHeight / 2)}
     y={14}
@@ -1320,6 +1396,22 @@
       fill="#333"
     >{bucketLabel(decade)}</text>
   {/each}
+
+  {#each [...lowConfidenceBuckets] as lc (lc)}
+    {#if overviewX(lc) !== undefined}
+      <rect
+        x={overviewX(lc)}
+        y={overviewMargin.top}
+        width={overviewX.bandwidth()}
+        height={overviewHeight - overviewMargin.top - overviewMargin.bottom}
+        fill="url(#lowDataHatch-overview)"
+        opacity="0.55"
+        pointer-events="none"
+      >
+        <title>{lowConfidenceTitle}</title>
+      </rect>
+    {/if}
+  {/each}
 </svg>
 
 <div class="legend">
@@ -1342,6 +1434,11 @@
 <div class="charts-row">
 <button type="button" class="export-btn" onclick={() => exportPng(methodsStackedRef, 'methods_stacked')}>⬇ PNG</button>
 <svg bind:this={methodsStackedRef} width={barWidth} height={barHeight} class="bar-chart">
+  <defs>
+    <pattern id="lowDataHatch-methods" patternUnits="userSpaceOnUse" width="6" height="6">
+      <path d="M-1,1 l2,-2 M0,6 l6,-6 M5,7 l2,-2" stroke="#666" stroke-width="0.8" />
+    </pattern>
+  </defs>
   <!-- Y-axis label -->
   <text
     x={-(barHeight / 2)}
@@ -1428,6 +1525,22 @@
     font-size="12"
     fill="#666"
   >Year (5-year buckets)</text>
+
+  {#each [...lowConfidenceBuckets] as lc (lc)}
+    {#if xBand(lc) !== undefined}
+      <rect
+        x={xBand(lc)}
+        y={barMargin.top}
+        width={xBand.bandwidth()}
+        height={barHeight - barMargin.top - barMargin.bottom}
+        fill="url(#lowDataHatch-methods)"
+        opacity="0.55"
+        pointer-events="none"
+      >
+        <title>{lowConfidenceTitle}</title>
+      </rect>
+    {/if}
+  {/each}
 </svg>
 
 <button type="button" class="export-btn" onclick={() => exportPng(methodsFacetsRef, 'methods_facets')}>⬇ PNG</button>
@@ -1449,6 +1562,22 @@
       </div>
       <svg width={facetWidth} height={facetHeight} class="facet-svg">
         <g transform="translate({facetMargin.left},{facetMargin.top})">
+          {#each [...lowConfidenceBuckets] as lc (lc)}
+            {@const lcX = facetX(lc)}
+            {#if lcX !== undefined}
+              <rect
+                x={lcX}
+                y={0}
+                width={facetX.bandwidth()}
+                height={facetInnerHeight}
+                fill="url(#lowDataHatch-shared)"
+                opacity="0.45"
+                pointer-events="none"
+              >
+                <title>{lowConfidenceTitle}</title>
+              </rect>
+            {/if}
+          {/each}
           {#each facetYTicks as t (t)}
             <line
               x1={0}
@@ -1532,6 +1661,11 @@
 <div class="charts-row">
 <button type="button" class="export-btn" onclick={() => exportPng(regionsStackedRef, 'regions_stacked')}>⬇ PNG</button>
 <svg bind:this={regionsStackedRef} width={barWidth} height={barHeight} class="bar-chart">
+  <defs>
+    <pattern id="lowDataHatch-regions" patternUnits="userSpaceOnUse" width="6" height="6">
+      <path d="M-1,1 l2,-2 M0,6 l6,-6 M5,7 l2,-2" stroke="#666" stroke-width="0.8" />
+    </pattern>
+  </defs>
   <!-- Y-axis label -->
   <text
     x={-(barHeight / 2)}
@@ -1618,6 +1752,22 @@
     font-size="12"
     fill="#666"
   >Year (5-year buckets)</text>
+
+  {#each [...lowConfidenceBuckets] as lc (lc)}
+    {#if xBand(lc) !== undefined}
+      <rect
+        x={xBand(lc)}
+        y={barMargin.top}
+        width={xBand.bandwidth()}
+        height={barHeight - barMargin.top - barMargin.bottom}
+        fill="url(#lowDataHatch-regions)"
+        opacity="0.55"
+        pointer-events="none"
+      >
+        <title>{lowConfidenceTitle}</title>
+      </rect>
+    {/if}
+  {/each}
 </svg>
 
 <button type="button" class="export-btn" onclick={() => exportPng(regionsFacetsRef, 'regions_facets')}>⬇ PNG</button>
@@ -1639,6 +1789,22 @@
       </div>
       <svg width={facetWidth} height={facetHeight} class="facet-svg">
         <g transform="translate({facetMargin.left},{facetMargin.top})">
+          {#each [...lowConfidenceBuckets] as lc (lc)}
+            {@const lcX = facetX(lc)}
+            {#if lcX !== undefined}
+              <rect
+                x={lcX}
+                y={0}
+                width={facetX.bandwidth()}
+                height={facetInnerHeight}
+                fill="url(#lowDataHatch-shared)"
+                opacity="0.45"
+                pointer-events="none"
+              >
+                <title>{lowConfidenceTitle}</title>
+              </rect>
+            {/if}
+          {/each}
           {#each regionFacetYTicks as t (t)}
             <line
               x1={0}
@@ -1719,6 +1885,11 @@
 <div class="charts-row">
 <button type="button" class="export-btn" onclick={() => exportPng(methodsUsVsNonUsBarRef, 'methods_us_vs_nonus_bar')}>⬇ PNG</button>
 <svg bind:this={methodsUsVsNonUsBarRef} width={barWidth} height={barHeight} class="bar-chart">
+  <defs>
+    <pattern id="lowDataHatch-methods-us" patternUnits="userSpaceOnUse" width="6" height="6">
+      <path d="M-1,1 l2,-2 M0,6 l6,-6 M5,7 l2,-2" stroke="#666" stroke-width="0.8" />
+    </pattern>
+  </defs>
   <text
     x={-(barHeight / 2)}
     y={16}
@@ -1792,6 +1963,22 @@
     font-size="12"
     fill="#666"
   >Year (5-year buckets)</text>
+
+  {#each [...lowConfidenceBuckets] as lc (lc)}
+    {#if xBand(lc) !== undefined}
+      <rect
+        x={xBand(lc)}
+        y={barMargin.top}
+        width={xBand.bandwidth()}
+        height={barHeight - barMargin.top - barMargin.bottom}
+        fill="url(#lowDataHatch-methods-us)"
+        opacity="0.55"
+        pointer-events="none"
+      >
+        <title>{lowConfidenceTitle}</title>
+      </rect>
+    {/if}
+  {/each}
 </svg>
 
 <button type="button" class="export-btn" onclick={() => exportPng(methodsUsVsNonUsFacetsRef, 'methods_us_vs_nonus_facets')}>⬇ PNG</button>
@@ -1815,6 +2002,22 @@
       </div>
       <svg width={facetWidth} height={facetHeight} class="facet-svg">
         <g transform="translate({facetMargin.left},{facetMargin.top})">
+          {#each [...lowConfidenceBuckets] as lc (lc)}
+            {@const lcX = facetX(lc)}
+            {#if lcX !== undefined}
+              <rect
+                x={lcX}
+                y={0}
+                width={facetX.bandwidth()}
+                height={facetInnerHeight}
+                fill="url(#lowDataHatch-shared)"
+                opacity="0.45"
+                pointer-events="none"
+              >
+                <title>{lowConfidenceTitle}</title>
+              </rect>
+            {/if}
+          {/each}
           {#each compareYTicks as t (t)}
             <line
               x1={0}
@@ -1948,6 +2151,11 @@
 <div class="charts-row">
 <button type="button" class="export-btn" onclick={() => exportPng(topicsStackedRef, 'topics_stacked')}>⬇ PNG</button>
 <svg bind:this={topicsStackedRef} width={barWidth} height={barHeight} class="bar-chart">
+  <defs>
+    <pattern id="lowDataHatch-topics" patternUnits="userSpaceOnUse" width="6" height="6">
+      <path d="M-1,1 l2,-2 M0,6 l6,-6 M5,7 l2,-2" stroke="#666" stroke-width="0.8" />
+    </pattern>
+  </defs>
   <text
     x={-(barHeight / 2)}
     y={16}
@@ -2029,6 +2237,22 @@
     font-size="12"
     fill="#666"
   >Year (5-year buckets)</text>
+
+  {#each [...lowConfidenceBuckets] as lc (lc)}
+    {#if xBand(lc) !== undefined}
+      <rect
+        x={xBand(lc)}
+        y={barMargin.top}
+        width={xBand.bandwidth()}
+        height={barHeight - barMargin.top - barMargin.bottom}
+        fill="url(#lowDataHatch-topics)"
+        opacity="0.55"
+        pointer-events="none"
+      >
+        <title>{lowConfidenceTitle}</title>
+      </rect>
+    {/if}
+  {/each}
 </svg>
 
 <button type="button" class="export-btn" onclick={() => exportPng(topicsFacetsRef, 'topics_facets')}>⬇ PNG</button>
@@ -2052,6 +2276,22 @@
       </div>
       <svg width={facetWidth} height={facetHeight} class="facet-svg">
         <g transform="translate({facetMargin.left},{facetMargin.top})">
+          {#each [...lowConfidenceBuckets] as lc (lc)}
+            {@const lcX = facetX(lc)}
+            {#if lcX !== undefined}
+              <rect
+                x={lcX}
+                y={0}
+                width={facetX.bandwidth()}
+                height={facetInnerHeight}
+                fill="url(#lowDataHatch-shared)"
+                opacity="0.45"
+                pointer-events="none"
+              >
+                <title>{lowConfidenceTitle}</title>
+              </rect>
+            {/if}
+          {/each}
           {#each yTicks as t (t)}
             <line
               x1={0}
@@ -2132,6 +2372,11 @@
 <div class="charts-row">
 <button type="button" class="export-btn" onclick={() => exportPng(topicsUsVsNonUsBarRef, 'topics_us_vs_nonus_bar')}>⬇ PNG</button>
 <svg bind:this={topicsUsVsNonUsBarRef} width={barWidth} height={barHeight} class="bar-chart">
+  <defs>
+    <pattern id="lowDataHatch-topics-us" patternUnits="userSpaceOnUse" width="6" height="6">
+      <path d="M-1,1 l2,-2 M0,6 l6,-6 M5,7 l2,-2" stroke="#666" stroke-width="0.8" />
+    </pattern>
+  </defs>
   <text
     x={-(barHeight / 2)}
     y={16}
@@ -2205,6 +2450,22 @@
     font-size="12"
     fill="#666"
   >Year (5-year buckets)</text>
+
+  {#each [...lowConfidenceBuckets] as lc (lc)}
+    {#if xBand(lc) !== undefined}
+      <rect
+        x={xBand(lc)}
+        y={barMargin.top}
+        width={xBand.bandwidth()}
+        height={barHeight - barMargin.top - barMargin.bottom}
+        fill="url(#lowDataHatch-topics-us)"
+        opacity="0.55"
+        pointer-events="none"
+      >
+        <title>{lowConfidenceTitle}</title>
+      </rect>
+    {/if}
+  {/each}
 </svg>
 
 <button type="button" class="export-btn" onclick={() => exportPng(topicsUsVsNonUsFacetsRef, 'topics_us_vs_nonus_facets')}>⬇ PNG</button>
@@ -2228,6 +2489,22 @@
       </div>
       <svg width={facetWidth} height={facetHeight} class="facet-svg">
         <g transform="translate({facetMargin.left},{facetMargin.top})">
+          {#each [...lowConfidenceBuckets] as lc (lc)}
+            {@const lcX = facetX(lc)}
+            {#if lcX !== undefined}
+              <rect
+                x={lcX}
+                y={0}
+                width={facetX.bandwidth()}
+                height={facetInnerHeight}
+                fill="url(#lowDataHatch-shared)"
+                opacity="0.45"
+                pointer-events="none"
+              >
+                <title>{lowConfidenceTitle}</title>
+              </rect>
+            {/if}
+          {/each}
           {#each compareTopicYTicks as t (t)}
             <line
               x1={0}
@@ -2832,6 +3109,22 @@
       </div>
       <svg width={facetWidth} height={facetHeight} class="facet-svg">
         <g transform="translate({facetMargin.left},{facetMargin.top})">
+          {#each [...lowConfidenceBuckets] as lc (lc)}
+            {@const lcX = facetX(lc)}
+            {#if lcX !== undefined}
+              <rect
+                x={lcX}
+                y={0}
+                width={facetX.bandwidth()}
+                height={facetInnerHeight}
+                fill="url(#lowDataHatch-shared)"
+                opacity="0.45"
+                pointer-events="none"
+              >
+                <title>{lowConfidenceTitle}</title>
+              </rect>
+            {/if}
+          {/each}
           {#each yTicks as t (t)}
             <line
               x1={0}

@@ -1,0 +1,14 @@
+# V3 methods — production candidate on ALL WoS papers (for the frontend
+# visualization). Same prompt, categories, and examples as the validated
+# production candidate (82.0% exact-match on the 91-paper annotated sample),
+# just running on all WoS papers instead of only the annotated subset.
+# Use the resulting snapshot as the source for export_methods_viz.py to
+# replace the current methods_viz.json.
+task: methods
+schema: v3
+strategy: abstract
+prompt_variant: "02"
+cat_variant: "06"
+ex_variant: "01"
+name: v3_abstract_production_all
+all_papers: true

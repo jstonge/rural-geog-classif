@@ -1,0 +1,37 @@
+# V3 methods — P6: loosen the descriptive-empirical / unclear boundary
+# at the abstract level to fix the schema-tightness issue documented
+# in docs/methods_schema_disagreements.md (Pattern 2).
+# Specifically: papers like "Female Activity Space in Rural Bangladesh"
+# (10.2307/215401) get classified as `unclear` by production because
+# the strict reading of the unclear guideline requires a NAMED data
+# source or method, not just a named country/cultural context. But the
+# sections-strategy classifier correctly resolves these as
+# descriptive-empirical when it has the full text (six sections runs
+# all agree). The fix here is to bring the abstract-only classifier's
+# reading of "specific case material" closer to the sections reading.
+# Concretely: the production prompt's Guidelines section gets two
+# revisions (methods_08.md):
+#   1. The `descriptive-empirical` guideline gains a positive case
+#      that a country/region + specific cultural/institutional/
+#      settlement context counts as the case material, even without a
+#      named method or data source.
+#   2. The `unclear` guideline gets a reciprocal carve-out pointing
+#      back to the preceding bullet and explicitly excluding
+#      country-plus-context papers from unclear.
+# Targets to watch:
+#   - Bangladesh activity space (10.2307/215401): unclear -> desc-emp
+#   - Rural Rock Art (10.1080/00330124.2021.1957690): unclear -> desc-emp
+#   - Overall exact match: production was 82.0%. A meaningful gain
+#     (>3pp) means the loosened guideline transfers; a flat or worse
+#     result means the unclear category is doing more work elsewhere
+#     than we realized.
+# Categories and examples unchanged from production (cat_variant=06,
+# ex_variant=01); only the prompt template changes.
+task: methods
+schema: v3
+strategy: abstract
+prompt_variant: "08"
+cat_variant: "06"
+ex_variant: "01"
+name: v3_abstract_P6_loosen_unclear
+all_papers: false
