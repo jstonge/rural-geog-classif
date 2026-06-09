@@ -1,0 +1,100 @@
+% Side-by-side reasoning-trace example for the methods classifier:
+% v1 schema (methods_01.csv) vs v3 schema (methods_04.csv) on the same paper.
+% Needs \usepackage[most]{tcolorbox} and \usepackage{hyperref}.
+% Reasoning text is verbatim from the model snapshots, lightly abridged.
+%
+% Model: Gemma-4-31B IT (thinking mode, temperature 0, vLLM serving).
+% v1 categories: qual, quant, both, Descriptive, spatial/mapping, unclear.
+% v3 categories: qual, quant, mixed, spatial, descriptive-empirical,
+%                theoretical-conceptual, unclear.
+% v1 final: spatial/mapping. v3 final: spatial. Annotator: quant.
+% Source runs: 2026-05-13_1512_methods_v1_abstract,
+%              2026-05-13_2233_methods_v3_abstract_cat04.
+
+\begin{figure*}[t]
+  \centering
+
+  \textbf{Paper.} ``Geographical Disparities in Energy Access: Challenges and Opportunities for Ghana's Energy Transition''
+  (\href{https://doi.org/10.1080/00330124.2025.2582789}{doi:10.1080/00330124.2025.2582789}).
+
+  \smallskip
+  \textbf{Methodology sentence in abstract.} \emph{``Using a mixed-methods approach combining geospatial analysis with statistical evaluation of regional data.''}
+
+  \smallskip
+  \textbf{Annotator label.} \texttt{quant}.
+
+  \medskip
+
+  \begin{tcbraster}[
+    raster columns=2,
+    raster equal height=rows,
+    raster column skip=8pt,
+    raster row skip=4pt,
+  ]
+  % ----------------------------- v1 box --------------------------------------
+  \begin{tcolorbox}[
+    enhanced,
+    colback=red!2,
+    colframe=red!50!black!55,
+    boxrule=0.4pt, arc=2pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt,
+    title={\textsc{v1 schema} (methods\_01.csv) --- 6 categories},
+    fonttitle=\small\bfseries,
+    fontupper=\small,
+  ]
+  \begin{itemize}\setlength\itemsep{2pt}
+  \item \textbf{Reading \texttt{both}.} ``\emph{`Mixed-methods'} usually refers to Qual~+~Quant. Here, it says \emph{`geospatial analysis'}~+~\emph{`statistical evaluation'}.''
+  \item \textbf{Is this \texttt{both}?} ``No, because \emph{`statistical evaluation'} is quantitative. So it's Quant~+~Spatial.''
+  \item \textbf{Fits \texttt{spatial/mapping}?} ``Yes, it uses geospatial analysis to analyze spatial patterns and proximity.''
+  \item \textbf{Fits \texttt{quant}?} ``Yes, it uses statistical evaluation.''
+  \item \textbf{Reconciling.} ``The guidelines say: \emph{`Use spatial/mapping when the analytical method is fundamentally spatial: GIS, remote sensing, spatial analysis\dots{} OR a spatial statistical method'.}''
+  \item \textbf{Decision rule.} ``If a paper combines standard stats with GIS/spatial analysis, and the core focus is on `geographical disparities' and `spatial patterns', it leans heavily towards \texttt{spatial/mapping}.''
+  \item \textbf{Re-checking \texttt{both}.} ``The \texttt{both} definition is \emph{`uses both qualitative and quantitative approaches substantively'}. This paper does \emph{not} use qualitative methods.''
+  \end{itemize}
+
+  \medskip
+  \textbf{Final prediction.}\quad\texttt{spatial/mapping}
+  \end{tcolorbox}
+
+  % ----------------------------- v3 box --------------------------------------
+  \begin{tcolorbox}[
+    enhanced,
+    colback=green!2,
+    colframe=green!40!black!55,
+    boxrule=0.4pt, arc=2pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt,
+    title={\textsc{v3 schema} (methods\_04.csv) --- 7 categories, sharpened},
+    fonttitle=\small\bfseries,
+    fontupper=\small,
+  ]
+  \begin{itemize}\setlength\itemsep{2pt}
+  \item \textbf{Reading \texttt{mixed}.} ``The abstract says \emph{`mixed-methods approach'}, but it defines this as \emph{`combining geospatial analysis with statistical evaluation'}. In the provided labels, \texttt{mixed} is defined as \emph{`qualitative interviews/ethnography AND quantitative analysis'}. Since there is no qualitative work, \texttt{mixed} in the academic sense of Qual~+~Quant is not applicable here.''
+  \item \textbf{Ruling out \texttt{qual}.} ``No mention of interviews, ethnography, or focus groups.''
+  \item \textbf{Identifying spatial signal.} ``The abstract mentions \emph{`geospatial analysis'}, \emph{`spatial patterns'}, \emph{`spatial inequities'}, and \emph{`proximity to power generation facilities'}.''
+  \item \textbf{\texttt{quant} vs \texttt{spatial} criteria.} ``\texttt{quant} is for \emph{`statistical analysis on a large-N survey or non-spatial numeric dataset --- no spatial methods'}. \texttt{spatial} is for \emph{`explicit spatial-statistical method\dots{} or a GIS overlay that produces the inferential claim'}.''
+  \item \textbf{Decision.} ``The abstract says \emph{`combining geospatial analysis with statistical evaluation'}. The focus is on \emph{`spatial patterns'} and \emph{`geographical disparities'}. This fits \texttt{spatial} better than \texttt{quant} because the spatial component is central to the analysis, not just a side note.''
+  \end{itemize}
+
+  \medskip
+  \textbf{Final prediction.}\quad\texttt{spatial}
+  \end{tcolorbox}
+  \end{tcbraster}
+
+  \caption{Reasoning traces from Gemma-4-31B (thinking mode, temperature
+    $=0$) on the same borderline paper, under two schemas. The v1 schema's
+    \texttt{both} category --- ``mixed methods'' phrased as ``uses both
+    qualitative and quantitative approaches'' --- forces the model into a
+    long deliberation: it must rule out the \texttt{both} interpretation,
+    reconsider it, and then choose between \texttt{spatial/mapping} and
+    \texttt{quant} by re-reading the \texttt{spatial/mapping} definition.
+    The v3 schema replaces \texttt{both} with \texttt{mixed} and pins it to
+    \emph{``qualitative interviews/ethnography AND quantitative analysis''},
+    which lets the model dismiss the qualitative interpretation in a single
+    step and proceed directly to the \texttt{spatial} vs \texttt{quant}
+    distinction. Both schemas yield the same final prediction (\texttt{spatial})
+    on this paper; the annotator chose \texttt{quant}. The illustrative
+    point is the reasoning structure, not the agreement: sharpened
+    definitions produce a shorter, more legible deliberation even when the
+    final classification is unchanged.}
+  \label{fig:reasoning-trace-ghana}
+\end{figure*}

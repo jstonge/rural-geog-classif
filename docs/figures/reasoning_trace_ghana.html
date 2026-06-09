@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Reasoning trace — Ghana paper (v1 vs v3 methods schema)</title>
+<style>
+  body { font-family: Calibri, Arial, sans-serif; color: #222; max-width: 1600px; margin: 36px auto; padding: 0 28px; line-height: 1.5; font-size: 21pt; }
+  .head { font-size: 21pt; margin-bottom: 28px; }
+  .head p { margin: 8px 0; }
+  table.two-col { width: 100%; border-collapse: separate; border-spacing: 16px 0; table-layout: fixed; }
+  table.two-col td { vertical-align: top; padding: 0; }
+  .box { border: 2px solid #999; border-radius: 4px; padding: 20px 24px; font-size: 20pt; }
+  .box.v1 { background: #fbf3f3; border-color: #a14545; }
+  .box.v3 { background: #f3faf3; border-color: #3d7a3d; }
+  .box .title { font-variant: small-caps; font-weight: bold; font-size: 21pt; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #999; }
+  .box.v1 .title { border-bottom-color: #a14545; color: #6e2222; }
+  .box.v3 .title { border-bottom-color: #3d7a3d; color: #234923; }
+  .box ul { margin: 0 0 16px 0; padding-left: 26px; }
+  .box li { margin-bottom: 12px; }
+  .box li strong { color: #111; }
+  .box .final { margin-top: 14px; padding-top: 12px; border-top: 1px solid #ccc; font-weight: bold; font-size: 21pt; }
+  .box code, .box tt { font-family: Consolas, "Courier New", monospace; font-size: 19pt; background: rgba(0,0,0,0.05); padding: 1px 5px; border-radius: 2px; }
+  em { font-style: italic; }
+  a { color: #2155cd; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <p><strong>Paper.</strong> &ldquo;Geographical Disparities in Energy Access: Challenges and Opportunities for Ghana's Energy Transition&rdquo; (<a href="https://doi.org/10.1080/00330124.2025.2582789">doi:10.1080/00330124.2025.2582789</a>).</p>
+  <p><strong>Methodology sentence in abstract.</strong> <em>&ldquo;Using a mixed-methods approach combining geospatial analysis with statistical evaluation of regional data.&rdquo;</em></p>
+  <p><strong>Annotator label.</strong> <code>quant</code>.</p>
+</div>
+
+<table class="two-col">
+<tr>
+  <td>
+    <div class="box v1">
+      <div class="title">v1 schema (methods_01.csv) &mdash; 6 categories</div>
+      <ul>
+        <li><strong>Reading <code>both</code>.</strong> &ldquo;<em>&lsquo;Mixed-methods&rsquo;</em> usually refers to Qual&nbsp;+&nbsp;Quant. Here, it says <em>&lsquo;geospatial analysis&rsquo;</em>&nbsp;+&nbsp;<em>&lsquo;statistical evaluation&rsquo;</em>.&rdquo;</li>
+        <li><strong>Is this <code>both</code>?</strong> &ldquo;No, because <em>&lsquo;statistical evaluation&rsquo;</em> is quantitative. So it's Quant&nbsp;+&nbsp;Spatial.&rdquo;</li>
+        <li><strong>Fits <code>spatial/mapping</code>?</strong> &ldquo;Yes, it uses geospatial analysis to analyze spatial patterns and proximity.&rdquo;</li>
+        <li><strong>Fits <code>quant</code>?</strong> &ldquo;Yes, it uses statistical evaluation.&rdquo;</li>
+        <li><strong>Reconciling.</strong> &ldquo;The guidelines say: <em>&lsquo;Use spatial/mapping when the analytical method is fundamentally spatial: GIS, remote sensing, spatial analysis&hellip; OR a spatial statistical method&rsquo;</em>.&rdquo;</li>
+        <li><strong>Decision rule.</strong> &ldquo;If a paper combines standard stats with GIS/spatial analysis, and the core focus is on &lsquo;geographical disparities&rsquo; and &lsquo;spatial patterns&rsquo;, it leans heavily towards <code>spatial/mapping</code>.&rdquo;</li>
+        <li><strong>Re-checking <code>both</code>.</strong> &ldquo;The <code>both</code> definition is <em>&lsquo;uses both qualitative and quantitative approaches substantively&rsquo;</em>. This paper does <em>not</em> use qualitative methods.&rdquo;</li>
+      </ul>
+      <div class="final">Final prediction:&nbsp;&nbsp;<code>spatial/mapping</code></div>
+    </div>
+  </td>
+  <td>
+    <div class="box v3">
+      <div class="title">v3 schema (methods_04.csv) &mdash; 7 categories, sharpened</div>
+      <ul>
+        <li><strong>Reading <code>mixed</code>.</strong> &ldquo;The abstract says <em>&lsquo;mixed-methods approach&rsquo;</em>, but it defines this as <em>&lsquo;combining geospatial analysis with statistical evaluation&rsquo;</em>. In the provided labels, <code>mixed</code> is defined as <em>&lsquo;qualitative interviews/ethnography AND quantitative analysis&rsquo;</em>. Since there is no qualitative work, <code>mixed</code> in the academic sense of Qual&nbsp;+&nbsp;Quant is not applicable here.&rdquo;</li>
+        <li><strong>Ruling out <code>qual</code>.</strong> &ldquo;No mention of interviews, ethnography, or focus groups.&rdquo;</li>
+        <li><strong>Identifying spatial signal.</strong> &ldquo;The abstract mentions <em>&lsquo;geospatial analysis&rsquo;</em>, <em>&lsquo;spatial patterns&rsquo;</em>, <em>&lsquo;spatial inequities&rsquo;</em>, and <em>&lsquo;proximity to power generation facilities&rsquo;</em>.&rdquo;</li>
+        <li><strong><code>quant</code> vs <code>spatial</code> criteria.</strong> &ldquo;<code>quant</code> is for <em>&lsquo;statistical analysis on a large-N survey or non-spatial numeric dataset &mdash; no spatial methods&rsquo;</em>. <code>spatial</code> is for <em>&lsquo;explicit spatial-statistical method&hellip; or a GIS overlay that produces the inferential claim&rsquo;</em>.&rdquo;</li>
+        <li><strong>Decision.</strong> &ldquo;The abstract says <em>&lsquo;combining geospatial analysis with statistical evaluation&rsquo;</em>. The focus is on <em>&lsquo;spatial patterns&rsquo;</em> and <em>&lsquo;geographical disparities&rsquo;</em>. This fits <code>spatial</code> better than <code>quant</code> because the spatial component is central to the analysis, not just a side note.&rdquo;</li>
+      </ul>
+      <div class="final">Final prediction:&nbsp;&nbsp;<code>spatial</code></div>
+    </div>
+  </td>
+</tr>
+</table>
+
+</body>
+</html>
