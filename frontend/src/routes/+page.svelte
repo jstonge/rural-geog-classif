@@ -1506,7 +1506,7 @@
     {/each}
   {/each}
 
-  <!-- X-axis decade labels -->
+<!-- X-axis decade labels -->
   {#each decades as decade (decade)}
     <text
       x={(xBand(decade) ?? 0) + xBand.bandwidth() / 2}
@@ -1514,7 +1514,7 @@
       text-anchor="middle"
       font-size="12"
       fill="#333"
-    >{decade}</text>
+    >{bucketLabel(decade)}</text>
   {/each}
 
   <!-- X-axis label -->
@@ -1564,11 +1564,13 @@
         <g transform="translate({facetMargin.left},{facetMargin.top})">
           {#each [...lowConfidenceBuckets] as lc (lc)}
             {@const lcX = facetX(lc)}
+            {@const lcIdx = (decades as readonly string[]).indexOf(lc)}
             {#if lcX !== undefined}
+              {@const lcWidth = lcIdx >= 0 && lcIdx < decades.length - 1 ? facetCx(decades[lcIdx + 1]) - lcX : facetX.bandwidth()}
               <rect
                 x={lcX}
                 y={0}
-                width={facetX.bandwidth()}
+                width={lcWidth}
                 height={facetInnerHeight}
                 fill="url(#lowDataHatch-shared)"
                 opacity="0.45"
@@ -1733,7 +1735,7 @@
     {/each}
   {/each}
 
-  <!-- X-axis decade labels -->
+<!-- X-axis decade labels -->
   {#each decades as decade (decade)}
     <text
       x={(xBand(decade) ?? 0) + xBand.bandwidth() / 2}
@@ -1741,7 +1743,7 @@
       text-anchor="middle"
       font-size="12"
       fill="#333"
-    >{decade}</text>
+    >{bucketLabel(decade)}</text>
   {/each}
 
   <!-- X-axis label -->
@@ -1791,11 +1793,13 @@
         <g transform="translate({facetMargin.left},{facetMargin.top})">
           {#each [...lowConfidenceBuckets] as lc (lc)}
             {@const lcX = facetX(lc)}
+            {@const lcIdx = (decades as readonly string[]).indexOf(lc)}
             {#if lcX !== undefined}
+              {@const lcWidth = lcIdx >= 0 && lcIdx < decades.length - 1 ? facetCx(decades[lcIdx + 1]) - lcX : facetX.bandwidth()}
               <rect
                 x={lcX}
                 y={0}
-                width={facetX.bandwidth()}
+                width={lcWidth}
                 height={facetInnerHeight}
                 fill="url(#lowDataHatch-shared)"
                 opacity="0.45"
@@ -1946,14 +1950,14 @@
     {/each}
   {/each}
 
-  {#each decades as decade (decade)}
+{#each decades as decade (decade)}
     <text
       x={(xBand(decade) ?? 0) + xBand.bandwidth() / 2}
       y={barHeight - barMargin.bottom + 20}
       text-anchor="middle"
       font-size="12"
       fill="#333"
-    >{decade}</text>
+    >{bucketLabel(decade)}</text>
   {/each}
 
   <text
@@ -2004,11 +2008,13 @@
         <g transform="translate({facetMargin.left},{facetMargin.top})">
           {#each [...lowConfidenceBuckets] as lc (lc)}
             {@const lcX = facetX(lc)}
+            {@const lcIdx = (decades as readonly string[]).indexOf(lc)}
             {#if lcX !== undefined}
+              {@const lcWidth = lcIdx >= 0 && lcIdx < decades.length - 1 ? facetCx(decades[lcIdx + 1]) - lcX : facetX.bandwidth()}
               <rect
                 x={lcX}
                 y={0}
-                width={facetX.bandwidth()}
+                width={lcWidth}
                 height={facetInnerHeight}
                 fill="url(#lowDataHatch-shared)"
                 opacity="0.45"
@@ -2220,14 +2226,14 @@
     {/each}
   {/each}
 
-  {#each decades as decade (decade)}
+{#each decades as decade (decade)}
     <text
       x={(xBand(decade) ?? 0) + xBand.bandwidth() / 2}
       y={barHeight - barMargin.bottom + 20}
       text-anchor="middle"
       font-size="12"
       fill="#333"
-    >{decade}</text>
+    >{bucketLabel(decade)}</text>
   {/each}
 
   <text
@@ -2278,11 +2284,13 @@
         <g transform="translate({facetMargin.left},{facetMargin.top})">
           {#each [...lowConfidenceBuckets] as lc (lc)}
             {@const lcX = facetX(lc)}
+            {@const lcIdx = (decades as readonly string[]).indexOf(lc)}
             {#if lcX !== undefined}
+              {@const lcWidth = lcIdx >= 0 && lcIdx < decades.length - 1 ? facetCx(decades[lcIdx + 1]) - lcX : facetX.bandwidth()}
               <rect
                 x={lcX}
                 y={0}
-                width={facetX.bandwidth()}
+                width={lcWidth}
                 height={facetInnerHeight}
                 fill="url(#lowDataHatch-shared)"
                 opacity="0.45"
@@ -2440,7 +2448,7 @@
       text-anchor="middle"
       font-size="12"
       fill="#333"
-    >{decade}</text>
+    >{bucketLabel(decade)}</text>
   {/each}
 
   <text
@@ -2491,11 +2499,13 @@
         <g transform="translate({facetMargin.left},{facetMargin.top})">
           {#each [...lowConfidenceBuckets] as lc (lc)}
             {@const lcX = facetX(lc)}
+            {@const lcIdx = (decades as readonly string[]).indexOf(lc)}
             {#if lcX !== undefined}
+              {@const lcWidth = lcIdx >= 0 && lcIdx < decades.length - 1 ? facetCx(decades[lcIdx + 1]) - lcX : facetX.bandwidth()}
               <rect
                 x={lcX}
                 y={0}
-                width={facetX.bandwidth()}
+                width={lcWidth}
                 height={facetInnerHeight}
                 fill="url(#lowDataHatch-shared)"
                 opacity="0.45"
@@ -3111,11 +3121,13 @@
         <g transform="translate({facetMargin.left},{facetMargin.top})">
           {#each [...lowConfidenceBuckets] as lc (lc)}
             {@const lcX = facetX(lc)}
+            {@const lcIdx = (decades as readonly string[]).indexOf(lc)}
             {#if lcX !== undefined}
+              {@const lcWidth = lcIdx >= 0 && lcIdx < decades.length - 1 ? facetCx(decades[lcIdx + 1]) - lcX : facetX.bandwidth()}
               <rect
                 x={lcX}
                 y={0}
-                width={facetX.bandwidth()}
+                width={lcWidth}
                 height={facetInnerHeight}
                 fill="url(#lowDataHatch-shared)"
                 opacity="0.45"
