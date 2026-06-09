@@ -1,0 +1,18 @@
+# V3 methods — S3 ablation: V1 + V3 DEFINITIONS only.
+# V1's label names verbatim (both, Descriptive, spatial/mapping, qual,
+# quant, unclear — 6 categories, no split), but each definition is replaced
+# with V3's refined wording:
+#   - quant gets the "non-spatial" qualifier
+#   - both gets V3's "neither clearly primary" framing
+#   - spatial/mapping gets the spatial-statistical method list + "geography is core"
+#   - Descriptive gets the union of V3's descriptive-empirical + theoretical-conceptual
+#     definitions (V3-style framing applied to V1's single label)
+# Tests whether definitional refinement alone — holding labels fixed —
+# explains part of the V1->V3 jump.
+# Baseline to compare against: V1 abstract (63.4%).
+task: methods
+schema: v3
+strategy: abstract
+cat_variant: "11"
+name: v3_abstract_cat11_S3
+all_papers: false

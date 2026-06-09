@@ -6,6 +6,23 @@
   import locationsData from '$lib/data/locations_viz.json';
   import topicsData from '$lib/data/topics_viz.json';
   import topicCompare from '$lib/data/topic_compare.json';
+  import { exportPng } from '$lib/exportPng';
+
+  // Refs for PNG export
+  let overviewRef!: SVGSVGElement;
+  let methodsStackedRef!: SVGSVGElement;
+  let regionsStackedRef!: SVGSVGElement;
+  let methodsUsVsNonUsBarRef!: SVGSVGElement;
+  let topicsStackedRef!: SVGSVGElement;
+  let topicsUsVsNonUsBarRef!: SVGSVGElement;
+  let upsetRef!: SVGSVGElement;
+  let coocRef!: SVGSVGElement;
+  let methodsFacetsRef!: HTMLElement;
+  let regionsFacetsRef!: HTMLElement;
+  let methodsUsVsNonUsFacetsRef!: HTMLElement;
+  let topicsFacetsRef!: HTMLElement;
+  let topicsUsVsNonUsFacetsRef!: HTMLElement;
+  let anchorFacetsRef!: HTMLElement;
 
   type Paper = {
     doi: string;
@@ -1253,7 +1270,8 @@
   Predicted by Gemma 4 31B on {papers.length} papers (snapshot: 2026-05-20_1458_methods_v3_sections_full). The 2022–2026 bucket includes partial 2026.
 </p>
 
-<svg width={overviewWidth} height={overviewHeight} class="overview-chart" aria-label="Total papers per 5-year bucket">
+<button type="button" class="export-btn" onclick={() => exportPng(overviewRef, 'overview_total_papers')}>⬇ PNG</button>
+<svg bind:this={overviewRef} width={overviewWidth} height={overviewHeight} class="overview-chart" aria-label="Total papers per 5-year bucket">
   <text
     x={-(overviewHeight / 2)}
     y={14}
@@ -1322,7 +1340,8 @@
 </div>
 
 <div class="charts-row">
-<svg width={barWidth} height={barHeight} class="bar-chart">
+<button type="button" class="export-btn" onclick={() => exportPng(methodsStackedRef, 'methods_stacked')}>⬇ PNG</button>
+<svg bind:this={methodsStackedRef} width={barWidth} height={barHeight} class="bar-chart">
   <!-- Y-axis label -->
   <text
     x={-(barHeight / 2)}
@@ -1411,7 +1430,8 @@
   >Year (5-year buckets)</text>
 </svg>
 
-<section class="facets" aria-label="Method proportion over time">
+<button type="button" class="export-btn" onclick={() => exportPng(methodsFacetsRef, 'methods_facets')}>⬇ PNG</button>
+<section bind:this={methodsFacetsRef} class="facets" aria-label="Method proportion over time">
   {#each methodSeries as series (series.method)}
     {@const dimmed = selectedMethod !== null && selectedMethod !== series.method}
     {@const maxPct = (series.max * 100).toFixed(0)}
@@ -1510,7 +1530,8 @@
 </div>
 
 <div class="charts-row">
-<svg width={barWidth} height={barHeight} class="bar-chart">
+<button type="button" class="export-btn" onclick={() => exportPng(regionsStackedRef, 'regions_stacked')}>⬇ PNG</button>
+<svg bind:this={regionsStackedRef} width={barWidth} height={barHeight} class="bar-chart">
   <!-- Y-axis label -->
   <text
     x={-(barHeight / 2)}
@@ -1599,7 +1620,8 @@
   >Year (5-year buckets)</text>
 </svg>
 
-<section class="facets" aria-label="Region proportion over time">
+<button type="button" class="export-btn" onclick={() => exportPng(regionsFacetsRef, 'regions_facets')}>⬇ PNG</button>
+<section bind:this={regionsFacetsRef} class="facets" aria-label="Region proportion over time">
   {#each regionSeries as series (series.region)}
     {@const dimmed = selectedRegion !== null && selectedRegion !== series.region}
     {@const maxPct = (series.max * 100).toFixed(0)}
@@ -1695,7 +1717,8 @@
 </div>
 
 <div class="charts-row">
-<svg width={barWidth} height={barHeight} class="bar-chart">
+<button type="button" class="export-btn" onclick={() => exportPng(methodsUsVsNonUsBarRef, 'methods_us_vs_nonus_bar')}>⬇ PNG</button>
+<svg bind:this={methodsUsVsNonUsBarRef} width={barWidth} height={barHeight} class="bar-chart">
   <text
     x={-(barHeight / 2)}
     y={16}
@@ -1771,7 +1794,8 @@
   >Year (5-year buckets)</text>
 </svg>
 
-<section class="facets" aria-label="Methods USA vs non-USA over time">
+<button type="button" class="export-btn" onclick={() => exportPng(methodsUsVsNonUsFacetsRef, 'methods_us_vs_nonus_facets')}>⬇ PNG</button>
+<section bind:this={methodsUsVsNonUsFacetsRef} class="facets" aria-label="Methods USA vs non-USA over time">
   {#each combinedMethodSeries as { method, us, nonUs } (method)}
     {@const dimmed = selectedMethod !== null && selectedMethod !== method}
     {@const usPct = (us.max * 100).toFixed(0)}
@@ -1922,7 +1946,8 @@
 </div>
 
 <div class="charts-row">
-<svg width={barWidth} height={barHeight} class="bar-chart">
+<button type="button" class="export-btn" onclick={() => exportPng(topicsStackedRef, 'topics_stacked')}>⬇ PNG</button>
+<svg bind:this={topicsStackedRef} width={barWidth} height={barHeight} class="bar-chart">
   <text
     x={-(barHeight / 2)}
     y={16}
@@ -2006,7 +2031,8 @@
   >Year (5-year buckets)</text>
 </svg>
 
-<section class="facets" aria-label="Topic proportion over time">
+<button type="button" class="export-btn" onclick={() => exportPng(topicsFacetsRef, 'topics_facets')}>⬇ PNG</button>
+<section bind:this={topicsFacetsRef} class="facets" aria-label="Topic proportion over time">
   {#each topicSeries as series (series.topic)}
     {@const dimmed = selectedTopic !== null && selectedTopic !== series.topic}
     {@const maxPct = (series.max * 100).toFixed(0)}
@@ -2104,7 +2130,8 @@
 </div>
 
 <div class="charts-row">
-<svg width={barWidth} height={barHeight} class="bar-chart">
+<button type="button" class="export-btn" onclick={() => exportPng(topicsUsVsNonUsBarRef, 'topics_us_vs_nonus_bar')}>⬇ PNG</button>
+<svg bind:this={topicsUsVsNonUsBarRef} width={barWidth} height={barHeight} class="bar-chart">
   <text
     x={-(barHeight / 2)}
     y={16}
@@ -2180,7 +2207,8 @@
   >Year (5-year buckets)</text>
 </svg>
 
-<section class="facets" aria-label="Topics USA vs non-USA over time">
+<button type="button" class="export-btn" onclick={() => exportPng(topicsUsVsNonUsFacetsRef, 'topics_us_vs_nonus_facets')}>⬇ PNG</button>
+<section bind:this={topicsUsVsNonUsFacetsRef} class="facets" aria-label="Topics USA vs non-USA over time">
   {#each combinedTopicSeries as { topic, us, nonUs } (topic)}
     {@const dimmed = selectedTopic !== null && selectedTopic !== topic}
     {@const usPct = (us.max * 100).toFixed(0)}
@@ -2334,7 +2362,8 @@
 
 <div class="cooc-row">
 <div class="upset-wrap">
-<svg width={upsetWidth} height={upsetHeight} class="upset">
+<button type="button" class="export-btn" onclick={() => exportPng(upsetRef, 'topics_upset')}>⬇ PNG</button>
+<svg bind:this={upsetRef} width={upsetWidth} height={upsetHeight} class="upset">
   <!-- Intersection bars (top) -->
   <g transform="translate({upsetMatrixLeft},{upsetMargin.top})">
     {#each topIntersections as inter, i (inter.setKey)}
@@ -2451,7 +2480,8 @@
 </div>
 
 <div class="cooc-wrap">
-<svg width={coocWidth} height={coocHeight} class="cooc">
+<button type="button" class="export-btn" onclick={() => exportPng(coocRef, 'topics_cooccurrence')}>⬇ PNG</button>
+<svg bind:this={coocRef} width={coocWidth} height={coocHeight} class="cooc">
   <!-- Column labels (rotated -45° above grid) — uses ordered indices -->
   <g transform="translate({coocMargin.left},{coocMargin.top})">
     {#each heatmapOrder as origJ, displayJ (origJ)}
@@ -2782,7 +2812,8 @@
   <span class="control-label" style="margin-left: 12px;">n papers tagged <em>{effectiveAnchor}</em>: {anchorTotalPapers}</span>
 </div>
 
-<section class="facets anchor-facets" aria-label="Co-occurrence with anchor topic over time">
+<button type="button" class="export-btn" onclick={() => exportPng(anchorFacetsRef, 'anchor_topic_facets')}>⬇ PNG</button>
+<section bind:this={anchorFacetsRef} class="facets anchor-facets" aria-label="Co-occurrence with anchor topic over time">
   {#each anchorSeries as series (series.coTopic)}
     {@const maxPct = (series.max * 100).toFixed(0)}
     {@const overallPct = (series.overall * 100).toFixed(0)}
@@ -3341,6 +3372,23 @@
   }
 
   .sort-btn:hover {
+    color: #1a4a8a;
+  }
+
+  .export-btn {
+    display: inline-block;
+    margin: 4px 0;
+    padding: 2px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fafafa;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    color: #555;
+    cursor: pointer;
+  }
+  .export-btn:hover {
+    background: #f0f0f0;
     color: #1a4a8a;
   }
 

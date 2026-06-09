@@ -1,0 +1,12 @@
+# V3 methods — A1 ablation: revert `quant` definition to V1's
+# (drops the "non-spatial" qualifier). All other categories and definitions
+# remain at V3 methods_01.csv. Tests whether disambiguating quant from spatial
+# was the lever that drove the V1->V3 jump.
+# Baseline: v3 abstract methods_01 = 87.2%. If A1 drops meaningfully below
+# that, the non-spatial qualifier explains part of the gain.
+task: methods
+schema: v3
+strategy: abstract
+cat_variant: "05"
+name: v3_abstract_cat05_A1
+all_papers: false

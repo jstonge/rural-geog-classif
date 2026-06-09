@@ -1,0 +1,13 @@
+# V3 methods — A2 ablation: revert `spatial` DEFINITION to V1's
+# spatial/mapping definition ("methodology centered on GIS, remote sensing,
+# spatial analysis, cartography, or geospatial modeling"). The label NAME
+# stays `spatial` to isolate the definition effect from the rename effect.
+# All other categories and definitions remain at V3 methods_01.csv.
+# Tests whether the expanded spatial definition (with named spatial-statistical
+# methods + "geography is core") was the lever that drove the V1->V3 jump.
+task: methods
+schema: v3
+strategy: abstract
+cat_variant: "06"
+name: v3_abstract_cat06_A2
+all_papers: false

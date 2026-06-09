@@ -1,0 +1,18 @@
+# V3 methods — E2: V3 schema (categories, tie-breaker, guidelines, examples)
+# but the OPENING SETUP PARAGRAPH reverts to V1's wording
+# ("primary methodological approach") instead of V3's
+# ("primary analytical engine — the method producing the paper's main
+# inferential claim"). Everything else stays at V3 methods_01.
+# Tests whether the reworded prompt opening — which explicitly tells gemma
+# what "primary" means (the inferential engine, not the data source) —
+# was itself a hidden lever in the V1->V3 jump.
+# Baseline: V3 methods_01 (80.2%). A meaningful drop (>2pp) would mean the
+# opening rewording carries part of the gain we attributed elsewhere.
+task: methods
+schema: v3
+strategy: abstract
+prompt_variant: "04"
+cat_variant: "01"
+ex_variant: "01"
+name: v3_abstract_E2_v1_setup
+all_papers: false

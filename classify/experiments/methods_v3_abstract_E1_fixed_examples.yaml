@@ -1,0 +1,16 @@
+# V3 methods — E1: identical to V3 methods_01 but with the EXAMPLES file
+# fixed to use V3 labels (the tsunami example's output is now "spatial",
+# not the V1-leftover "spatial/mapping").
+# Tests how much performance we were leaving on the table by feeding gemma
+# few-shot examples whose labels did not exist in the V3 category list.
+# Baseline: V3 methods_01 (80.2%). If E1 jumps materially above that, the
+# rename effect we attributed to S2 was partly being held back by this
+# example/label inconsistency.
+task: methods
+schema: v3
+strategy: abstract
+prompt_variant: "01"
+cat_variant: "01"
+ex_variant: "02"
+name: v3_abstract_E1_fixed_examples
+all_papers: false

@@ -1,0 +1,13 @@
+# V3 methods — S2 ablation: V1 + RENAME only.
+# V1 definitions verbatim, but with V3's label names:
+#   both -> mixed, Descriptive -> descriptive-empirical, spatial/mapping -> spatial.
+# No split, no definitional change. Tests whether the label-name change
+# alone (which alters gemma's pre-trained associations) explains part of
+# the V1->V3 jump.
+# Baseline to compare against: V1 abstract (63.4%).
+task: methods
+schema: v3
+strategy: abstract
+cat_variant: "10"
+name: v3_abstract_cat10_S2
+all_papers: false

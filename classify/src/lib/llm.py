@@ -18,7 +18,12 @@ load_dotenv()
 VLLM_URL = os.getenv("VLLM_URL", "http://localhost:8000/v1")
 MODEL = "google/gemma-4-31B-it"
 
-vllm_client = OpenAI(base_url=VLLM_URL, api_key="EMPTY")
+# Long timeout: thinking-mode requests on long prompts (e.g. the P3 OpenPipe
+# kitchen-sink prompt) can take several minutes per request, and with 16
+# concurrent workers contending for the vLLM server, individual requests may
+# queue for a while before being processed. Default OpenAI timeout is 600s;
+# we bump to 1800s (30 min) so single long-thinking requests don't time out.
+vllm_client = OpenAI(base_url=VLLM_URL, api_key="EMPTY", timeout=1800.0)
 
 # Raw thought delimiters are asymmetric: <|channel>thought ... <channel|>
 _THOUGHT_RE = re.compile(r"<\|channel>\s*thought\s*\n?(.*?)<channel\|>", re.DOTALL)

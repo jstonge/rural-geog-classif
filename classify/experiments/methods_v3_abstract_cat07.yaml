@@ -1,0 +1,14 @@
+# V3 methods — A3 ablation: un-split Descriptive.
+# Drops `theoretical-conceptual` as a separate label and merges its scope
+# into a single `descriptive-empirical` whose definition is the union of
+# V3's two split definitions (V3-style framing, but one label not two).
+# This is 6 categories (same number as V1) but otherwise preserves V3's
+# other definitions. Tests whether splitting Descriptive into
+# descriptive-empirical + theoretical-conceptual was the lever that drove
+# the V1->V3 jump.
+task: methods
+schema: v3
+strategy: abstract
+cat_variant: "07"
+name: v3_abstract_cat07_A3
+all_papers: false

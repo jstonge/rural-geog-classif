@@ -1,0 +1,13 @@
+# V3 methods — S1 ablation: V1 + SPLIT only.
+# V1's labels and one-liner definitions verbatim, except V1's `Descriptive`
+# is carved into two V1-style labels (`Descriptive` for original empirical
+# material, `Conceptual` for literature reviews / essays without original
+# data). Tests whether splitting Descriptive into two — using V1 vocabulary,
+# not V3 — explains part of the V1->V3 jump.
+# Baseline to compare against: V1 abstract (63.4%).
+task: methods
+schema: v3
+strategy: abstract
+cat_variant: "09"
+name: v3_abstract_cat09_S1
+all_papers: false

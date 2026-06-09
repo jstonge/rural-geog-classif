@@ -1,0 +1,13 @@
+# V3 methods — A4 ablation: revert `mixed` DEFINITION to V1's `both`
+# definition ("mixed methods — uses both qualitative and quantitative
+# approaches substantively"). The label NAME stays `mixed` to isolate the
+# definition effect from the rename effect.
+# All other categories and definitions remain at V3 methods_01.csv.
+# Tests whether tightening mixed/both with the "neither clearly primary"
+# framing was the lever that drove the V1->V3 jump.
+task: methods
+schema: v3
+strategy: abstract
+cat_variant: "08"
+name: v3_abstract_cat08_A4
+all_papers: false

@@ -1,0 +1,30 @@
+# V3 methods — Z2: TRULY MINIMAL prompt configuration.
+# V3 categories with one-line definitions (cat_variant=06 — V1's short
+# spatial def), and a prompt template that drops:
+#   - Guidelines section
+#   - Tie-breaker rule
+#   - Few-shot examples
+#   - Every prose elaboration
+# What remains: a single sentence introducing the task, the categories
+# list with their definitions, and the JSON output format instruction
+# (methods_07.md).
+# This is the cleanest possible reference for "Gemma-4-31B on this task
+# with no prompt engineering whatsoever". Compare against:
+#   - V3 methods_01 (80.2%) — full V3 with all scaffolding
+#   - Production candidate (82.0%) — ablation-pruned V3
+# A meaningful gap (>3pp below 80%) tells us the V3 prompt scaffolding is
+# carrying signal even when stripped to its informative pieces (split,
+# Guidelines, info, examples).
+# A close-to-V3 result tells us most of the prompt was decoration on top
+# of what Gemma already knows about methodology classification.
+# This run also gives us a clean, schema-consistent "vanilla Gemma"
+# baseline that bypasses the V1->V3 label-mapping confound from the
+# main study.
+task: methods
+schema: v3
+strategy: abstract
+prompt_variant: "07"
+cat_variant: "06"
+ex_variant: "off"
+name: v3_abstract_Z2_minimal
+all_papers: false

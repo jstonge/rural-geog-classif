@@ -1,0 +1,14 @@
+# V3 methods — T2 ablation: V3 schema + V3 categories + V3 examples,
+# but the prompt template DROPS the "Guidelines" section (kept the
+# tie-breaker rule and everything else).
+# Tests whether the guideline bullets (defining when to use spatial /
+# descriptive-empirical / unclear) explain part of the V1->V3 jump.
+# Baseline to compare against: V3 methods_01 (~80.2%). A drop of more
+# than noise (~2pp) means the guidelines are doing real work.
+task: methods
+schema: v3
+strategy: abstract
+prompt_variant: "03"
+cat_variant: "01"
+name: v3_abstract_T2_no_guidelines
+all_papers: false

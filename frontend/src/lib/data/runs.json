@@ -8593,5 +8593,2024 @@
     "saved_at": "2026-06-08T09:25:43",
     "n_papers": 370,
     "n_with_prediction": 369
+  },
+  {
+    "run_id": "2026-06-09_1232_methods_v3_abstract_cat05_A1",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary analytical engine — the method producing the paper's main inferential claim:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: quantitative methods (statistical analysis, regression, large-n surveys, modeling, formal hypothesis testing)\n- mixed: mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary\n- spatial: geography is core to the methodology — GIS, cartography, remote sensing, geospatial visualization, OR spatial statistical methods (geographically weighted regression, spatial autocorrelation / Moran's I, kriging, spatial lag/error models, point-pattern analysis, remote-sensing classification)\n- descriptive-empirical: original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases\n- theoretical-conceptual: conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases\n- unclear: methodology cannot be determined from the title and abstract\n\n\n**Tie-breaker rule for compound-method papers:** choose the **primary analytical engine** — the method that produces the paper's main inferential claim.\n- If interviews/focus groups scaffold a survey that is then analyzed with regression, the engine is the regression -> quant.\n- If ethnographic fieldwork is the basis for the claim and a small survey provides context, the engine is qualitative -> qual.\n- If spatial methods (GIS, spatial regression, mapping) are the paper's main analytical contribution, the engine is spatial -> spatial.\n- Use \"mixed\" only when qualitative and quantitative methods carry approximately equal weight and neither is clearly primary.\n\nGuidelines:\n- Use \"spatial\" when geography is in the model structure (GWR, spatial autocorrelation, spatial lag/error, kriging, point-pattern, remote-sensing classification) OR when the paper's contribution is the map / spatial visualization itself.\n- Do NOT use \"spatial\" for standard statistics applied to data that happens to be geographic — that's \"quant\".\n- \"descriptive-empirical\" requires *original* empirical material (cases, archives, observation). Pure conceptual essay without original data -> \"theoretical-conceptual\".\n- Use \"unclear\" when the abstract speaks abstractly about \"reviewing\", \"deepening\", or \"inviting engagement\" WITHOUT naming a data source, a corpus, an analytical method, or specific case material.\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial/mapping\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 88,
+      "n_correct": 69,
+      "exact_match": 0.7841,
+      "label_distribution": {
+        "qual": 32,
+        "quant": 21,
+        "spatial": 13,
+        "descriptive-empirical": 9,
+        "theoretical-conceptual": 6,
+        "unclear": 4,
+        "mixed": 3
+      },
+      "confusion_matrix": {
+        "descriptive-empirical": {
+          "descriptive-empirical": 6,
+          "mixed": 1,
+          "qual": 1,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "mixed": {
+          "descriptive-empirical": 0,
+          "mixed": 3,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 28,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 1,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 17,
+          "spatial": 3,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial": {
+          "descriptive-empirical": 0,
+          "mixed": 1,
+          "qual": 0,
+          "quant": 1,
+          "spatial": 10,
+          "theoretical-conceptual": 1,
+          "unclear": 0
+        },
+        "theoretical-conceptual": {
+          "descriptive-empirical": 1,
+          "mixed": 0,
+          "qual": 1,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 4,
+          "unclear": 0
+        },
+        "unclear": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 1,
+          "unclear": 1
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "01",
+    "cat_variant": "05",
+    "ex_variant": "01",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_01.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_05.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_01.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T12:32:44",
+    "n_papers": 91,
+    "n_with_prediction": 88
+  },
+  {
+    "run_id": "2026-06-09_1236_methods_v3_abstract_cat09_S1",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary analytical engine — the method producing the paper's main inferential claim:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: quantitative methods (statistical analysis, regression, large-n surveys, modeling, formal hypothesis testing)\n- both: mixed methods — uses both qualitative and quantitative approaches substantively\n- Descriptive: descriptive or narrative analysis of original empirical material — case study, fieldwork notes, archival analysis with original data\n- Conceptual: literature review, narrative synthesis, or conceptual essay without original empirical material — frames a debate or synthesizes existing literature\n- spatial/mapping: methodology centered on GIS, remote sensing, spatial analysis, cartography, or geospatial modeling\n- unclear: methodology cannot be determined from the title and abstract\n\n\n**Tie-breaker rule for compound-method papers:** choose the **primary analytical engine** — the method that produces the paper's main inferential claim.\n- If interviews/focus groups scaffold a survey that is then analyzed with regression, the engine is the regression -> quant.\n- If ethnographic fieldwork is the basis for the claim and a small survey provides context, the engine is qualitative -> qual.\n- If spatial methods (GIS, spatial regression, mapping) are the paper's main analytical contribution, the engine is spatial -> spatial.\n- Use \"mixed\" only when qualitative and quantitative methods carry approximately equal weight and neither is clearly primary.\n\nGuidelines:\n- Use \"spatial\" when geography is in the model structure (GWR, spatial autocorrelation, spatial lag/error, kriging, point-pattern, remote-sensing classification) OR when the paper's contribution is the map / spatial visualization itself.\n- Do NOT use \"spatial\" for standard statistics applied to data that happens to be geographic — that's \"quant\".\n- \"descriptive-empirical\" requires *original* empirical material (cases, archives, observation). Pure conceptual essay without original data -> \"theoretical-conceptual\".\n- Use \"unclear\" when the abstract speaks abstractly about \"reviewing\", \"deepening\", or \"inviting engagement\" WITHOUT naming a data source, a corpus, an analytical method, or specific case material.\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial/mapping\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 87,
+      "n_correct": 46,
+      "exact_match": 0.5287,
+      "label_distribution": {
+        "qual": 31,
+        "quant": 23,
+        "spatial/mapping": 10,
+        "Descriptive": 7,
+        "Conceptual": 6,
+        "unclear": 5,
+        "both": 5
+      },
+      "confusion_matrix": {
+        "Conceptual": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 4,
+          "unclear": 0
+        },
+        "Descriptive": {
+          "descriptive-empirical": 5,
+          "mixed": 0,
+          "qual": 1,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "both": {
+          "descriptive-empirical": 0,
+          "mixed": 5,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 28,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 1,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 17,
+          "spatial": 5,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial/mapping": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 1,
+          "spatial": 8,
+          "theoretical-conceptual": 1,
+          "unclear": 0
+        },
+        "unclear": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 1,
+          "unclear": 1
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "01",
+    "cat_variant": "09",
+    "ex_variant": "01",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_01.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_09.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_01.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T12:36:44",
+    "n_papers": 91,
+    "n_with_prediction": 87
+  },
+  {
+    "run_id": "2026-06-09_1239_methods_v1_abstract",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary methodological approach:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: quantitative methods (statistical analysis, regression, large-n surveys, modeling, formal hypothesis testing)\n- both: mixed methods — uses both qualitative and quantitative approaches substantively\n- Descriptive: descriptive or narrative analysis without formal statistical testing or in-depth qualitative inquiry (e.g., literature review, narrative synthesis, conceptual essay with illustrative cases)\n- spatial/mapping: methodology centered on GIS, remote sensing, spatial analysis, cartography, or geospatial modeling\n- unclear: methodology cannot be determined from the title and abstract\n\n\nGuidelines:\n- Use \"both\" only when the paper explicitly combines qualitative and quantitative methods — e.g., \"we combine in-depth interviews with statistical analysis of survey data\".\n- Use \"spatial/mapping\" when the analytical method is **fundamentally spatial**: GIS, remote sensing, cartography, geospatial modeling, OR a spatial statistical method where geography is built into the model structure — geographically weighted regression (GWR), spatial autocorrelation / Moran's I, kriging, spatial lag/error models, point-pattern analysis, or remote-sensing image classification.\n- DO NOT use \"spatial/mapping\" when the paper just applies standard statistics (OLS regression, t-tests, ANOVA, descriptive statistics) to data that happens to be geographic. Geographic framing alone (\"spatial perspective\", \"platial perspective\", \"geographic patterns\") is also not enough — the analysis itself must be spatial.\n- \"descriptive\" is for papers that actually do description/synthesis with a clear deliverable — e.g., a literature review that surveys a defined corpus, a conceptual essay built around named theoretical frameworks, an agenda-setting piece that compares or summarizes specific cases.\n- Use \"unclear\" when the abstract speaks at a high level about \"reviewing\", \"deepening\", \"expanding\", or \"inviting\" engagement WITHOUT naming a data source, a corpus, an analytical method, or specific case material. Position papers that gesture at \"selected sites\" or \"reflections\" but never say how they were studied are \"unclear\", not \"descriptive\".\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial/mapping\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 81,
+      "n_correct": 51,
+      "exact_match": 0.6296,
+      "label_distribution": {
+        "qual": 29,
+        "quant": 19,
+        "spatial/mapping": 10,
+        "unclear": 10,
+        "Descriptive": 7,
+        "both": 6
+      },
+      "confusion_matrix": {
+        "Descriptive": {
+          "Descriptive": 4,
+          "both": 0,
+          "qual": 0,
+          "quant": 1,
+          "spatial/mapping": 0,
+          "unclear": 2
+        },
+        "both": {
+          "Descriptive": 0,
+          "both": 4,
+          "qual": 1,
+          "quant": 0,
+          "spatial/mapping": 1,
+          "unclear": 0
+        },
+        "qual": {
+          "Descriptive": 4,
+          "both": 1,
+          "qual": 21,
+          "quant": 1,
+          "spatial/mapping": 0,
+          "unclear": 2
+        },
+        "quant": {
+          "Descriptive": 0,
+          "both": 1,
+          "qual": 0,
+          "quant": 16,
+          "spatial/mapping": 1,
+          "unclear": 1
+        },
+        "spatial/mapping": {
+          "Descriptive": 0,
+          "both": 1,
+          "qual": 0,
+          "quant": 6,
+          "spatial/mapping": 3,
+          "unclear": 0
+        },
+        "unclear": {
+          "Descriptive": 3,
+          "both": 1,
+          "qual": 2,
+          "quant": 0,
+          "spatial/mapping": 1,
+          "unclear": 3
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v1",
+    "variant": "01",
+    "prompt_variant": "01",
+    "cat_variant": "01",
+    "ex_variant": "01",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v1/core/methods_01.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v1/categories/methods_01.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v1/examples/methods_01.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T12:39:03",
+    "n_papers": 84,
+    "n_with_prediction": 81
+  },
+  {
+    "run_id": "2026-06-09_1247_methods_v3_abstract",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary analytical engine — the method producing the paper's main inferential claim:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)\n- mixed: mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary\n- spatial: geography is core to the methodology — GIS, cartography, remote sensing, geospatial visualization, OR spatial statistical methods (geographically weighted regression, spatial autocorrelation / Moran's I, kriging, spatial lag/error models, point-pattern analysis, remote-sensing classification)\n- descriptive-empirical: original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases\n- theoretical-conceptual: conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases\n- unclear: methodology cannot be determined from the title and abstract\n\n\n**Tie-breaker rule for compound-method papers:** choose the **primary analytical engine** — the method that produces the paper's main inferential claim.\n- If interviews/focus groups scaffold a survey that is then analyzed with regression, the engine is the regression -> quant.\n- If ethnographic fieldwork is the basis for the claim and a small survey provides context, the engine is qualitative -> qual.\n- If spatial methods (GIS, spatial regression, mapping) are the paper's main analytical contribution, the engine is spatial -> spatial.\n- Use \"mixed\" only when qualitative and quantitative methods carry approximately equal weight and neither is clearly primary.\n\nGuidelines:\n- Use \"spatial\" when geography is in the model structure (GWR, spatial autocorrelation, spatial lag/error, kriging, point-pattern, remote-sensing classification) OR when the paper's contribution is the map / spatial visualization itself.\n- Do NOT use \"spatial\" for standard statistics applied to data that happens to be geographic — that's \"quant\".\n- \"descriptive-empirical\" requires *original* empirical material (cases, archives, observation). Pure conceptual essay without original data -> \"theoretical-conceptual\".\n- Use \"unclear\" when the abstract speaks abstractly about \"reviewing\", \"deepening\", or \"inviting engagement\" WITHOUT naming a data source, a corpus, an analytical method, or specific case material.\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial/mapping\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 86,
+      "n_correct": 69,
+      "exact_match": 0.8023,
+      "label_distribution": {
+        "qual": 31,
+        "quant": 21,
+        "spatial": 12,
+        "descriptive-empirical": 9,
+        "theoretical-conceptual": 6,
+        "unclear": 4,
+        "mixed": 3
+      },
+      "confusion_matrix": {
+        "descriptive-empirical": {
+          "descriptive-empirical": 6,
+          "mixed": 0,
+          "qual": 2,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "mixed": {
+          "descriptive-empirical": 0,
+          "mixed": 3,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 27,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 18,
+          "spatial": 3,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial": {
+          "descriptive-empirical": 0,
+          "mixed": 1,
+          "qual": 0,
+          "quant": 1,
+          "spatial": 10,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "theoretical-conceptual": {
+          "descriptive-empirical": 1,
+          "mixed": 1,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 4,
+          "unclear": 0
+        },
+        "unclear": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 1,
+          "unclear": 1
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "01",
+    "cat_variant": "01",
+    "ex_variant": "01",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_01.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_01.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_01.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T12:47:40",
+    "n_papers": 91,
+    "n_with_prediction": 86
+  },
+  {
+    "run_id": "2026-06-09_1252_methods_v3_abstract_cat10_S2",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary analytical engine — the method producing the paper's main inferential claim:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: quantitative methods (statistical analysis, regression, large-n surveys, modeling, formal hypothesis testing)\n- mixed: mixed methods — uses both qualitative and quantitative approaches substantively\n- descriptive-empirical: descriptive or narrative analysis without formal statistical testing or in-depth qualitative inquiry (e.g., literature review, narrative synthesis, conceptual essay with illustrative cases)\n- spatial: methodology centered on GIS, remote sensing, spatial analysis, cartography, or geospatial modeling\n- unclear: methodology cannot be determined from the title and abstract\n\n\n**Tie-breaker rule for compound-method papers:** choose the **primary analytical engine** — the method that produces the paper's main inferential claim.\n- If interviews/focus groups scaffold a survey that is then analyzed with regression, the engine is the regression -> quant.\n- If ethnographic fieldwork is the basis for the claim and a small survey provides context, the engine is qualitative -> qual.\n- If spatial methods (GIS, spatial regression, mapping) are the paper's main analytical contribution, the engine is spatial -> spatial.\n- Use \"mixed\" only when qualitative and quantitative methods carry approximately equal weight and neither is clearly primary.\n\nGuidelines:\n- Use \"spatial\" when geography is in the model structure (GWR, spatial autocorrelation, spatial lag/error, kriging, point-pattern, remote-sensing classification) OR when the paper's contribution is the map / spatial visualization itself.\n- Do NOT use \"spatial\" for standard statistics applied to data that happens to be geographic — that's \"quant\".\n- \"descriptive-empirical\" requires *original* empirical material (cases, archives, observation). Pure conceptual essay without original data -> \"theoretical-conceptual\".\n- Use \"unclear\" when the abstract speaks abstractly about \"reviewing\", \"deepening\", or \"inviting engagement\" WITHOUT naming a data source, a corpus, an analytical method, or specific case material.\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial/mapping\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 88,
+      "n_correct": 66,
+      "exact_match": 0.75,
+      "label_distribution": {
+        "qual": 32,
+        "quant": 23,
+        "descriptive-empirical": 11,
+        "spatial": 10,
+        "unclear": 7,
+        "mixed": 5
+      },
+      "confusion_matrix": {
+        "descriptive-empirical": {
+          "descriptive-empirical": 6,
+          "mixed": 1,
+          "qual": 1,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 2,
+          "unclear": 0
+        },
+        "mixed": {
+          "descriptive-empirical": 0,
+          "mixed": 5,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 28,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 1,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 18,
+          "spatial": 4,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 1,
+          "spatial": 8,
+          "theoretical-conceptual": 1,
+          "unclear": 0
+        },
+        "unclear": {
+          "descriptive-empirical": 3,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 3,
+          "unclear": 1
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "01",
+    "cat_variant": "10",
+    "ex_variant": "01",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_01.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_10.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_01.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T12:52:00",
+    "n_papers": 91,
+    "n_with_prediction": 88
+  },
+  {
+    "run_id": "2026-06-09_1255_methods_v3_abstract_cat05_A1",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary analytical engine — the method producing the paper's main inferential claim:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: quantitative methods (statistical analysis, regression, large-n surveys, modeling, formal hypothesis testing)\n- mixed: mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary\n- spatial: geography is core to the methodology — GIS, cartography, remote sensing, geospatial visualization, OR spatial statistical methods (geographically weighted regression, spatial autocorrelation / Moran's I, kriging, spatial lag/error models, point-pattern analysis, remote-sensing classification)\n- descriptive-empirical: original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases\n- theoretical-conceptual: conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases\n- unclear: methodology cannot be determined from the title and abstract\n\n\n**Tie-breaker rule for compound-method papers:** choose the **primary analytical engine** — the method that produces the paper's main inferential claim.\n- If interviews/focus groups scaffold a survey that is then analyzed with regression, the engine is the regression -> quant.\n- If ethnographic fieldwork is the basis for the claim and a small survey provides context, the engine is qualitative -> qual.\n- If spatial methods (GIS, spatial regression, mapping) are the paper's main analytical contribution, the engine is spatial -> spatial.\n- Use \"mixed\" only when qualitative and quantitative methods carry approximately equal weight and neither is clearly primary.\n\nGuidelines:\n- Use \"spatial\" when geography is in the model structure (GWR, spatial autocorrelation, spatial lag/error, kriging, point-pattern, remote-sensing classification) OR when the paper's contribution is the map / spatial visualization itself.\n- Do NOT use \"spatial\" for standard statistics applied to data that happens to be geographic — that's \"quant\".\n- \"descriptive-empirical\" requires *original* empirical material (cases, archives, observation). Pure conceptual essay without original data -> \"theoretical-conceptual\".\n- Use \"unclear\" when the abstract speaks abstractly about \"reviewing\", \"deepening\", or \"inviting engagement\" WITHOUT naming a data source, a corpus, an analytical method, or specific case material.\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial/mapping\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 86,
+      "n_correct": 68,
+      "exact_match": 0.7907,
+      "label_distribution": {
+        "qual": 31,
+        "quant": 21,
+        "spatial": 12,
+        "descriptive-empirical": 9,
+        "theoretical-conceptual": 7,
+        "unclear": 3,
+        "mixed": 3
+      },
+      "confusion_matrix": {
+        "descriptive-empirical": {
+          "descriptive-empirical": 6,
+          "mixed": 1,
+          "qual": 1,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "mixed": {
+          "descriptive-empirical": 0,
+          "mixed": 3,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 27,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 1,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 17,
+          "spatial": 3,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 1,
+          "spatial": 10,
+          "theoretical-conceptual": 1,
+          "unclear": 0
+        },
+        "theoretical-conceptual": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 1,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 4,
+          "unclear": 0
+        },
+        "unclear": {
+          "descriptive-empirical": 1,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 1,
+          "unclear": 1
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "01",
+    "cat_variant": "05",
+    "ex_variant": "01",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_01.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_05.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_01.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T12:55:21",
+    "n_papers": 91,
+    "n_with_prediction": 86
+  },
+  {
+    "run_id": "2026-06-09_1258_methods_v3_abstract_cat06_A2",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary analytical engine — the method producing the paper's main inferential claim:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)\n- mixed: mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary\n- spatial: methodology centered on GIS, remote sensing, spatial analysis, cartography, or geospatial modeling\n- descriptive-empirical: original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases\n- theoretical-conceptual: conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases\n- unclear: methodology cannot be determined from the title and abstract\n\n\n**Tie-breaker rule for compound-method papers:** choose the **primary analytical engine** — the method that produces the paper's main inferential claim.\n- If interviews/focus groups scaffold a survey that is then analyzed with regression, the engine is the regression -> quant.\n- If ethnographic fieldwork is the basis for the claim and a small survey provides context, the engine is qualitative -> qual.\n- If spatial methods (GIS, spatial regression, mapping) are the paper's main analytical contribution, the engine is spatial -> spatial.\n- Use \"mixed\" only when qualitative and quantitative methods carry approximately equal weight and neither is clearly primary.\n\nGuidelines:\n- Use \"spatial\" when geography is in the model structure (GWR, spatial autocorrelation, spatial lag/error, kriging, point-pattern, remote-sensing classification) OR when the paper's contribution is the map / spatial visualization itself.\n- Do NOT use \"spatial\" for standard statistics applied to data that happens to be geographic — that's \"quant\".\n- \"descriptive-empirical\" requires *original* empirical material (cases, archives, observation). Pure conceptual essay without original data -> \"theoretical-conceptual\".\n- Use \"unclear\" when the abstract speaks abstractly about \"reviewing\", \"deepening\", or \"inviting engagement\" WITHOUT naming a data source, a corpus, an analytical method, or specific case material.\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial/mapping\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 87,
+      "n_correct": 72,
+      "exact_match": 0.8276,
+      "label_distribution": {
+        "qual": 32,
+        "quant": 19,
+        "spatial": 12,
+        "descriptive-empirical": 10,
+        "theoretical-conceptual": 6,
+        "mixed": 5,
+        "unclear": 3
+      },
+      "confusion_matrix": {
+        "descriptive-empirical": {
+          "descriptive-empirical": 7,
+          "mixed": 1,
+          "qual": 1,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "mixed": {
+          "descriptive-empirical": 0,
+          "mixed": 5,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 28,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 17,
+          "spatial": 2,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 2,
+          "spatial": 10,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "theoretical-conceptual": {
+          "descriptive-empirical": 1,
+          "mixed": 0,
+          "qual": 1,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 4,
+          "unclear": 0
+        },
+        "unclear": {
+          "descriptive-empirical": 1,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 1,
+          "unclear": 1
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "01",
+    "cat_variant": "06",
+    "ex_variant": "01",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_01.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_06.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_01.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T12:58:04",
+    "n_papers": 91,
+    "n_with_prediction": 87
+  },
+  {
+    "run_id": "2026-06-09_1300_methods_v3_abstract_cat07_A3",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary analytical engine — the method producing the paper's main inferential claim:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)\n- mixed: mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary\n- spatial: geography is core to the methodology — GIS, cartography, remote sensing, geospatial visualization, OR spatial statistical methods (geographically weighted regression, spatial autocorrelation / Moran's I, kriging, spatial lag/error models, point-pattern analysis, remote-sensing classification)\n- descriptive-empirical: descriptive, narrative, or conceptual work without inferential testing — includes case-study description, agenda-setting pieces, literature reviews or named-corpus syntheses, and conceptual essays or position papers that argue for a framework or reframe a debate (with or without original empirical material)\n- unclear: methodology cannot be determined from the title and abstract\n\n\n**Tie-breaker rule for compound-method papers:** choose the **primary analytical engine** — the method that produces the paper's main inferential claim.\n- If interviews/focus groups scaffold a survey that is then analyzed with regression, the engine is the regression -> quant.\n- If ethnographic fieldwork is the basis for the claim and a small survey provides context, the engine is qualitative -> qual.\n- If spatial methods (GIS, spatial regression, mapping) are the paper's main analytical contribution, the engine is spatial -> spatial.\n- Use \"mixed\" only when qualitative and quantitative methods carry approximately equal weight and neither is clearly primary.\n\nGuidelines:\n- Use \"spatial\" when geography is in the model structure (GWR, spatial autocorrelation, spatial lag/error, kriging, point-pattern, remote-sensing classification) OR when the paper's contribution is the map / spatial visualization itself.\n- Do NOT use \"spatial\" for standard statistics applied to data that happens to be geographic — that's \"quant\".\n- \"descriptive-empirical\" requires *original* empirical material (cases, archives, observation). Pure conceptual essay without original data -> \"theoretical-conceptual\".\n- Use \"unclear\" when the abstract speaks abstractly about \"reviewing\", \"deepening\", or \"inviting engagement\" WITHOUT naming a data source, a corpus, an analytical method, or specific case material.\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial/mapping\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 89,
+      "n_correct": 66,
+      "exact_match": 0.7416,
+      "label_distribution": {
+        "qual": 29,
+        "quant": 20,
+        "descriptive-empirical": 19,
+        "spatial": 12,
+        "unclear": 5,
+        "mixed": 4
+      },
+      "confusion_matrix": {
+        "descriptive-empirical": {
+          "descriptive-empirical": 9,
+          "mixed": 1,
+          "qual": 5,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 3,
+          "unclear": 0
+        },
+        "mixed": {
+          "descriptive-empirical": 0,
+          "mixed": 4,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 25,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 17,
+          "spatial": 3,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 2,
+          "spatial": 10,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "unclear": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 2,
+          "unclear": 1
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "01",
+    "cat_variant": "07",
+    "ex_variant": "01",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_01.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_07.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_01.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T13:00:34",
+    "n_papers": 91,
+    "n_with_prediction": 89
+  },
+  {
+    "run_id": "2026-06-09_1303_methods_v3_abstract_cat11_S3",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary analytical engine — the method producing the paper's main inferential claim:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)\n- both: mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary\n- Descriptive: descriptive, narrative, or conceptual work without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases, conceptual essay or position paper that argues for a framework or reframes a debate (with or without original empirical material)\n- spatial/mapping: geography is core to the methodology — GIS, cartography, remote sensing, geospatial visualization, OR spatial statistical methods (geographically weighted regression, spatial autocorrelation / Moran's I, kriging, spatial lag/error models, point-pattern analysis, remote-sensing classification)\n- unclear: methodology cannot be determined from the title and abstract\n\n\n**Tie-breaker rule for compound-method papers:** choose the **primary analytical engine** — the method that produces the paper's main inferential claim.\n- If interviews/focus groups scaffold a survey that is then analyzed with regression, the engine is the regression -> quant.\n- If ethnographic fieldwork is the basis for the claim and a small survey provides context, the engine is qualitative -> qual.\n- If spatial methods (GIS, spatial regression, mapping) are the paper's main analytical contribution, the engine is spatial -> spatial.\n- Use \"mixed\" only when qualitative and quantitative methods carry approximately equal weight and neither is clearly primary.\n\nGuidelines:\n- Use \"spatial\" when geography is in the model structure (GWR, spatial autocorrelation, spatial lag/error, kriging, point-pattern, remote-sensing classification) OR when the paper's contribution is the map / spatial visualization itself.\n- Do NOT use \"spatial\" for standard statistics applied to data that happens to be geographic — that's \"quant\".\n- \"descriptive-empirical\" requires *original* empirical material (cases, archives, observation). Pure conceptual essay without original data -> \"theoretical-conceptual\".\n- Use \"unclear\" when the abstract speaks abstractly about \"reviewing\", \"deepening\", or \"inviting engagement\" WITHOUT naming a data source, a corpus, an analytical method, or specific case material.\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial/mapping\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 88,
+      "n_correct": 42,
+      "exact_match": 0.4773,
+      "label_distribution": {
+        "qual": 29,
+        "quant": 20,
+        "Descriptive": 20,
+        "spatial/mapping": 12,
+        "unclear": 4,
+        "both": 3
+      },
+      "confusion_matrix": {
+        "Descriptive": {
+          "descriptive-empirical": 10,
+          "mixed": 1,
+          "qual": 4,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 3,
+          "unclear": 1
+        },
+        "both": {
+          "descriptive-empirical": 0,
+          "mixed": 3,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 25,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 17,
+          "spatial": 3,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial/mapping": {
+          "descriptive-empirical": 0,
+          "mixed": 1,
+          "qual": 0,
+          "quant": 1,
+          "spatial": 10,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "unclear": {
+          "descriptive-empirical": 1,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 2,
+          "unclear": 0
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "01",
+    "cat_variant": "11",
+    "ex_variant": "01",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_01.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_11.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_01.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T13:03:07",
+    "n_papers": 91,
+    "n_with_prediction": 88
+  },
+  {
+    "run_id": "2026-06-09_1305_methods_v3_abstract_cat08_A4",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary analytical engine — the method producing the paper's main inferential claim:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)\n- mixed: mixed methods — uses both qualitative and quantitative approaches substantively\n- spatial: geography is core to the methodology — GIS, cartography, remote sensing, geospatial visualization, OR spatial statistical methods (geographically weighted regression, spatial autocorrelation / Moran's I, kriging, spatial lag/error models, point-pattern analysis, remote-sensing classification)\n- descriptive-empirical: original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases\n- theoretical-conceptual: conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases\n- unclear: methodology cannot be determined from the title and abstract\n\n\n**Tie-breaker rule for compound-method papers:** choose the **primary analytical engine** — the method that produces the paper's main inferential claim.\n- If interviews/focus groups scaffold a survey that is then analyzed with regression, the engine is the regression -> quant.\n- If ethnographic fieldwork is the basis for the claim and a small survey provides context, the engine is qualitative -> qual.\n- If spatial methods (GIS, spatial regression, mapping) are the paper's main analytical contribution, the engine is spatial -> spatial.\n- Use \"mixed\" only when qualitative and quantitative methods carry approximately equal weight and neither is clearly primary.\n\nGuidelines:\n- Use \"spatial\" when geography is in the model structure (GWR, spatial autocorrelation, spatial lag/error, kriging, point-pattern, remote-sensing classification) OR when the paper's contribution is the map / spatial visualization itself.\n- Do NOT use \"spatial\" for standard statistics applied to data that happens to be geographic — that's \"quant\".\n- \"descriptive-empirical\" requires *original* empirical material (cases, archives, observation). Pure conceptual essay without original data -> \"theoretical-conceptual\".\n- Use \"unclear\" when the abstract speaks abstractly about \"reviewing\", \"deepening\", or \"inviting engagement\" WITHOUT naming a data source, a corpus, an analytical method, or specific case material.\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial/mapping\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 88,
+      "n_correct": 71,
+      "exact_match": 0.8068,
+      "label_distribution": {
+        "qual": 32,
+        "quant": 20,
+        "spatial": 12,
+        "descriptive-empirical": 9,
+        "theoretical-conceptual": 6,
+        "mixed": 5,
+        "unclear": 4
+      },
+      "confusion_matrix": {
+        "descriptive-empirical": {
+          "descriptive-empirical": 6,
+          "mixed": 0,
+          "qual": 1,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 1,
+          "unclear": 0
+        },
+        "mixed": {
+          "descriptive-empirical": 0,
+          "mixed": 5,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 28,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 17,
+          "spatial": 3,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 2,
+          "spatial": 10,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "theoretical-conceptual": {
+          "descriptive-empirical": 1,
+          "mixed": 0,
+          "qual": 1,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 4,
+          "unclear": 0
+        },
+        "unclear": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 1,
+          "unclear": 1
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "01",
+    "cat_variant": "08",
+    "ex_variant": "01",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_01.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_08.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_01.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T13:05:42",
+    "n_papers": 91,
+    "n_with_prediction": 88
+  },
+  {
+    "run_id": "2026-06-09_1315_methods_v3_abstract_T1_no_tiebreaker",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary analytical engine — the method producing the paper's main inferential claim:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)\n- mixed: mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary\n- spatial: geography is core to the methodology — GIS, cartography, remote sensing, geospatial visualization, OR spatial statistical methods (geographically weighted regression, spatial autocorrelation / Moran's I, kriging, spatial lag/error models, point-pattern analysis, remote-sensing classification)\n- descriptive-empirical: original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases\n- theoretical-conceptual: conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases\n- unclear: methodology cannot be determined from the title and abstract\n\n\nGuidelines:\n- Use \"spatial\" when geography is in the model structure (GWR, spatial autocorrelation, spatial lag/error, kriging, point-pattern, remote-sensing classification) OR when the paper's contribution is the map / spatial visualization itself.\n- Do NOT use \"spatial\" for standard statistics applied to data that happens to be geographic — that's \"quant\".\n- \"descriptive-empirical\" requires *original* empirical material (cases, archives, observation). Pure conceptual essay without original data -> \"theoretical-conceptual\".\n- Use \"unclear\" when the abstract speaks abstractly about \"reviewing\", \"deepening\", or \"inviting engagement\" WITHOUT naming a data source, a corpus, an analytical method, or specific case material.\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial/mapping\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 88,
+      "n_correct": 71,
+      "exact_match": 0.8068,
+      "label_distribution": {
+        "qual": 31,
+        "quant": 22,
+        "spatial": 12,
+        "descriptive-empirical": 8,
+        "theoretical-conceptual": 6,
+        "mixed": 5,
+        "unclear": 4
+      },
+      "confusion_matrix": {
+        "descriptive-empirical": {
+          "descriptive-empirical": 6,
+          "mixed": 0,
+          "qual": 1,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "mixed": {
+          "descriptive-empirical": 0,
+          "mixed": 5,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 27,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 1,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 18,
+          "spatial": 3,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 1,
+          "spatial": 10,
+          "theoretical-conceptual": 1,
+          "unclear": 0
+        },
+        "theoretical-conceptual": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 4,
+          "unclear": 0
+        },
+        "unclear": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 1,
+          "unclear": 1
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "02",
+    "cat_variant": "01",
+    "ex_variant": "01",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_02.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_01.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_01.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T13:15:30",
+    "n_papers": 91,
+    "n_with_prediction": 88
+  },
+  {
+    "run_id": "2026-06-09_1318_methods_v3_abstract_T2_no_guidelines",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary analytical engine — the method producing the paper's main inferential claim:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)\n- mixed: mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary\n- spatial: geography is core to the methodology — GIS, cartography, remote sensing, geospatial visualization, OR spatial statistical methods (geographically weighted regression, spatial autocorrelation / Moran's I, kriging, spatial lag/error models, point-pattern analysis, remote-sensing classification)\n- descriptive-empirical: original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases\n- theoretical-conceptual: conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases\n- unclear: methodology cannot be determined from the title and abstract\n\n\n**Tie-breaker rule for compound-method papers:** choose the **primary analytical engine** — the method that produces the paper's main inferential claim.\n- If interviews/focus groups scaffold a survey that is then analyzed with regression, the engine is the regression -> quant.\n- If ethnographic fieldwork is the basis for the claim and a small survey provides context, the engine is qualitative -> qual.\n- If spatial methods (GIS, spatial regression, mapping) are the paper's main analytical contribution, the engine is spatial -> spatial.\n- Use \"mixed\" only when qualitative and quantitative methods carry approximately equal weight and neither is clearly primary.\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial/mapping\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 89,
+      "n_correct": 67,
+      "exact_match": 0.7528,
+      "label_distribution": {
+        "qual": 32,
+        "quant": 17,
+        "spatial": 15,
+        "descriptive-empirical": 8,
+        "theoretical-conceptual": 8,
+        "mixed": 5,
+        "unclear": 4
+      },
+      "confusion_matrix": {
+        "descriptive-empirical": {
+          "descriptive-empirical": 6,
+          "mixed": 1,
+          "qual": 1,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "mixed": {
+          "descriptive-empirical": 0,
+          "mixed": 5,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 28,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 14,
+          "spatial": 3,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 5,
+          "spatial": 10,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "theoretical-conceptual": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 1,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 4,
+          "unclear": 1
+        },
+        "unclear": {
+          "descriptive-empirical": 3,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 1,
+          "unclear": 0
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "03",
+    "cat_variant": "01",
+    "ex_variant": "01",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_03.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_01.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_01.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T13:18:06",
+    "n_papers": 91,
+    "n_with_prediction": 89
+  },
+  {
+    "run_id": "2026-06-09_1324_methods_v3_abstract_production",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary analytical engine — the method producing the paper's main inferential claim:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)\n- mixed: mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary\n- spatial: methodology centered on GIS, remote sensing, spatial analysis, cartography, or geospatial modeling\n- descriptive-empirical: original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases\n- theoretical-conceptual: conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases\n- unclear: methodology cannot be determined from the title and abstract\n\n\nGuidelines:\n- Use \"spatial\" when geography is in the model structure (GWR, spatial autocorrelation, spatial lag/error, kriging, point-pattern, remote-sensing classification) OR when the paper's contribution is the map / spatial visualization itself.\n- Do NOT use \"spatial\" for standard statistics applied to data that happens to be geographic — that's \"quant\".\n- \"descriptive-empirical\" requires *original* empirical material (cases, archives, observation). Pure conceptual essay without original data -> \"theoretical-conceptual\".\n- Use \"unclear\" when the abstract speaks abstractly about \"reviewing\", \"deepening\", or \"inviting engagement\" WITHOUT naming a data source, a corpus, an analytical method, or specific case material.\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial/mapping\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 89,
+      "n_correct": 73,
+      "exact_match": 0.8202,
+      "label_distribution": {
+        "qual": 32,
+        "quant": 20,
+        "spatial": 11,
+        "descriptive-empirical": 10,
+        "theoretical-conceptual": 7,
+        "mixed": 5,
+        "unclear": 4
+      },
+      "confusion_matrix": {
+        "descriptive-empirical": {
+          "descriptive-empirical": 7,
+          "mixed": 1,
+          "qual": 1,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "mixed": {
+          "descriptive-empirical": 0,
+          "mixed": 5,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 28,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 18,
+          "spatial": 2,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 1,
+          "spatial": 10,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "theoretical-conceptual": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 1,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 4,
+          "unclear": 0
+        },
+        "unclear": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 1,
+          "unclear": 1
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "02",
+    "cat_variant": "06",
+    "ex_variant": "01",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_02.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_06.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_01.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T13:24:15",
+    "n_papers": 91,
+    "n_with_prediction": 89
+  },
+  {
+    "run_id": "2026-06-09_1329_methods_v3_abstract_production",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary analytical engine — the method producing the paper's main inferential claim:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)\n- mixed: mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary\n- spatial: methodology centered on GIS, remote sensing, spatial analysis, cartography, or geospatial modeling\n- descriptive-empirical: original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases\n- theoretical-conceptual: conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases\n- unclear: methodology cannot be determined from the title and abstract\n\n\nGuidelines:\n- Use \"spatial\" when geography is in the model structure (GWR, spatial autocorrelation, spatial lag/error, kriging, point-pattern, remote-sensing classification) OR when the paper's contribution is the map / spatial visualization itself.\n- Do NOT use \"spatial\" for standard statistics applied to data that happens to be geographic — that's \"quant\".\n- \"descriptive-empirical\" requires *original* empirical material (cases, archives, observation). Pure conceptual essay without original data -> \"theoretical-conceptual\".\n- Use \"unclear\" when the abstract speaks abstractly about \"reviewing\", \"deepening\", or \"inviting engagement\" WITHOUT naming a data source, a corpus, an analytical method, or specific case material.\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial/mapping\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": null,
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "02",
+    "cat_variant": "06",
+    "ex_variant": "01",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_02.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_06.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_01.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T13:29:30",
+    "n_papers": 91,
+    "n_with_prediction": 90
+  },
+  {
+    "run_id": "2026-06-09_1335_methods_v3_abstract_E1_fixed_examples",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary analytical engine — the method producing the paper's main inferential claim:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)\n- mixed: mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary\n- spatial: geography is core to the methodology — GIS, cartography, remote sensing, geospatial visualization, OR spatial statistical methods (geographically weighted regression, spatial autocorrelation / Moran's I, kriging, spatial lag/error models, point-pattern analysis, remote-sensing classification)\n- descriptive-empirical: original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases\n- theoretical-conceptual: conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases\n- unclear: methodology cannot be determined from the title and abstract\n\n\n**Tie-breaker rule for compound-method papers:** choose the **primary analytical engine** — the method that produces the paper's main inferential claim.\n- If interviews/focus groups scaffold a survey that is then analyzed with regression, the engine is the regression -> quant.\n- If ethnographic fieldwork is the basis for the claim and a small survey provides context, the engine is qualitative -> qual.\n- If spatial methods (GIS, spatial regression, mapping) are the paper's main analytical contribution, the engine is spatial -> spatial.\n- Use \"mixed\" only when qualitative and quantitative methods carry approximately equal weight and neither is clearly primary.\n\nGuidelines:\n- Use \"spatial\" when geography is in the model structure (GWR, spatial autocorrelation, spatial lag/error, kriging, point-pattern, remote-sensing classification) OR when the paper's contribution is the map / spatial visualization itself.\n- Do NOT use \"spatial\" for standard statistics applied to data that happens to be geographic — that's \"quant\".\n- \"descriptive-empirical\" requires *original* empirical material (cases, archives, observation). Pure conceptual essay without original data -> \"theoretical-conceptual\".\n- Use \"unclear\" when the abstract speaks abstractly about \"reviewing\", \"deepening\", or \"inviting engagement\" WITHOUT naming a data source, a corpus, an analytical method, or specific case material.\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 87,
+      "n_correct": 69,
+      "exact_match": 0.7931,
+      "label_distribution": {
+        "qual": 32,
+        "quant": 22,
+        "spatial": 12,
+        "descriptive-empirical": 9,
+        "theoretical-conceptual": 6,
+        "unclear": 4,
+        "mixed": 2
+      },
+      "confusion_matrix": {
+        "descriptive-empirical": {
+          "descriptive-empirical": 6,
+          "mixed": 1,
+          "qual": 1,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "mixed": {
+          "descriptive-empirical": 0,
+          "mixed": 2,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 28,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 1,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 18,
+          "spatial": 3,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial": {
+          "descriptive-empirical": 0,
+          "mixed": 1,
+          "qual": 0,
+          "quant": 1,
+          "spatial": 10,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "theoretical-conceptual": {
+          "descriptive-empirical": 1,
+          "mixed": 0,
+          "qual": 1,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 4,
+          "unclear": 0
+        },
+        "unclear": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 1,
+          "unclear": 1
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "01",
+    "cat_variant": "01",
+    "ex_variant": "02",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_01.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_01.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_02.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T13:35:11",
+    "n_papers": 91,
+    "n_with_prediction": 87
+  },
+  {
+    "run_id": "2026-06-09_1337_methods_v3_abstract_E2_v1_setup",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary methodological approach:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)\n- mixed: mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary\n- spatial: geography is core to the methodology — GIS, cartography, remote sensing, geospatial visualization, OR spatial statistical methods (geographically weighted regression, spatial autocorrelation / Moran's I, kriging, spatial lag/error models, point-pattern analysis, remote-sensing classification)\n- descriptive-empirical: original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases\n- theoretical-conceptual: conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases\n- unclear: methodology cannot be determined from the title and abstract\n\n\n**Tie-breaker rule for compound-method papers:** choose the **primary analytical engine** — the method that produces the paper's main inferential claim.\n- If interviews/focus groups scaffold a survey that is then analyzed with regression, the engine is the regression -> quant.\n- If ethnographic fieldwork is the basis for the claim and a small survey provides context, the engine is qualitative -> qual.\n- If spatial methods (GIS, spatial regression, mapping) are the paper's main analytical contribution, the engine is spatial -> spatial.\n- Use \"mixed\" only when qualitative and quantitative methods carry approximately equal weight and neither is clearly primary.\n\nGuidelines:\n- Use \"spatial\" when geography is in the model structure (GWR, spatial autocorrelation, spatial lag/error, kriging, point-pattern, remote-sensing classification) OR when the paper's contribution is the map / spatial visualization itself.\n- Do NOT use \"spatial\" for standard statistics applied to data that happens to be geographic — that's \"quant\".\n- \"descriptive-empirical\" requires *original* empirical material (cases, archives, observation). Pure conceptual essay without original data -> \"theoretical-conceptual\".\n- Use \"unclear\" when the abstract speaks abstractly about \"reviewing\", \"deepening\", or \"inviting engagement\" WITHOUT naming a data source, a corpus, an analytical method, or specific case material.\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial/mapping\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 87,
+      "n_correct": 71,
+      "exact_match": 0.8161,
+      "label_distribution": {
+        "qual": 31,
+        "quant": 21,
+        "spatial": 12,
+        "descriptive-empirical": 9,
+        "theoretical-conceptual": 6,
+        "mixed": 4,
+        "unclear": 4
+      },
+      "confusion_matrix": {
+        "descriptive-empirical": {
+          "descriptive-empirical": 7,
+          "mixed": 0,
+          "qual": 1,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "mixed": {
+          "descriptive-empirical": 0,
+          "mixed": 4,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 27,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 18,
+          "spatial": 3,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial": {
+          "descriptive-empirical": 0,
+          "mixed": 1,
+          "qual": 0,
+          "quant": 1,
+          "spatial": 10,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "theoretical-conceptual": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 4,
+          "unclear": 0
+        },
+        "unclear": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 1,
+          "unclear": 1
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "04",
+    "cat_variant": "01",
+    "ex_variant": "01",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_04.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_01.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_01.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T13:37:48",
+    "n_papers": 91,
+    "n_with_prediction": 87
+  },
+  {
+    "run_id": "2026-06-09_1423_methods_v3_abstract_P3_openpipe_stack",
+    "prompt": "You are Dr. Patterson, a senior research methodologist with deep expertise in classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary analytical engine — the method producing the paper's main inferential claim:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)\n- mixed: mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary\n- spatial: methodology centered on GIS, remote sensing, spatial analysis, cartography, or geospatial modeling\n- descriptive-empirical: original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases\n- theoretical-conceptual: conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases\n- unclear: methodology cannot be determined from the title and abstract\n\n\nGuidelines:\n- Use \"spatial\" when geography is in the model structure (GWR, spatial autocorrelation, spatial lag/error, kriging, point-pattern, remote-sensing classification) OR when the paper's contribution is the map / spatial visualization itself.\n- Do NOT use \"spatial\" for standard statistics applied to data that happens to be geographic — that's \"quant\".\n- \"descriptive-empirical\" requires *original* empirical material (cases, archives, observation). Pure conceptual essay without original data -> \"theoretical-conceptual\".\n- Use \"unclear\" when the abstract speaks abstractly about \"reviewing\", \"deepening\", or \"inviting engagement\" WITHOUT naming a data source, a corpus, an analytical method, or specific case material.\n\n**Common confusions to avoid:**\n- Papers that synthesize existing literature or argue a conceptual position WITHOUT analyzing new cases are `theoretical-conceptual`, NOT `descriptive-empirical`, even when the abstract mentions illustrative examples.\n- Reserve `descriptive-empirical` for papers that present ORIGINAL empirical material: case studies with new fieldwork notes, archival analysis with new data, ethnographic description of a specific site. If the empirical content is just illustrative and the contribution is a framework or synthesis, it is `theoretical-conceptual`.\n- When in doubt about whether a paper has a specific methodology, check whether the abstract NAMES a data source (a survey, a dataset, a corpus), an analytical method (regression, GIS, interviews), or specific case material. If none of these is named, prefer `unclear` over guessing a specific category. The cost of an unnecessary `unclear` is small; the cost of a confident wrong label is larger.\n\nQ: Are you ready to begin?\nA: Yes, I understand the task. I will read each paper's title and abstract carefully, weigh the evidence against each category's definition, watch for the common confusions above, and reach the correct classification.\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial/mapping\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nExcellent. Now classify the next paper. Take your time and reach the correct classification.\n\n**Key points to remember:**\n1. The label must match the PRIMARY analytical engine — the method producing the paper's main inferential claim — not every method mentioned.\n2. If the abstract does not name a data source, analytical method, or specific case material, prefer `unclear` over guessing.\n3. Distinguish `descriptive-empirical` (original empirical material) from `theoretical-conceptual` (synthesis or conceptual position without new data).\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 88,
+      "n_correct": 64,
+      "exact_match": 0.7273,
+      "label_distribution": {
+        "qual": 27,
+        "quant": 20,
+        "spatial": 12,
+        "unclear": 11,
+        "theoretical-conceptual": 7,
+        "descriptive-empirical": 6,
+        "mixed": 5
+      },
+      "confusion_matrix": {
+        "descriptive-empirical": {
+          "descriptive-empirical": 3,
+          "mixed": 0,
+          "qual": 2,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "mixed": {
+          "descriptive-empirical": 0,
+          "mixed": 5,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 23,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 1,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 17,
+          "spatial": 2,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 1,
+          "spatial": 11,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "theoretical-conceptual": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 1,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 4,
+          "unclear": 0
+        },
+        "unclear": {
+          "descriptive-empirical": 5,
+          "mixed": 0,
+          "qual": 2,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 2,
+          "unclear": 1
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "05",
+    "cat_variant": "06",
+    "ex_variant": "01",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_05.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_06.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_01.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T14:23:21",
+    "n_papers": 91,
+    "n_with_prediction": 88
+  },
+  {
+    "run_id": "2026-06-09_1427_methods_v3_abstract_Z1_zero_shot",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary analytical engine — the method producing the paper's main inferential claim:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)\n- mixed: mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary\n- spatial: methodology centered on GIS, remote sensing, spatial analysis, cartography, or geospatial modeling\n- descriptive-empirical: original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases\n- theoretical-conceptual: conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases\n- unclear: methodology cannot be determined from the title and abstract\n\n\nGuidelines:\n- Use \"spatial\" when geography is in the model structure (GWR, spatial autocorrelation, spatial lag/error, kriging, point-pattern, remote-sensing classification) OR when the paper's contribution is the map / spatial visualization itself.\n- Do NOT use \"spatial\" for standard statistics applied to data that happens to be geographic — that's \"quant\".\n- \"descriptive-empirical\" requires *original* empirical material (cases, archives, observation). Pure conceptual essay without original data -> \"theoretical-conceptual\".\n- Use \"unclear\" when the abstract speaks abstractly about \"reviewing\", \"deepening\", or \"inviting engagement\" WITHOUT naming a data source, a corpus, an analytical method, or specific case material.\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 89,
+      "n_correct": 71,
+      "exact_match": 0.7978,
+      "label_distribution": {
+        "qual": 30,
+        "quant": 18,
+        "spatial": 14,
+        "descriptive-empirical": 13,
+        "theoretical-conceptual": 9,
+        "mixed": 5
+      },
+      "confusion_matrix": {
+        "descriptive-empirical": {
+          "descriptive-empirical": 8,
+          "mixed": 1,
+          "qual": 3,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "mixed": {
+          "descriptive-empirical": 0,
+          "mixed": 5,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 26,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 16,
+          "spatial": 2,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 3,
+          "spatial": 11,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "theoretical-conceptual": {
+          "descriptive-empirical": 3,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 5,
+          "unclear": 1
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "06",
+    "cat_variant": "06",
+    "ex_variant": "off",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_06.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_06.csv",
+    "examples_path": null,
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T14:27:55",
+    "n_papers": 91,
+    "n_with_prediction": 89
+  },
+  {
+    "run_id": "2026-06-09_1429_methods_v3_abstract_Z2_minimal",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)\n- mixed: mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary\n- spatial: methodology centered on GIS, remote sensing, spatial analysis, cartography, or geospatial modeling\n- descriptive-empirical: original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases\n- theoretical-conceptual: conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases\n- unclear: methodology cannot be determined from the title and abstract\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 89,
+      "n_correct": 70,
+      "exact_match": 0.7865,
+      "label_distribution": {
+        "qual": 31,
+        "spatial": 21,
+        "quant": 12,
+        "descriptive-empirical": 10,
+        "theoretical-conceptual": 10,
+        "mixed": 5
+      },
+      "confusion_matrix": {
+        "descriptive-empirical": {
+          "descriptive-empirical": 8,
+          "mixed": 1,
+          "qual": 1,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "mixed": {
+          "descriptive-empirical": 0,
+          "mixed": 5,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 27,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 12,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 7,
+          "spatial": 13,
+          "theoretical-conceptual": 1,
+          "unclear": 0
+        },
+        "theoretical-conceptual": {
+          "descriptive-empirical": 3,
+          "mixed": 0,
+          "qual": 1,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 5,
+          "unclear": 1
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "07",
+    "cat_variant": "06",
+    "ex_variant": "off",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_07.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_06.csv",
+    "examples_path": null,
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T14:29:58",
+    "n_papers": 91,
+    "n_with_prediction": 89
+  },
+  {
+    "run_id": "2026-06-09_1442_methods_v3_abstract_P4_add_tc_example",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary analytical engine — the method producing the paper's main inferential claim:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)\n- mixed: mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary\n- spatial: methodology centered on GIS, remote sensing, spatial analysis, cartography, or geospatial modeling\n- descriptive-empirical: original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases\n- theoretical-conceptual: conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases\n- unclear: methodology cannot be determined from the title and abstract\n\n\nGuidelines:\n- Use \"spatial\" when geography is in the model structure (GWR, spatial autocorrelation, spatial lag/error, kriging, point-pattern, remote-sensing classification) OR when the paper's contribution is the map / spatial visualization itself.\n- Do NOT use \"spatial\" for standard statistics applied to data that happens to be geographic — that's \"quant\".\n- \"descriptive-empirical\" requires *original* empirical material (cases, archives, observation). Pure conceptual essay without original data -> \"theoretical-conceptual\".\n- Use \"unclear\" when the abstract speaks abstractly about \"reviewing\", \"deepening\", or \"inviting engagement\" WITHOUT naming a data source, a corpus, an analytical method, or specific case material.\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nInput:\nLand trusts are increasingly powerful institutions of U.S. environmental governance that deserve more critical scrutiny. As charitable conservation organizations, they enjoy the many advantages of nonprofit status under the claim that they provide broad public benefits. Critics, however, have recently challenged this claim, portraying land trusts as quintessential institutions of neoliberal privatization and hybrid governance. Through a conjunctural analysis of U.S. land trusts across the long twentieth century, and with specific attention to the first, the Trustees of Public Reservations (founded in 1893), this article argues that the treatment of land trusts as neoliberal institutions is both illuminating and limiting. As many critical analyses indicate, U.S. land trusts today tend to privatize governance and facilitate the use of public funds for projects with significant private benefit. I argue, however, that the conceptualization of land trusts as institutions of neoliberal environmental governance also obscures the fact that, across their long history, they are an expression of the contradictions of decentralized land-use planning under capitalism. Most broadly, I suggest that rigorous conjunctural analysis can help geographers refine their conceptualization of neoliberalism and move beyond its limits.\nOutput:\n{\"method\": \"theoretical-conceptual\"}\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 90,
+      "n_correct": 73,
+      "exact_match": 0.8111,
+      "label_distribution": {
+        "qual": 32,
+        "quant": 21,
+        "spatial": 12,
+        "descriptive-empirical": 8,
+        "theoretical-conceptual": 8,
+        "mixed": 5,
+        "unclear": 4
+      },
+      "confusion_matrix": {
+        "descriptive-empirical": {
+          "descriptive-empirical": 6,
+          "mixed": 0,
+          "qual": 1,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "mixed": {
+          "descriptive-empirical": 0,
+          "mixed": 5,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 28,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 1,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 18,
+          "spatial": 2,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 1,
+          "spatial": 11,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "theoretical-conceptual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 1,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 4,
+          "unclear": 0
+        },
+        "unclear": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 1,
+          "unclear": 1
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "02",
+    "cat_variant": "06",
+    "ex_variant": "04",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_02.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_06.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_04.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T14:42:00",
+    "n_papers": 91,
+    "n_with_prediction": 90
+  },
+  {
+    "run_id": "2026-06-09_1450_methods_v3_abstract_P5_paired_examples",
+    "prompt": "You are an expert at classifying academic geography papers by methodology.\n\nGiven a paper's title and abstract, choose **exactly one** of the following labels for the paper's primary analytical engine — the method producing the paper's main inferential claim:\n\n- qual: qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)\n- quant: non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)\n- mixed: mixed methods — qualitative AND quantitative carry comparable weight, neither is clearly primary\n- spatial: methodology centered on GIS, remote sensing, spatial analysis, cartography, or geospatial modeling\n- descriptive-empirical: original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases\n- theoretical-conceptual: conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases\n- unclear: methodology cannot be determined from the title and abstract\n\n\nGuidelines:\n- Use \"spatial\" when geography is in the model structure (GWR, spatial autocorrelation, spatial lag/error, kriging, point-pattern, remote-sensing classification) OR when the paper's contribution is the map / spatial visualization itself.\n- Do NOT use \"spatial\" for standard statistics applied to data that happens to be geographic — that's \"quant\".\n- \"descriptive-empirical\" requires *original* empirical material (cases, archives, observation). Pure conceptual essay without original data -> \"theoretical-conceptual\".\n- Use \"unclear\" when the abstract speaks abstractly about \"reviewing\", \"deepening\", or \"inviting engagement\" WITHOUT naming a data source, a corpus, an analytical method, or specific case material.\n\nExamples:\n\nInput:\nThe aim of this article is to investigate the nature of information sharing in social media about missing persons by using social media data (mostly Twitter) and conventional media coverage (media archives), adopting a platial perspective to this geographical information. By focusing on the cases of three people gone missing in rural Sweden, the article analyzes message timelines and information cascades.\nOutput:\n{\"method\": \"quant\"}\n\nInput:\nThis study advances understanding of nature-society interactions by examining the spatiotemporal coupling of tsunami hazards and human responses. Using video footage of the 2011 Tohoku tsunami recorded in a rural coastal plain in Japan enabled analysis of inundation patterns and evacuation responses under different lead times. Multiple regression and geographically weighted regression analyses revealed that inundation patterns were predominantly controlled by coastal proximity and surface roughness, while road and waterway configurations locally modified flow velocities. Evacuation analysis identified distinct response patterns associated with different temporal zones of tsunami inundation.\nOutput:\n{\"method\": \"spatial\"}\n\nInput:\nThere has been a surge in references to urban geopolitics over the last twenty-plus years. Reviewing claims that warfare has urbanized, however, yields questions about the delineation and frontiers of the urban. The multiple meanings and definitions of geopolitics and urban beckon a broadening range of sites and an analytical deepening of urban geopolitics. To these ends, reviewing and seeking to develop the field in conceptual terms, the article revisits rural-urban interactions and reflections from selected African and Asian sites. The overall aim of the article is not to delimit urban geopolitics, but to deepen and expand agendas, broadening the range of cases that inform these. This also invites deeper geopolitical engagement with literature on extended and planetary urbanization.\nOutput:\n{\"method\": \"unclear\"}\n\nInput:\nLand trusts are increasingly powerful institutions of U.S. environmental governance that deserve more critical scrutiny. As charitable conservation organizations, they enjoy the many advantages of nonprofit status under the claim that they provide broad public benefits. Critics, however, have recently challenged this claim, portraying land trusts as quintessential institutions of neoliberal privatization and hybrid governance. Through a conjunctural analysis of U.S. land trusts across the long twentieth century, and with specific attention to the first, the Trustees of Public Reservations (founded in 1893), this article argues that the treatment of land trusts as neoliberal institutions is both illuminating and limiting. As many critical analyses indicate, U.S. land trusts today tend to privatize governance and facilitate the use of public funds for projects with significant private benefit. I argue, however, that the conceptualization of land trusts as institutions of neoliberal environmental governance also obscures the fact that, across their long history, they are an expression of the contradictions of decentralized land-use planning under capitalism. Most broadly, I suggest that rigorous conjunctural analysis can help geographers refine their conceptualization of neoliberalism and move beyond its limits.\nOutput:\n{\"method\": \"theoretical-conceptual\"}\n\nInput:\nNarpes Commune, South Ostrobothnia, is the center of the largest area of greenhouse horticulture in Finland. Its presence is an example of local adjustment to agricultural decline and increased population pressure. The empirical horticultural evidence is the basis for a theory of economic transition for depressed rural areas.\nOutput:\n{\"method\": \"descriptive-empirical\"}\n\nRespond with a JSON object of the form:\n{\"method\": \"<label>\"}\n\nUse the exact label strings listed above. Do not include any other text.\n",
+    "metrics": {
+      "n_total": 90,
+      "n_correct": 71,
+      "exact_match": 0.7889,
+      "label_distribution": {
+        "qual": 30,
+        "quant": 21,
+        "spatial": 13,
+        "descriptive-empirical": 10,
+        "theoretical-conceptual": 7,
+        "mixed": 5,
+        "unclear": 4
+      },
+      "confusion_matrix": {
+        "descriptive-empirical": {
+          "descriptive-empirical": 6,
+          "mixed": 0,
+          "qual": 3,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "mixed": {
+          "descriptive-empirical": 0,
+          "mixed": 5,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "qual": {
+          "descriptive-empirical": 2,
+          "mixed": 1,
+          "qual": 26,
+          "quant": 1,
+          "spatial": 0,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "quant": {
+          "descriptive-empirical": 1,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 18,
+          "spatial": 2,
+          "theoretical-conceptual": 0,
+          "unclear": 0
+        },
+        "spatial": {
+          "descriptive-empirical": 0,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 1,
+          "spatial": 11,
+          "theoretical-conceptual": 1,
+          "unclear": 0
+        },
+        "theoretical-conceptual": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 1,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 4,
+          "unclear": 0
+        },
+        "unclear": {
+          "descriptive-empirical": 2,
+          "mixed": 0,
+          "qual": 0,
+          "quant": 0,
+          "spatial": 0,
+          "theoretical-conceptual": 1,
+          "unclear": 1
+        }
+      }
+    },
+    "task": "methods",
+    "schema": "v3",
+    "variant": "01",
+    "prompt_variant": "02",
+    "cat_variant": "06",
+    "ex_variant": "05",
+    "strategy": "abstract",
+    "prompt_template": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/core/methods_02.md",
+    "schema_csv": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/categories/methods_06.csv",
+    "examples_path": "/gpfs1/home/j/s/jstonge1/rural-geog-classif/classify/schemas/prompts/v3/examples/methods_05.md",
+    "max_tokens": 2048,
+    "thinking": true,
+    "all_papers": false,
+    "collapse_gt": false,
+    "model": "google/gemma-4-31B-it",
+    "temperature": 0.0,
+    "control": "methods",
+    "saved_at": "2026-06-09T14:50:14",
+    "n_papers": 91,
+    "n_with_prediction": 90
   }
 ]

@@ -1,0 +1,14 @@
+# V3 methods — T1 ablation: V3 schema + V3 categories + V3 examples,
+# but the prompt template DROPS the "Tie-breaker rule for compound-method
+# papers" section (kept the guidelines and everything else).
+# Tests whether the tie-breaker rule (new in V3 vs V1) explains part of
+# the V1->V3 jump.
+# Baseline to compare against: V3 methods_01 (~80.2%). A drop of more
+# than noise (~2pp) means the tie-breaker is doing real work.
+task: methods
+schema: v3
+strategy: abstract
+prompt_variant: "02"
+cat_variant: "01"
+name: v3_abstract_T1_no_tiebreaker
+all_papers: false

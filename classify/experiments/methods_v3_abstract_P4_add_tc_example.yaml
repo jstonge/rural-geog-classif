@@ -1,0 +1,32 @@
+# V3 methods — P4: add a single theoretical-conceptual example to the
+# production few-shot block. Targets the descriptive-empirical ↔
+# theoretical-conceptual confusion that explains most of the production
+# model's remaining error (production: descriptive-empirical
+# over-predicts at P=0.54; theoretical-conceptual under-predicts at R=0.57).
+# The added example (Land trusts) was chosen because it contains the
+# surface features gemma currently mistakes for descriptive-empirical
+# (a specific named historical case, "Trustees of Public Reservations,
+# founded in 1893") but is unambiguously theoretical-conceptual
+# ("conjunctural analysis", "refine their conceptualization of
+# neoliberalism"). Other candidate examples from methods_03.md were
+# either ambiguous under the schema (Russian extraction names discourse
+# analysis, which the qual definition claims) or contained the literal
+# phrase "theoretical-conceptual" in the abstract (León).
+# Same prompt template and categories as the production candidate
+# (prompt_variant=02 = no tie-breaker; cat_variant=06 = V1 short
+# spatial def). Only the examples file changes: methods_04.md = the
+# three production examples + Land trusts.
+# Baseline: Production (82.0%). Targets to watch in per-label F1:
+#   descriptive-empirical precision climbs from 0.54
+#   theoretical-conceptual recall climbs from 0.57
+# A flat overall exact match (within noise) is acceptable if the per-label
+# rebalancing happens. A meaningful drop overall would indicate the new
+# example perturbs other labels.
+task: methods
+schema: v3
+strategy: abstract
+prompt_variant: "02"
+cat_variant: "06"
+ex_variant: "04"
+name: v3_abstract_P4_add_tc_example
+all_papers: false

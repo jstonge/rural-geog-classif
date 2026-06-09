@@ -1,0 +1,32 @@
+# V3 methods — P5: balanced examples anchoring both ends of the
+# descriptive-empirical ↔ theoretical-conceptual boundary.
+# P4 (Land trusts only) successfully taught gemma to predict
+# theoretical-conceptual on borderline cases — desc-empirical precision
+# rose from 0.54 to 0.75 — but the rule was applied too broadly and
+# desc-empirical recall dropped from 0.70 to 0.46. The single example
+# flipped which label was over-predicted instead of reducing total error.
+# P5 pairs the Land trusts example with a counter-example that names
+# specific cases AND has its empirical material as the basis of its
+# contribution — Greenhouse horticulture in Narpes Commune
+# (10.2307/216061), whose abstract explicitly says "The empirical
+# horticultural evidence is the basis for a theory of economic
+# transition". The two examples together teach the discriminating
+# rule: contribution = conceptual analysis (theoretical-conceptual)
+# vs contribution = empirical material grounds the theory
+# (descriptive-empirical). Both have named cases, named places, named
+# time periods — they differ only on the source of the inferential claim.
+# Five examples total: production 3 + Land trusts + Greenhouse.
+# Same prompt template and categories as production (prompt_variant=02,
+# cat_variant=06). Only the examples file changes (methods_05.md).
+# Baseline: Production (82.0%). Targets:
+#   desc-empirical F1 climbs from 0.61
+#   theoretical-conceptual F1 climbs from 0.67
+# Watch for: regressions on other labels from the additional examples.
+task: methods
+schema: v3
+strategy: abstract
+prompt_variant: "02"
+cat_variant: "06"
+ex_variant: "05"
+name: v3_abstract_P5_paired_examples
+all_papers: false

@@ -1,0 +1,20 @@
+# V3 methods — Z1: production prompt with FEW-SHOT EXAMPLES REMOVED.
+# Same prompt as the production candidate (methods_02.md = no tie-breaker,
+# kept guidelines) but the {EXAMPLES} block is gone entirely (methods_06.md).
+# Same categories (cat_variant=06, V3 with V1's short spatial def).
+# Inspired by Hu, Klymchenko & Stier (2024)-style ablation of few-shot vs
+# zero-shot prompting. The paper found "more context does not monotonically
+# increase accuracy" — Z1 directly tests whether the 3 few-shot examples in
+# our prompt are doing real work or just consuming tokens.
+# Baseline: Production candidate (82.0%). A drop of more than noise (~3pp)
+# means the few-shot examples carry signal we'd lose by removing them.
+# A flat or improved result means we can drop them for a leaner prompt
+# without measurable cost.
+task: methods
+schema: v3
+strategy: abstract
+prompt_variant: "06"
+cat_variant: "06"
+ex_variant: "off"
+name: v3_abstract_Z1_zero_shot
+all_papers: false

@@ -1,0 +1,20 @@
+# V3 methods — PRODUCTION candidate, Occam's-razor combination from ablation
+# evidence. Combines the two pieces that ablation showed actively helped:
+#   - cat_variant=06 : V3 categories but with V1's SHORT spatial definition
+#     (V3's expanded "Moran's I / kriging / GWR / point-pattern" list hurt by
+#     2.6pp — A2). Everything else stays V3 (renames, split, V3 defs for
+#     quant/mixed/desc-emp/theoretical-conceptual).
+#   - prompt_variant=02 : V3 prompt template MINUS the tie-breaker rule
+#     section. T1 showed the tie-breaker is inert (+0.5pp removed). T2 showed
+#     the Guidelines section contributes ~+5pp, so we keep that.
+# Predicted score: ~83% (V3's 80.2% + A2's +2.6 + T1's +0.5, assuming
+# additive — which the ablations approximately are within vLLM noise).
+# Total text reduction vs V3 methods_01: ~30% (dropped Moran's I list + 4
+# tie-breaker bullets).
+task: methods
+schema: v3
+strategy: abstract
+prompt_variant: "02"
+cat_variant: "06"
+name: v3_abstract_production
+all_papers: false

@@ -1,0 +1,30 @@
+# V3 methods — P3: replicate OpenPipe's prompt-engineering stack
+# (bothinst + mock + reit + right + info + name + pos) on top of our
+# production-candidate categories (cat_variant=06, V3 categories with
+# V1's short spatial definition).
+# We were already using bothinst (system+user message split) and Zero-CoT
+# (thinking mode). P3 adds the remaining OpenPipe techniques in a single
+# prompt template (methods_05.md):
+#   - name: "Dr. Patterson, senior research methodologist"
+#   - mock: Q/A acknowledgment block before examples
+#   - info: "Common confusions to avoid" block targeting the weak labels
+#     (descriptive-empirical, theoretical-conceptual, unclear)
+#   - reit: "Key points to remember" repeated near the end
+#   - right: "Take your time and reach the correct classification"
+#   - pos: "Excellent. Now classify the next paper."
+# Primary goal: improve F1 on the three weak labels:
+#   - unclear (current F1 0.40, recall 0.25)
+#   - descriptive-empirical (current F1 0.61, over-predicts)
+#   - theoretical-conceptual (current F1 0.67, under-predicts)
+# Baseline: Production candidate (82.0%). A meaningful gain (>3pp) on
+# overall exact-match OR a F1 jump on the weak labels would replicate
+# OpenPipe's "combining techniques" finding for our task. No effect or
+# regression would suggest those techniques are task-specific.
+task: methods
+schema: v3
+strategy: abstract
+prompt_variant: "05"
+cat_variant: "06"
+ex_variant: "01"
+name: v3_abstract_P3_openpipe_stack
+all_papers: false

@@ -1,0 +1,8 @@
+Value,Definition
+qual,"qualitative methods (interviews, ethnography, focus groups, archival analysis, discourse analysis, single in-depth case study)"
+quant,"non-spatial quantitative methods (standard regression, t-tests, ANOVA, large-N surveys, modeling, formal hypothesis testing)"
+mixed,mixed methods — uses both qualitative and quantitative approaches substantively
+spatial,"geography is core to the methodology — GIS, cartography, remote sensing, geospatial visualization, OR spatial statistical methods (geographically weighted regression, spatial autocorrelation / Moran's I, kriging, spatial lag/error models, point-pattern analysis, remote-sensing classification)"
+descriptive-empirical,"original empirical work that describes a phenomenon without inferential testing — case-study description, named-corpus literature review, agenda-setting piece comparing specific cases"
+theoretical-conceptual,"conceptual essay or position paper with no original empirical data — argues for a framework, reframes a debate, or synthesizes existing literature without analyzing new cases"
+unclear,methodology cannot be determined from the title and abstract
