@@ -1371,24 +1371,6 @@
   >Year (5-year buckets)</text>
 {/snippet}
 
-{#snippet barHatchOverlay()}
-  {#each [...lowConfidenceBuckets] as lc (lc)}
-    {#if xBand(lc) !== undefined}
-      <rect
-        x={xBand(lc)}
-        y={barMargin.top}
-        width={xBand.bandwidth()}
-        height={barHeight - barMargin.top - barMargin.bottom}
-        fill="url(#lowDataHatch-shared)"
-        opacity="0.55"
-        pointer-events="none"
-      >
-        <title>{lowConfidenceTitle}</title>
-      </rect>
-    {/if}
-  {/each}
-{/snippet}
-
 {#snippet facetHatchOverlay()}
   {#each [...lowConfidenceBuckets] as lc (lc)}
     {@const lcX = facetX(lc)}
@@ -1463,21 +1445,6 @@
     >{bucketLabel(decade)}</text>
   {/each}
 
-  {#each [...lowConfidenceBuckets] as lc (lc)}
-    {#if overviewX(lc) !== undefined}
-      <rect
-        x={overviewX(lc)}
-        y={overviewMargin.top}
-        width={overviewX.bandwidth()}
-        height={overviewHeight - overviewMargin.top - overviewMargin.bottom}
-        fill="url(#lowDataHatch-shared)"
-        opacity="0.55"
-        pointer-events="none"
-      >
-        <title>{lowConfidenceTitle}</title>
-      </rect>
-    {/if}
-  {/each}
 </svg>
 
 
@@ -1571,7 +1538,6 @@
 
   {@render barXAxisLabels()}
   {@render barXAxisTitle()}
-  {@render barHatchOverlay()}
 </svg>
 
 <button type="button" class="export-btn" onclick={() => exportPng(methodsFacetsRef, 'methods_facets')}>⬇ PNG</button>
@@ -1729,7 +1695,6 @@
 
   {@render barXAxisLabels()}
   {@render barXAxisTitle()}
-  {@render barHatchOverlay()}
 </svg>
 
 <button type="button" class="export-btn" onclick={() => exportPng(regionsFacetsRef, 'regions_facets')}>⬇ PNG</button>
@@ -1874,7 +1839,6 @@
 
   {@render barXAxisLabels()}
   {@render barXAxisTitle()}
-  {@render barHatchOverlay()}
 </svg>
 
 <button type="button" class="export-btn" onclick={() => exportPng(methodsUsVsNonUsFacetsRef, 'methods_us_vs_nonus_facets')}>⬇ PNG</button>
@@ -2082,7 +2046,6 @@
 
   {@render barXAxisLabels()}
   {@render barXAxisTitle()}
-  {@render barHatchOverlay()}
 </svg>
 
 <button type="button" class="export-btn" onclick={() => exportPng(topicsFacetsRef, 'topics_facets')}>⬇ PNG</button>
@@ -2229,7 +2192,6 @@
 
   {@render barXAxisLabels()}
   {@render barXAxisTitle()}
-  {@render barHatchOverlay()}
 </svg>
 
 <button type="button" class="export-btn" onclick={() => exportPng(topicsUsVsNonUsFacetsRef, 'topics_us_vs_nonus_facets')}>⬇ PNG</button>
