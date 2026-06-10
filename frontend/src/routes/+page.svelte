@@ -17,6 +17,11 @@
   let topicsUsVsNonUsBarRef!: SVGSVGElement;
   let upsetRef!: SVGSVGElement;
   let coocRef!: SVGSVGElement;
+  let methodsStackedHeaderRef!: HTMLDivElement;
+  let regionsStackedHeaderRef!: HTMLDivElement;
+  let methodsUsVsNonUsBarHeaderRef!: HTMLDivElement;
+  let topicsStackedHeaderRef!: HTMLDivElement;
+  let topicsUsVsNonUsBarHeaderRef!: HTMLDivElement;
   let methodsFacetsRef!: HTMLElement;
   let regionsFacetsRef!: HTMLElement;
   let methodsUsVsNonUsFacetsRef!: HTMLElement;
@@ -1448,6 +1453,7 @@
 </svg>
 
 
+<div bind:this={methodsStackedHeaderRef}>
 <h2>Methods classification across rural geography (1986–2026)</h2>
 <p class="caption">
   Methods predicted on {papers.length} papers across {methodCategories.length} categories using the selected model below. The 2022–2026 bucket includes partial 2026.
@@ -1482,9 +1488,10 @@
     </div>
   {/each}
 </div>
+</div>
 
 <div class="charts-row">
-<button type="button" class="export-btn" onclick={() => exportPng(methodsStackedRef, 'methods_stacked')}>⬇ PNG</button>
+<button type="button" class="export-btn" onclick={() => exportPng(methodsStackedRef, 'methods_stacked', methodsStackedHeaderRef)}>⬇ PNG</button>
 <svg bind:this={methodsStackedRef} width={barWidth} height={barHeight} class="bar-chart">
   <!-- Y-axis label -->
   <text
@@ -1621,6 +1628,7 @@
 </section>
 </div>
 
+<div bind:this={regionsStackedHeaderRef}>
 <h2 class="section-h2">Region across rural geography (1986–2026)</h2>
 <p class="caption">
   Predicted on {locations.length} papers (snapshot: 2026-05-20_2325_location_v3_abstract).
@@ -1639,9 +1647,10 @@
     </button>
   {/each}
 </div>
+</div>
 
 <div class="charts-row">
-<button type="button" class="export-btn" onclick={() => exportPng(regionsStackedRef, 'regions_stacked')}>⬇ PNG</button>
+<button type="button" class="export-btn" onclick={() => exportPng(regionsStackedRef, 'regions_stacked', regionsStackedHeaderRef)}>⬇ PNG</button>
 <svg bind:this={regionsStackedRef} width={barWidth} height={barHeight} class="bar-chart">
   <!-- Y-axis label -->
   <text
@@ -1778,6 +1787,7 @@
 </section>
 </div>
 
+<div bind:this={methodsUsVsNonUsBarHeaderRef}>
 <h2 class="section-h2">Methods by region: USA vs non-USA (1986–2026)</h2>
 <p class="caption">
   Methods proportion over time, <span style="color: {usColor}; font-weight: 600;">USA</span> vs <span style="color: {nonUsColor}; font-weight: 600;">Non-USA</span>. n={compareTotal} (USA={usPapers.length}, Non-USA={nonUsPapers.length}). Papers with region <em>multiple regions</em> or <em>unclear or conceptual</em>, and papers missing from the locations dataset, are excluded.
@@ -1793,9 +1803,10 @@
     <span class="label">Non-USA (n={nonUsPapers.length})</span>
   </div>
 </div>
+</div>
 
 <div class="charts-row">
-<button type="button" class="export-btn" onclick={() => exportPng(methodsUsVsNonUsBarRef, 'methods_us_vs_nonus_bar')}>⬇ PNG</button>
+<button type="button" class="export-btn" onclick={() => exportPng(methodsUsVsNonUsBarRef, 'methods_us_vs_nonus_bar', methodsUsVsNonUsBarHeaderRef)}>⬇ PNG</button>
 <svg bind:this={methodsUsVsNonUsBarRef} width={barWidth} height={barHeight} class="bar-chart">
   <text
     x={-(barHeight / 2)}
@@ -1945,6 +1956,7 @@
 </section>
 </div>
 
+<div bind:this={topicsStackedHeaderRef}>
 <h2 class="section-h2">Topics across rural geography (1986–2026)</h2>
 <p class="caption">
   {topicPapers.length} papers across {topicCategories.length} categories. The stacked bar shows each topic's share of all topic-instances in each 5-year bucket; the small multiples show the proportion of papers tagged with each topic over time.
@@ -1992,9 +2004,10 @@
     </div>
   {/each}
 </div>
+</div>
 
 <div class="charts-row">
-<button type="button" class="export-btn" onclick={() => exportPng(topicsStackedRef, 'topics_stacked')}>⬇ PNG</button>
+<button type="button" class="export-btn" onclick={() => exportPng(topicsStackedRef, 'topics_stacked', topicsStackedHeaderRef)}>⬇ PNG</button>
 <svg bind:this={topicsStackedRef} width={barWidth} height={barHeight} class="bar-chart">
   <text
     x={-(barHeight / 2)}
@@ -2131,6 +2144,7 @@
 </section>
 </div>
 
+<div bind:this={topicsUsVsNonUsBarHeaderRef}>
 <h2 class="section-h2">Topics by region: USA vs non-USA (1986–2026)</h2>
 <p class="caption">
   Topic prevalence over time, <span style="color: {usColor}; font-weight: 600;">USA</span> vs <span style="color: {nonUsColor}; font-weight: 600;">Non-USA</span>. n={compareTopicTotal} (USA={usTopicPapers.length}, Non-USA={nonUsTopicPapers.length}). Papers with region <em>multiple regions</em> or <em>unclear or conceptual</em>, and papers missing from the locations dataset, are excluded.
@@ -2146,9 +2160,10 @@
     <span class="label">Non-USA (n={nonUsTopicPapers.length})</span>
   </div>
 </div>
+</div>
 
 <div class="charts-row">
-<button type="button" class="export-btn" onclick={() => exportPng(topicsUsVsNonUsBarRef, 'topics_us_vs_nonus_bar')}>⬇ PNG</button>
+<button type="button" class="export-btn" onclick={() => exportPng(topicsUsVsNonUsBarRef, 'topics_us_vs_nonus_bar', topicsUsVsNonUsBarHeaderRef)}>⬇ PNG</button>
 <svg bind:this={topicsUsVsNonUsBarRef} width={barWidth} height={barHeight} class="bar-chart">
   <text
     x={-(barHeight / 2)}

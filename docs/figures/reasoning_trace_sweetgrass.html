@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Reasoning trace — Sweetgrass paper (V3 baseline vs Occam's-razor production)</title>
+<style>
+  body { font-family: Calibri, Arial, sans-serif; color: #222; max-width: 3000px; margin: 36px auto; padding: 0 16px; line-height: 1.5; font-size: 19pt; }
+  table.two-col { width: 100%; border-collapse: separate; border-spacing: 16px 0; table-layout: fixed; }
+  table.two-col td { vertical-align: top; padding: 0; }
+  .box { border: 2px solid #999; border-radius: 4px; padding: 20px 24px; font-size: 18pt; }
+  .box.v3 { background: #fbf3f3; border-color: #a14545; }
+  .box.prod { background: #f3faf3; border-color: #3d7a3d; }
+  .box .title { font-variant: small-caps; font-weight: bold; font-size: 20pt; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid #999; }
+  .box.v3 .title { border-bottom-color: #a14545; color: #6e2222; }
+  .box.prod .title { border-bottom-color: #3d7a3d; color: #234923; }
+  .box p { margin: 10px 0; }
+  .box ul { margin: 10px 0; padding-left: 26px; }
+  .box li { margin-bottom: 8px; }
+  .box ul.sub { margin: 4px 0 4px 0; padding-left: 26px; }
+  .box ul.sub li { margin-bottom: 2px; }
+  .box .jsonout { margin-top: 14px; padding: 10px 14px; background: rgba(0,0,0,0.06); border-left: 4px solid #666; font-family: Consolas, "Courier New", monospace; font-size: 17pt; }
+  .box.v3 .jsonout { border-left-color: #a14545; }
+  .box.prod .jsonout { border-left-color: #3d7a3d; }
+  .box code, .box tt { font-family: Consolas, "Courier New", monospace; font-size: 17pt; background: rgba(0,0,0,0.05); padding: 1px 5px; border-radius: 2px; }
+  em { font-style: italic; }
+  a { color: #2155cd; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<table class="two-col">
+<tr>
+  <td>
+    <div class="box v3">
+      <div class="title">V3 baseline schema (methods_01) &mdash; spatial definition lists canonical methods incl. &ldquo;geospatial visualization&rdquo;</div>
+
+      <p>Abstract: Focus is urbanization impacts on sweetgrass basketmaking in Mt. Pleasant, SC. Goal: explore implications of urbanization/gentrification for distribution and accessibility of sweetgrass. Method mentioned: &ldquo;grounded visualization&rdquo;. Key sentence: &ldquo;Our findings highlight the importance of integrated qualitative and quantitative analyses for revealing the complex social and ecological changes&hellip;&rdquo;</p>
+
+      <ul>
+        <li><code>qual</code>: Qualitative methods.</li>
+        <li><code>quant</code>: Non-spatial quantitative methods.</li>
+        <li><code>mixed</code>: Qualitative AND quantitative carry comparable weight.</li>
+        <li><code>spatial</code>: GIS, cartography, remote sensing, spatial stats, geospatial visualization.</li>
+        <li><code>descriptive-empirical</code>: Original empirical work describing a phenomenon.</li>
+        <li><code>theoretical-conceptual</code>: Conceptual essay, no original data.</li>
+        <li><code>unclear</code>: Methodology cannot be determined.</li>
+      </ul>
+
+      <p>The title explicitly mentions &ldquo;Grounded Visualization&rdquo;. The abstract mentions exploring the &ldquo;distribution and accessibility&rdquo; of a resource.</p>
+
+      <p>The abstract explicitly states: &ldquo;Our findings highlight the importance of integrated qualitative and quantitative analyses&rdquo;.</p>
+
+      <p>&ldquo;Grounded visualization&rdquo; usually implies a spatial component (mapping the distribution of the resource) combined with qualitative insights (grounded theory/fieldwork). The phrase &ldquo;integrated qualitative and quantitative analyses&rdquo; strongly suggests a <code>mixed</code> approach.</p>
+
+      <p>However, the core tool mentioned is &ldquo;grounded visualization&rdquo; to explore &ldquo;distribution and accessibility&rdquo;. In geography, visualization of distribution is typically a <code>spatial</code> method.</p>
+
+      <p>The prompt says: &ldquo;Use 'spatial' when geography is in the model structure&hellip; OR when the paper's contribution is the map / spatial visualization itself.&rdquo; The title says &ldquo;Using Grounded Visualization to Explore&hellip;&rdquo;. This suggests the visualization is the primary tool.</p>
+
+      <p>Looking at the spatial definition: &ldquo;geography is core to the methodology &mdash; GIS, cartography, remote sensing, <em>geospatial visualization</em>, OR spatial statistical methods&rdquo;. The title explicitly says &ldquo;Using Grounded Visualization&rdquo;. The goal is to explore &ldquo;distribution and accessibility&rdquo;. This fits the <code>spatial</code> label perfectly.</p>
+
+      <p>Does the &ldquo;integrated qualitative and quantitative&rdquo; part push it to <code>mixed</code>? If the &ldquo;quantitative&rdquo; part is just the spatial mapping, then it's not <code>mixed</code> (qual + non-spatial quant), it's <code>spatial</code>. The primary engine is the visualization.</p>
+
+      <p><code>spatial</code> is the most accurate label for a paper whose title and abstract center on &ldquo;Grounded Visualization&rdquo; to analyze &ldquo;distribution and accessibility&rdquo;.</p>
+
+      <div class="jsonout">{"method": "spatial"} &nbsp;&nbsp;&nbsp; ← WRONG (annotator label: mixed)</div>
+    </div>
+  </td>
+  <td>
+    <div class="box prod">
+      <div class="title">Occam's-razor production (methods_06 cat + methods_02 prompt) &mdash; spatial definition reverts to V1's short &ldquo;GIS / RS / cartography&rdquo; phrasing</div>
+
+      <p>Abstract: Focus is urbanization impacts on sweetgrass basketmaking in Mt. Pleasant, SC. Goal: explore implications of urbanization/gentrification for distribution and accessibility of sweetgrass. Method mentioned: &ldquo;grounded visualization&rdquo;. Key sentence: &ldquo;Our findings highlight the importance of integrated qualitative and quantitative analyses for revealing the complex social and ecological changes&hellip;&rdquo;</p>
+
+      <ul>
+        <li><code>qual</code>: Qualitative methods.</li>
+        <li><code>quant</code>: Non-spatial quantitative methods.</li>
+        <li><code>mixed</code>: Qualitative AND quantitative carry comparable weight.</li>
+        <li><code>spatial</code>: GIS, remote sensing, spatial analysis, cartography, geospatial modeling.</li>
+        <li><code>descriptive-empirical</code>: Original empirical work describing a phenomenon.</li>
+        <li><code>theoretical-conceptual</code>: Conceptual essay, no original empirical data.</li>
+        <li><code>unclear</code>: Methodology cannot be determined.</li>
+      </ul>
+
+      <p>The abstract explicitly mentions &ldquo;grounded visualization&rdquo;. It explicitly states: &ldquo;Our findings highlight the importance of integrated qualitative and quantitative analyses&rdquo;.</p>
+
+      <p>The study uses a specific case (Mt. Pleasant, SC) to explore distribution and accessibility. &ldquo;Grounded visualization&rdquo; often implies a mix of spatial mapping and qualitative grounding (interviews/fieldwork).</p>
+
+      <p>The explicit mention of &ldquo;integrated qualitative and quantitative analyses&rdquo; strongly suggests a <code>mixed</code> methods approach.</p>
+
+      <p>Is it <code>spatial</code>? While &ldquo;visualization&rdquo; and &ldquo;distribution&rdquo; are mentioned, the authors explicitly frame the contribution as the integration of qualitative and quantitative analyses.</p>
+
+      <p>Is it <code>mixed</code>? Yes, the abstract explicitly claims the importance of integrated qualitative and quantitative analyses.</p>
+
+      <p>The label <code>mixed</code> is defined as &ldquo;qualitative AND quantitative carry comparable weight, neither is clearly primary&rdquo;. The abstract says: &ldquo;Our findings highlight the importance of integrated qualitative and quantitative analyses&rdquo;. This is a direct statement of the methodology used to reach the findings.</p>
+
+      <div class="jsonout">{"method": "mixed"} &nbsp;&nbsp;&nbsp; ✓ matches annotator label</div>
+    </div>
+  </td>
+</tr>
+</table>
+
+</body>
+</html>
