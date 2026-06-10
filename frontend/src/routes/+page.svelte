@@ -1323,7 +1323,7 @@
   </defs>
 </svg>
 
-<h1>Methods classification across rural geography (1992–2026)</h1>
+<h1>Methods classification across rural geography (1986–2026)</h1>
 <p class="caption">
   Methods predicted on {papers.length} papers across {methodCategories.length} categories using the selected model below. The 2022–2026 bucket includes partial 2026.
 </p>
@@ -1641,7 +1641,7 @@
 </section>
 </div>
 
-<h2 class="section-h2">Region across rural geography (1992–2026)</h2>
+<h2 class="section-h2">Region across rural geography (1986–2026)</h2>
 <p class="caption">
   Predicted on {locations.length} papers (snapshot: 2026-05-20_2325_location_v3_abstract).
 </p>
@@ -1870,7 +1870,7 @@
 </section>
 </div>
 
-<h2 class="section-h2">Methods by region: USA vs non-USA (1992–2026)</h2>
+<h2 class="section-h2">Methods by region: USA vs non-USA (1986–2026)</h2>
 <p class="caption">
   Methods proportion over time, <span style="color: {usColor}; font-weight: 600;">USA</span> vs <span style="color: {nonUsColor}; font-weight: 600;">Non-USA</span>. n={compareTotal} (USA={usPapers.length}, Non-USA={nonUsPapers.length}). Papers with region <em>multiple regions</em> or <em>unclear or conceptual</em>, and papers missing from the locations dataset, are excluded.
 </p>
@@ -2106,7 +2106,7 @@
 </section>
 </div>
 
-<h2 class="section-h2">Topics across rural geography (1992–2026)</h2>
+<h2 class="section-h2">Topics across rural geography (1986–2026)</h2>
 <p class="caption">
   {topicPapers.length} papers across {topicCategories.length} categories. The stacked bar shows each topic's share of all topic-instances in each 5-year bucket; the small multiples show the proportion of papers tagged with each topic over time.
 </p>
@@ -2361,7 +2361,7 @@
 </section>
 </div>
 
-<h2 class="section-h2">Topics by region: USA vs non-USA (1992–2026)</h2>
+<h2 class="section-h2">Topics by region: USA vs non-USA (1986–2026)</h2>
 <p class="caption">
   Topic prevalence over time, <span style="color: {usColor}; font-weight: 600;">USA</span> vs <span style="color: {nonUsColor}; font-weight: 600;">Non-USA</span>. n={compareTopicTotal} (USA={usTopicPapers.length}, Non-USA={nonUsTopicPapers.length}). Papers with region <em>multiple regions</em> or <em>unclear or conceptual</em>, and papers missing from the locations dataset, are excluded.
 </p>
