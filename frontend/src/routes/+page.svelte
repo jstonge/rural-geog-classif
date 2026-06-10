@@ -1323,31 +1323,97 @@
   </defs>
 </svg>
 
-<h1>Methods classification across rural geography (1986–2026)</h1>
-<p class="caption">
-  Methods predicted on {papers.length} papers across {methodCategories.length} categories using the selected model below. The 2022–2026 bucket includes partial 2026.
-</p>
-
-<div class="facet-controls">
-  <span class="control-label">Methods model:</span>
-  {#each methodModels as m (m.key)}
-    <button
-      type="button"
-      class="toggle-btn"
-      class:active={methodModel === m.key}
-      onclick={() => (methodModel = m.key)}
-    >{m.label}</button>
+<!--
+  Shared bar-chart / facet snippets — reduce repetition across the page.
+  All inputs (xBand, yBar, barWidth, barHeight, barMargin, decades, facetX,
+  facetCx, facetInnerHeight, lowConfidenceBuckets, lowConfidenceTitle,
+  bucketLabel) are module-level constants in the <script> block.
+-->
+{#snippet barYAxisTicks()}
+  {#each [0, 0.25, 0.5, 0.75, 1.0] as tick (tick)}
+    <line
+      x1={barMargin.left}
+      x2={barWidth - barMargin.right}
+      y1={yBar(tick)}
+      y2={yBar(tick)}
+      stroke="#e0e0e0"
+      stroke-width="1"
+    />
+    <text
+      x={barMargin.left - 8}
+      y={yBar(tick) + 4}
+      text-anchor="end"
+      font-size="11"
+      fill="#666"
+    >{tick}</text>
   {/each}
-</div>
-<p class="caption">{currentMethodModel.description}</p>
+{/snippet}
+
+{#snippet barXAxisLabels()}
+  {#each decades as decade (decade)}
+    <text
+      x={(xBand(decade) ?? 0) + xBand.bandwidth() / 2}
+      y={barHeight - barMargin.bottom + 20}
+      text-anchor="middle"
+      font-size="12"
+      fill="#333"
+    >{bucketLabel(decade)}</text>
+  {/each}
+{/snippet}
+
+{#snippet barXAxisTitle()}
+  <text
+    x={(barMargin.left + barWidth - barMargin.right) / 2}
+    y={barHeight - 8}
+    text-anchor="middle"
+    font-size="12"
+    fill="#666"
+  >Year (5-year buckets)</text>
+{/snippet}
+
+{#snippet barHatchOverlay()}
+  {#each [...lowConfidenceBuckets] as lc (lc)}
+    {#if xBand(lc) !== undefined}
+      <rect
+        x={xBand(lc)}
+        y={barMargin.top}
+        width={xBand.bandwidth()}
+        height={barHeight - barMargin.top - barMargin.bottom}
+        fill="url(#lowDataHatch-shared)"
+        opacity="0.55"
+        pointer-events="none"
+      >
+        <title>{lowConfidenceTitle}</title>
+      </rect>
+    {/if}
+  {/each}
+{/snippet}
+
+{#snippet facetHatchOverlay()}
+  {#each [...lowConfidenceBuckets] as lc (lc)}
+    {@const lcX = facetX(lc)}
+    {@const lcIdx = (decades as readonly string[]).indexOf(lc)}
+    {#if lcX !== undefined}
+      {@const lcWidth = lcIdx >= 0 && lcIdx < decades.length - 1 ? facetCx(decades[lcIdx + 1]) - lcX : facetX.bandwidth()}
+      <rect
+        x={lcX}
+        y={0}
+        width={lcWidth}
+        height={facetInnerHeight}
+        fill="url(#lowDataHatch-shared)"
+        opacity="0.45"
+        pointer-events="none"
+      >
+        <title>{lowConfidenceTitle}</title>
+      </rect>
+    {/if}
+  {/each}
+{/snippet}
+
+<h2>Overview (1986–2026)</h2>
 
 <button type="button" class="export-btn" onclick={() => exportPng(overviewRef, 'overview_total_papers')}>⬇ PNG</button>
 <svg bind:this={overviewRef} width={overviewWidth} height={overviewHeight} class="overview-chart" aria-label="Total papers per 5-year bucket">
-  <defs>
-    <pattern id="lowDataHatch-overview" patternUnits="userSpaceOnUse" width="6" height="6">
-      <path d="M-1,1 l2,-2 M0,6 l6,-6 M5,7 l2,-2" stroke="#666" stroke-width="0.8" />
-    </pattern>
-  </defs>
   <text
     x={-(overviewHeight / 2)}
     y={14}
@@ -1404,7 +1470,7 @@
         y={overviewMargin.top}
         width={overviewX.bandwidth()}
         height={overviewHeight - overviewMargin.top - overviewMargin.bottom}
-        fill="url(#lowDataHatch-overview)"
+        fill="url(#lowDataHatch-shared)"
         opacity="0.55"
         pointer-events="none"
       >
@@ -1413,6 +1479,25 @@
     {/if}
   {/each}
 </svg>
+
+
+<h2>Methods classification across rural geography (1986–2026)</h2>
+<p class="caption">
+  Methods predicted on {papers.length} papers across {methodCategories.length} categories using the selected model below. The 2022–2026 bucket includes partial 2026.
+</p>
+
+<div class="facet-controls">
+  <span class="control-label">Methods model:</span>
+  {#each methodModels as m (m.key)}
+    <button
+      type="button"
+      class="toggle-btn"
+      class:active={methodModel === m.key}
+      onclick={() => (methodModel = m.key)}
+    >{m.label}</button>
+  {/each}
+</div>
+<p class="caption">{currentMethodModel.description}</p>
 
 <div class="legend">
   {#each methodCategories as method (method)}
@@ -1434,11 +1519,6 @@
 <div class="charts-row">
 <button type="button" class="export-btn" onclick={() => exportPng(methodsStackedRef, 'methods_stacked')}>⬇ PNG</button>
 <svg bind:this={methodsStackedRef} width={barWidth} height={barHeight} class="bar-chart">
-  <defs>
-    <pattern id="lowDataHatch-methods" patternUnits="userSpaceOnUse" width="6" height="6">
-      <path d="M-1,1 l2,-2 M0,6 l6,-6 M5,7 l2,-2" stroke="#666" stroke-width="0.8" />
-    </pattern>
-  </defs>
   <!-- Y-axis label -->
   <text
     x={-(barHeight / 2)}
@@ -1449,24 +1529,7 @@
     fill="#666"
   >Proportion</text>
 
-  <!-- Y-axis ticks -->
-  {#each [0, 0.25, 0.5, 0.75, 1.0] as tick (tick)}
-    <line
-      x1={barMargin.left}
-      x2={barWidth - barMargin.right}
-      y1={yBar(tick)}
-      y2={yBar(tick)}
-      stroke="#e0e0e0"
-      stroke-width="1"
-    />
-    <text
-      x={barMargin.left - 8}
-      y={yBar(tick) + 4}
-      text-anchor="end"
-      font-size="11"
-      fill="#666"
-    >{tick}</text>
-  {/each}
+  {@render barYAxisTicks()}
 
   <!-- Stacked bars -->
   {#each decadeProportions as { decade, segments } (decade)}
@@ -1506,41 +1569,9 @@
     {/each}
   {/each}
 
-<!-- X-axis decade labels -->
-  {#each decades as decade (decade)}
-    <text
-      x={(xBand(decade) ?? 0) + xBand.bandwidth() / 2}
-      y={barHeight - barMargin.bottom + 20}
-      text-anchor="middle"
-      font-size="12"
-      fill="#333"
-    >{bucketLabel(decade)}</text>
-  {/each}
-
-  <!-- X-axis label -->
-  <text
-    x={(barMargin.left + barWidth - barMargin.right) / 2}
-    y={barHeight - 8}
-    text-anchor="middle"
-    font-size="12"
-    fill="#666"
-  >Year (5-year buckets)</text>
-
-  {#each [...lowConfidenceBuckets] as lc (lc)}
-    {#if xBand(lc) !== undefined}
-      <rect
-        x={xBand(lc)}
-        y={barMargin.top}
-        width={xBand.bandwidth()}
-        height={barHeight - barMargin.top - barMargin.bottom}
-        fill="url(#lowDataHatch-methods)"
-        opacity="0.55"
-        pointer-events="none"
-      >
-        <title>{lowConfidenceTitle}</title>
-      </rect>
-    {/if}
-  {/each}
+  {@render barXAxisLabels()}
+  {@render barXAxisTitle()}
+  {@render barHatchOverlay()}
 </svg>
 
 <button type="button" class="export-btn" onclick={() => exportPng(methodsFacetsRef, 'methods_facets')}>⬇ PNG</button>
@@ -1562,24 +1593,7 @@
       </div>
       <svg width={facetWidth} height={facetHeight} class="facet-svg">
         <g transform="translate({facetMargin.left},{facetMargin.top})">
-          {#each [...lowConfidenceBuckets] as lc (lc)}
-            {@const lcX = facetX(lc)}
-            {@const lcIdx = (decades as readonly string[]).indexOf(lc)}
-            {#if lcX !== undefined}
-              {@const lcWidth = lcIdx >= 0 && lcIdx < decades.length - 1 ? facetCx(decades[lcIdx + 1]) - lcX : facetX.bandwidth()}
-              <rect
-                x={lcX}
-                y={0}
-                width={lcWidth}
-                height={facetInnerHeight}
-                fill="url(#lowDataHatch-shared)"
-                opacity="0.45"
-                pointer-events="none"
-              >
-                <title>{lowConfidenceTitle}</title>
-              </rect>
-            {/if}
-          {/each}
+          {@render facetHatchOverlay()}
           {#each facetYTicks as t (t)}
             <line
               x1={0}
@@ -1663,11 +1677,6 @@
 <div class="charts-row">
 <button type="button" class="export-btn" onclick={() => exportPng(regionsStackedRef, 'regions_stacked')}>⬇ PNG</button>
 <svg bind:this={regionsStackedRef} width={barWidth} height={barHeight} class="bar-chart">
-  <defs>
-    <pattern id="lowDataHatch-regions" patternUnits="userSpaceOnUse" width="6" height="6">
-      <path d="M-1,1 l2,-2 M0,6 l6,-6 M5,7 l2,-2" stroke="#666" stroke-width="0.8" />
-    </pattern>
-  </defs>
   <!-- Y-axis label -->
   <text
     x={-(barHeight / 2)}
@@ -1678,24 +1687,7 @@
     fill="#666"
   >Proportion</text>
 
-  <!-- Y-axis ticks -->
-  {#each [0, 0.25, 0.5, 0.75, 1.0] as tick (tick)}
-    <line
-      x1={barMargin.left}
-      x2={barWidth - barMargin.right}
-      y1={yBar(tick)}
-      y2={yBar(tick)}
-      stroke="#e0e0e0"
-      stroke-width="1"
-    />
-    <text
-      x={barMargin.left - 8}
-      y={yBar(tick) + 4}
-      text-anchor="end"
-      font-size="11"
-      fill="#666"
-    >{tick}</text>
-  {/each}
+  {@render barYAxisTicks()}
 
   <!-- Stacked bars -->
   {#each decadeRegionProportions as { decade, segments } (decade)}
@@ -1735,41 +1727,9 @@
     {/each}
   {/each}
 
-<!-- X-axis decade labels -->
-  {#each decades as decade (decade)}
-    <text
-      x={(xBand(decade) ?? 0) + xBand.bandwidth() / 2}
-      y={barHeight - barMargin.bottom + 20}
-      text-anchor="middle"
-      font-size="12"
-      fill="#333"
-    >{bucketLabel(decade)}</text>
-  {/each}
-
-  <!-- X-axis label -->
-  <text
-    x={(barMargin.left + barWidth - barMargin.right) / 2}
-    y={barHeight - 8}
-    text-anchor="middle"
-    font-size="12"
-    fill="#666"
-  >Year (5-year buckets)</text>
-
-  {#each [...lowConfidenceBuckets] as lc (lc)}
-    {#if xBand(lc) !== undefined}
-      <rect
-        x={xBand(lc)}
-        y={barMargin.top}
-        width={xBand.bandwidth()}
-        height={barHeight - barMargin.top - barMargin.bottom}
-        fill="url(#lowDataHatch-regions)"
-        opacity="0.55"
-        pointer-events="none"
-      >
-        <title>{lowConfidenceTitle}</title>
-      </rect>
-    {/if}
-  {/each}
+  {@render barXAxisLabels()}
+  {@render barXAxisTitle()}
+  {@render barHatchOverlay()}
 </svg>
 
 <button type="button" class="export-btn" onclick={() => exportPng(regionsFacetsRef, 'regions_facets')}>⬇ PNG</button>
@@ -1791,24 +1751,7 @@
       </div>
       <svg width={facetWidth} height={facetHeight} class="facet-svg">
         <g transform="translate({facetMargin.left},{facetMargin.top})">
-          {#each [...lowConfidenceBuckets] as lc (lc)}
-            {@const lcX = facetX(lc)}
-            {@const lcIdx = (decades as readonly string[]).indexOf(lc)}
-            {#if lcX !== undefined}
-              {@const lcWidth = lcIdx >= 0 && lcIdx < decades.length - 1 ? facetCx(decades[lcIdx + 1]) - lcX : facetX.bandwidth()}
-              <rect
-                x={lcX}
-                y={0}
-                width={lcWidth}
-                height={facetInnerHeight}
-                fill="url(#lowDataHatch-shared)"
-                opacity="0.45"
-                pointer-events="none"
-              >
-                <title>{lowConfidenceTitle}</title>
-              </rect>
-            {/if}
-          {/each}
+          {@render facetHatchOverlay()}
           {#each regionFacetYTicks as t (t)}
             <line
               x1={0}
@@ -1889,11 +1832,6 @@
 <div class="charts-row">
 <button type="button" class="export-btn" onclick={() => exportPng(methodsUsVsNonUsBarRef, 'methods_us_vs_nonus_bar')}>⬇ PNG</button>
 <svg bind:this={methodsUsVsNonUsBarRef} width={barWidth} height={barHeight} class="bar-chart">
-  <defs>
-    <pattern id="lowDataHatch-methods-us" patternUnits="userSpaceOnUse" width="6" height="6">
-      <path d="M-1,1 l2,-2 M0,6 l6,-6 M5,7 l2,-2" stroke="#666" stroke-width="0.8" />
-    </pattern>
-  </defs>
   <text
     x={-(barHeight / 2)}
     y={16}
@@ -1903,23 +1841,7 @@
     fill="#666"
   >Proportion</text>
 
-  {#each [0, 0.25, 0.5, 0.75, 1.0] as tick (tick)}
-    <line
-      x1={barMargin.left}
-      x2={barWidth - barMargin.right}
-      y1={yBar(tick)}
-      y2={yBar(tick)}
-      stroke="#e0e0e0"
-      stroke-width="1"
-    />
-    <text
-      x={barMargin.left - 8}
-      y={yBar(tick) + 4}
-      text-anchor="end"
-      font-size="11"
-      fill="#666"
-    >{tick}</text>
-  {/each}
+  {@render barYAxisTicks()}
 
   {#each decadeUsNonUsProportions as { decade, segments } (decade)}
     {#each segments as seg (seg.bucket)}
@@ -1950,39 +1872,9 @@
     {/each}
   {/each}
 
-{#each decades as decade (decade)}
-    <text
-      x={(xBand(decade) ?? 0) + xBand.bandwidth() / 2}
-      y={barHeight - barMargin.bottom + 20}
-      text-anchor="middle"
-      font-size="12"
-      fill="#333"
-    >{bucketLabel(decade)}</text>
-  {/each}
-
-  <text
-    x={(barMargin.left + barWidth - barMargin.right) / 2}
-    y={barHeight - 8}
-    text-anchor="middle"
-    font-size="12"
-    fill="#666"
-  >Year (5-year buckets)</text>
-
-  {#each [...lowConfidenceBuckets] as lc (lc)}
-    {#if xBand(lc) !== undefined}
-      <rect
-        x={xBand(lc)}
-        y={barMargin.top}
-        width={xBand.bandwidth()}
-        height={barHeight - barMargin.top - barMargin.bottom}
-        fill="url(#lowDataHatch-methods-us)"
-        opacity="0.55"
-        pointer-events="none"
-      >
-        <title>{lowConfidenceTitle}</title>
-      </rect>
-    {/if}
-  {/each}
+  {@render barXAxisLabels()}
+  {@render barXAxisTitle()}
+  {@render barHatchOverlay()}
 </svg>
 
 <button type="button" class="export-btn" onclick={() => exportPng(methodsUsVsNonUsFacetsRef, 'methods_us_vs_nonus_facets')}>⬇ PNG</button>
@@ -2006,24 +1898,7 @@
       </div>
       <svg width={facetWidth} height={facetHeight} class="facet-svg">
         <g transform="translate({facetMargin.left},{facetMargin.top})">
-          {#each [...lowConfidenceBuckets] as lc (lc)}
-            {@const lcX = facetX(lc)}
-            {@const lcIdx = (decades as readonly string[]).indexOf(lc)}
-            {#if lcX !== undefined}
-              {@const lcWidth = lcIdx >= 0 && lcIdx < decades.length - 1 ? facetCx(decades[lcIdx + 1]) - lcX : facetX.bandwidth()}
-              <rect
-                x={lcX}
-                y={0}
-                width={lcWidth}
-                height={facetInnerHeight}
-                fill="url(#lowDataHatch-shared)"
-                opacity="0.45"
-                pointer-events="none"
-              >
-                <title>{lowConfidenceTitle}</title>
-              </rect>
-            {/if}
-          {/each}
+          {@render facetHatchOverlay()}
           {#each compareYTicks as t (t)}
             <line
               x1={0}
@@ -2157,11 +2032,6 @@
 <div class="charts-row">
 <button type="button" class="export-btn" onclick={() => exportPng(topicsStackedRef, 'topics_stacked')}>⬇ PNG</button>
 <svg bind:this={topicsStackedRef} width={barWidth} height={barHeight} class="bar-chart">
-  <defs>
-    <pattern id="lowDataHatch-topics" patternUnits="userSpaceOnUse" width="6" height="6">
-      <path d="M-1,1 l2,-2 M0,6 l6,-6 M5,7 l2,-2" stroke="#666" stroke-width="0.8" />
-    </pattern>
-  </defs>
   <text
     x={-(barHeight / 2)}
     y={16}
@@ -2171,23 +2041,7 @@
     fill="#666"
   >Share of topic-instances</text>
 
-  {#each [0, 0.25, 0.5, 0.75, 1.0] as tick (tick)}
-    <line
-      x1={barMargin.left}
-      x2={barWidth - barMargin.right}
-      y1={yBar(tick)}
-      y2={yBar(tick)}
-      stroke="#e0e0e0"
-      stroke-width="1"
-    />
-    <text
-      x={barMargin.left - 8}
-      y={yBar(tick) + 4}
-      text-anchor="end"
-      font-size="11"
-      fill="#666"
-    >{tick}</text>
-  {/each}
+  {@render barYAxisTicks()}
 
   {#each decadeTopicProportions as { decade, segments } (decade)}
     {#each segments as seg (seg.topic)}
@@ -2226,39 +2080,9 @@
     {/each}
   {/each}
 
-{#each decades as decade (decade)}
-    <text
-      x={(xBand(decade) ?? 0) + xBand.bandwidth() / 2}
-      y={barHeight - barMargin.bottom + 20}
-      text-anchor="middle"
-      font-size="12"
-      fill="#333"
-    >{bucketLabel(decade)}</text>
-  {/each}
-
-  <text
-    x={(barMargin.left + barWidth - barMargin.right) / 2}
-    y={barHeight - 8}
-    text-anchor="middle"
-    font-size="12"
-    fill="#666"
-  >Year (5-year buckets)</text>
-
-  {#each [...lowConfidenceBuckets] as lc (lc)}
-    {#if xBand(lc) !== undefined}
-      <rect
-        x={xBand(lc)}
-        y={barMargin.top}
-        width={xBand.bandwidth()}
-        height={barHeight - barMargin.top - barMargin.bottom}
-        fill="url(#lowDataHatch-topics)"
-        opacity="0.55"
-        pointer-events="none"
-      >
-        <title>{lowConfidenceTitle}</title>
-      </rect>
-    {/if}
-  {/each}
+  {@render barXAxisLabels()}
+  {@render barXAxisTitle()}
+  {@render barHatchOverlay()}
 </svg>
 
 <button type="button" class="export-btn" onclick={() => exportPng(topicsFacetsRef, 'topics_facets')}>⬇ PNG</button>
@@ -2282,24 +2106,7 @@
       </div>
       <svg width={facetWidth} height={facetHeight} class="facet-svg">
         <g transform="translate({facetMargin.left},{facetMargin.top})">
-          {#each [...lowConfidenceBuckets] as lc (lc)}
-            {@const lcX = facetX(lc)}
-            {@const lcIdx = (decades as readonly string[]).indexOf(lc)}
-            {#if lcX !== undefined}
-              {@const lcWidth = lcIdx >= 0 && lcIdx < decades.length - 1 ? facetCx(decades[lcIdx + 1]) - lcX : facetX.bandwidth()}
-              <rect
-                x={lcX}
-                y={0}
-                width={lcWidth}
-                height={facetInnerHeight}
-                fill="url(#lowDataHatch-shared)"
-                opacity="0.45"
-                pointer-events="none"
-              >
-                <title>{lowConfidenceTitle}</title>
-              </rect>
-            {/if}
-          {/each}
+          {@render facetHatchOverlay()}
           {#each yTicks as t (t)}
             <line
               x1={0}
@@ -2380,11 +2187,6 @@
 <div class="charts-row">
 <button type="button" class="export-btn" onclick={() => exportPng(topicsUsVsNonUsBarRef, 'topics_us_vs_nonus_bar')}>⬇ PNG</button>
 <svg bind:this={topicsUsVsNonUsBarRef} width={barWidth} height={barHeight} class="bar-chart">
-  <defs>
-    <pattern id="lowDataHatch-topics-us" patternUnits="userSpaceOnUse" width="6" height="6">
-      <path d="M-1,1 l2,-2 M0,6 l6,-6 M5,7 l2,-2" stroke="#666" stroke-width="0.8" />
-    </pattern>
-  </defs>
   <text
     x={-(barHeight / 2)}
     y={16}
@@ -2394,23 +2196,7 @@
     fill="#666"
   >Proportion</text>
 
-  {#each [0, 0.25, 0.5, 0.75, 1.0] as tick (tick)}
-    <line
-      x1={barMargin.left}
-      x2={barWidth - barMargin.right}
-      y1={yBar(tick)}
-      y2={yBar(tick)}
-      stroke="#e0e0e0"
-      stroke-width="1"
-    />
-    <text
-      x={barMargin.left - 8}
-      y={yBar(tick) + 4}
-      text-anchor="end"
-      font-size="11"
-      fill="#666"
-    >{tick}</text>
-  {/each}
+  {@render barYAxisTicks()}
 
   {#each decadeUsNonUsTopicProportions as { decade, segments } (decade)}
     {#each segments as seg (seg.bucket)}
@@ -2441,39 +2227,9 @@
     {/each}
   {/each}
 
-  {#each decades as decade (decade)}
-    <text
-      x={(xBand(decade) ?? 0) + xBand.bandwidth() / 2}
-      y={barHeight - barMargin.bottom + 20}
-      text-anchor="middle"
-      font-size="12"
-      fill="#333"
-    >{bucketLabel(decade)}</text>
-  {/each}
-
-  <text
-    x={(barMargin.left + barWidth - barMargin.right) / 2}
-    y={barHeight - 8}
-    text-anchor="middle"
-    font-size="12"
-    fill="#666"
-  >Year (5-year buckets)</text>
-
-  {#each [...lowConfidenceBuckets] as lc (lc)}
-    {#if xBand(lc) !== undefined}
-      <rect
-        x={xBand(lc)}
-        y={barMargin.top}
-        width={xBand.bandwidth()}
-        height={barHeight - barMargin.top - barMargin.bottom}
-        fill="url(#lowDataHatch-topics-us)"
-        opacity="0.55"
-        pointer-events="none"
-      >
-        <title>{lowConfidenceTitle}</title>
-      </rect>
-    {/if}
-  {/each}
+  {@render barXAxisLabels()}
+  {@render barXAxisTitle()}
+  {@render barHatchOverlay()}
 </svg>
 
 <button type="button" class="export-btn" onclick={() => exportPng(topicsUsVsNonUsFacetsRef, 'topics_us_vs_nonus_facets')}>⬇ PNG</button>
@@ -2497,24 +2253,7 @@
       </div>
       <svg width={facetWidth} height={facetHeight} class="facet-svg">
         <g transform="translate({facetMargin.left},{facetMargin.top})">
-          {#each [...lowConfidenceBuckets] as lc (lc)}
-            {@const lcX = facetX(lc)}
-            {@const lcIdx = (decades as readonly string[]).indexOf(lc)}
-            {#if lcX !== undefined}
-              {@const lcWidth = lcIdx >= 0 && lcIdx < decades.length - 1 ? facetCx(decades[lcIdx + 1]) - lcX : facetX.bandwidth()}
-              <rect
-                x={lcX}
-                y={0}
-                width={lcWidth}
-                height={facetInnerHeight}
-                fill="url(#lowDataHatch-shared)"
-                opacity="0.45"
-                pointer-events="none"
-              >
-                <title>{lowConfidenceTitle}</title>
-              </rect>
-            {/if}
-          {/each}
+          {@render facetHatchOverlay()}
           {#each compareTopicYTicks as t (t)}
             <line
               x1={0}
@@ -3119,24 +2858,7 @@
       </div>
       <svg width={facetWidth} height={facetHeight} class="facet-svg">
         <g transform="translate({facetMargin.left},{facetMargin.top})">
-          {#each [...lowConfidenceBuckets] as lc (lc)}
-            {@const lcX = facetX(lc)}
-            {@const lcIdx = (decades as readonly string[]).indexOf(lc)}
-            {#if lcX !== undefined}
-              {@const lcWidth = lcIdx >= 0 && lcIdx < decades.length - 1 ? facetCx(decades[lcIdx + 1]) - lcX : facetX.bandwidth()}
-              <rect
-                x={lcX}
-                y={0}
-                width={lcWidth}
-                height={facetInnerHeight}
-                fill="url(#lowDataHatch-shared)"
-                opacity="0.45"
-                pointer-events="none"
-              >
-                <title>{lowConfidenceTitle}</title>
-              </rect>
-            {/if}
-          {/each}
+          {@render facetHatchOverlay()}
           {#each yTicks as t (t)}
             <line
               x1={0}
